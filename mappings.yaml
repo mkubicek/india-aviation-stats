@@ -1,0 +1,802 @@
+# Airport classifications, airline groups, and color palettes
+# This file drives all classification — edit mappings, not code.
+
+# ─────────────────────────────────────────────────────────────
+# Airport definitions
+# Tier criteria (annual passengers):
+#   Metro: >20M | Tier 1: 5M–20M | Tier 2: 1M–5M | Tier 3: <1M
+#   Greenfield: under construction or newly opened
+# ─────────────────────────────────────────────────────────────
+
+airports:
+  # ── Metro (>20M annual passengers) ──
+  DEL:
+    name: Indira Gandhi International Airport
+    city: Delhi
+    state: Delhi
+    lat: 28.5562
+    lon: 77.1000
+    tier: metro
+    opened_year: 1962
+
+  BOM:
+    name: Chhatrapati Shivaji Maharaj International Airport
+    city: Mumbai
+    state: Maharashtra
+    lat: 19.0896
+    lon: 72.8656
+    tier: metro
+    opened_year: 1942
+
+  BLR:
+    name: Kempegowda International Airport
+    city: Bengaluru
+    state: Karnataka
+    lat: 13.1979
+    lon: 77.7063
+    tier: metro
+    opened_year: 2008
+
+  HYD:
+    name: Rajiv Gandhi International Airport
+    city: Hyderabad
+    state: Telangana
+    lat: 17.2403
+    lon: 78.4294
+    tier: metro
+    opened_year: 2008
+
+  MAA:
+    name: Chennai International Airport
+    city: Chennai
+    state: Tamil Nadu
+    lat: 12.9941
+    lon: 80.1709
+    tier: metro
+    opened_year: 1954
+
+  CCU:
+    name: Netaji Subhas Chandra Bose International Airport
+    city: Kolkata
+    state: West Bengal
+    lat: 22.6547
+    lon: 88.4467
+    tier: metro
+    opened_year: 1924
+
+  # ── Tier 1 (5M–20M annual passengers) ──
+  GOI:
+    name: Goa International Airport (Manohar)
+    city: Goa
+    state: Goa
+    lat: 15.3808
+    lon: 73.8314
+    tier: tier1
+    opened_year: 2023
+
+  COK:
+    name: Cochin International Airport
+    city: Kochi
+    state: Kerala
+    lat: 10.1520
+    lon: 76.4019
+    tier: tier1
+    opened_year: 1999
+
+  AMD:
+    name: Sardar Vallabhbhai Patel International Airport
+    city: Ahmedabad
+    state: Gujarat
+    lat: 23.0772
+    lon: 72.6347
+    tier: tier1
+    opened_year: 1937
+
+  PNQ:
+    name: Pune Airport
+    city: Pune
+    state: Maharashtra
+    lat: 18.5822
+    lon: 73.9197
+    tier: tier1
+    opened_year: 1961
+
+  JAI:
+    name: Jaipur International Airport
+    city: Jaipur
+    state: Rajasthan
+    lat: 26.8242
+    lon: 75.8122
+    tier: tier1
+    opened_year: 1949
+
+  GAU:
+    name: Lokpriya Gopinath Bordoloi International Airport
+    city: Guwahati
+    state: Assam
+    lat: 26.1061
+    lon: 91.5859
+    tier: tier1
+    opened_year: 1958
+
+  LKO:
+    name: Chaudhary Charan Singh International Airport
+    city: Lucknow
+    state: Uttar Pradesh
+    lat: 26.7606
+    lon: 80.8893
+    tier: tier1
+    opened_year: 1947
+
+  TRV:
+    name: Trivandrum International Airport
+    city: Thiruvananthapuram
+    state: Kerala
+    lat: 8.4821
+    lon: 76.9200
+    tier: tier1
+    opened_year: 1935
+
+  IXE:
+    name: Mangalore International Airport
+    city: Mangaluru
+    state: Karnataka
+    lat: 12.9614
+    lon: 74.8901
+    tier: tier1
+    opened_year: 1951
+
+  CCJ:
+    name: Calicut International Airport
+    city: Kozhikode
+    state: Kerala
+    lat: 11.1368
+    lon: 75.9553
+    tier: tier1
+    opened_year: 1988
+
+  SXR:
+    name: Sheikh ul-Alam International Airport
+    city: Srinagar
+    state: Jammu & Kashmir
+    lat: 33.9871
+    lon: 74.7742
+    tier: tier1
+    opened_year: 1946
+
+  BBI:
+    name: Biju Patnaik International Airport
+    city: Bhubaneswar
+    state: Odisha
+    lat: 20.2444
+    lon: 85.8178
+    tier: tier1
+    opened_year: 1962
+
+  IXR:
+    name: Birsa Munda Airport
+    city: Ranchi
+    state: Jharkhand
+    lat: 23.3143
+    lon: 85.3217
+    tier: tier1
+    opened_year: 1943
+
+  VTZ:
+    name: Visakhapatnam Airport
+    city: Visakhapatnam
+    state: Andhra Pradesh
+    lat: 17.7212
+    lon: 83.2245
+    tier: tier1
+    opened_year: 1948
+
+  NAG:
+    name: Dr. Babasaheb Ambedkar International Airport
+    city: Nagpur
+    state: Maharashtra
+    lat: 21.0922
+    lon: 79.0472
+    tier: tier1
+    opened_year: 1942
+
+  IDR:
+    name: Devi Ahilyabai Holkar Airport
+    city: Indore
+    state: Madhya Pradesh
+    lat: 22.7218
+    lon: 75.8011
+    tier: tier1
+    opened_year: 1943
+
+  PAT:
+    name: Jay Prakash Narayan International Airport
+    city: Patna
+    state: Bihar
+    lat: 25.5913
+    lon: 85.0880
+    tier: tier1
+    opened_year: 1940
+
+  # ── Tier 2 (1M–5M annual passengers) ──
+  IXC:
+    name: Chandigarh International Airport
+    city: Chandigarh
+    state: Chandigarh
+    lat: 30.6735
+    lon: 76.7885
+    tier: tier2
+    opened_year: 1948
+
+  VNS:
+    name: Lal Bahadur Shastri International Airport
+    city: Varanasi
+    state: Uttar Pradesh
+    lat: 25.4524
+    lon: 82.8593
+    tier: tier2
+    opened_year: 1942
+
+  IXB:
+    name: Bagdogra Airport
+    city: Siliguri
+    state: West Bengal
+    lat: 26.6812
+    lon: 88.3286
+    tier: tier2
+    opened_year: 1943
+
+  RPR:
+    name: Swami Vivekananda Airport
+    city: Raipur
+    state: Chhattisgarh
+    lat: 21.1804
+    lon: 81.7388
+    tier: tier2
+    opened_year: 1943
+
+  MAQ:
+    name: Kannur International Airport
+    city: Kannur
+    state: Kerala
+    lat: 11.9186
+    lon: 75.5472
+    tier: tier2
+    opened_year: 2018
+
+  IXA:
+    name: Maharaja Bir Bikram Airport
+    city: Agartala
+    state: Tripura
+    lat: 23.8870
+    lon: 91.2404
+    tier: tier2
+    opened_year: 1942
+
+  IMF:
+    name: Imphal Airport
+    city: Imphal
+    state: Manipur
+    lat: 24.7600
+    lon: 93.8967
+    tier: tier2
+    opened_year: 1947
+
+  DIB:
+    name: Dibrugarh Airport
+    city: Dibrugarh
+    state: Assam
+    lat: 27.4839
+    lon: 95.0169
+    tier: tier2
+    opened_year: 1946
+
+  JLR:
+    name: Jabalpur Airport
+    city: Jabalpur
+    state: Madhya Pradesh
+    lat: 23.1778
+    lon: 80.0520
+    tier: tier2
+    opened_year: 1940
+
+  UDR:
+    name: Maharana Pratap Airport
+    city: Udaipur
+    state: Rajasthan
+    lat: 24.6177
+    lon: 73.8961
+    tier: tier2
+    opened_year: 1960
+
+  BDQ:
+    name: Vadodara Airport
+    city: Vadodara
+    state: Gujarat
+    lat: 22.3362
+    lon: 73.2264
+    tier: tier2
+    opened_year: 1942
+
+  RAJ:
+    name: Rajkot Airport (Hirasar)
+    city: Rajkot
+    state: Gujarat
+    lat: 22.3092
+    lon: 70.7795
+    tier: tier2
+    opened_year: 2024
+
+  IXJ:
+    name: Jammu Airport
+    city: Jammu
+    state: Jammu & Kashmir
+    lat: 32.6891
+    lon: 74.8374
+    tier: tier2
+    opened_year: 1947
+
+  DEP:
+    name: Deoghar Airport
+    city: Deoghar
+    state: Jharkhand
+    lat: 24.4318
+    lon: 86.7078
+    tier: tier2
+    opened_year: 2022
+
+  JDH:
+    name: Jodhpur Airport
+    city: Jodhpur
+    state: Rajasthan
+    lat: 26.2511
+    lon: 73.0489
+    tier: tier2
+    opened_year: 1942
+
+  GAY:
+    name: Gaya Airport
+    city: Gaya
+    state: Bihar
+    lat: 24.7443
+    lon: 84.9512
+    tier: tier2
+    opened_year: 1943
+
+  IXZ:
+    name: Veer Savarkar International Airport
+    city: Port Blair
+    state: Andaman & Nicobar
+    lat: 11.6412
+    lon: 92.7297
+    tier: tier2
+    opened_year: 1942
+
+  ATQ:
+    name: Sri Guru Ram Dass Jee International Airport
+    city: Amritsar
+    state: Punjab
+    lat: 31.7096
+    lon: 74.7973
+    tier: tier2
+    opened_year: 1947
+
+  TIR:
+    name: Tirupati Airport
+    city: Tirupati
+    state: Andhra Pradesh
+    lat: 13.6325
+    lon: 79.5433
+    tier: tier2
+    opened_year: 1971
+
+  CJB:
+    name: Coimbatore International Airport
+    city: Coimbatore
+    state: Tamil Nadu
+    lat: 11.0300
+    lon: 77.0434
+    tier: tier2
+    opened_year: 1936
+
+  STV:
+    name: Surat Airport
+    city: Surat
+    state: Gujarat
+    lat: 21.1141
+    lon: 72.7418
+    tier: tier2
+    opened_year: 1952
+
+  IXS:
+    name: Silchar Airport
+    city: Silchar
+    state: Assam
+    lat: 24.9129
+    lon: 92.9787
+    tier: tier2
+    opened_year: 1942
+
+  TRZ:
+    name: Tiruchirappalli International Airport
+    city: Tiruchirappalli
+    state: Tamil Nadu
+    lat: 10.7654
+    lon: 78.7097
+    tier: tier2
+    opened_year: 1942
+
+  DED:
+    name: Jolly Grant Airport
+    city: Dehradun
+    state: Uttarakhand
+    lat: 30.1897
+    lon: 78.1803
+    tier: tier2
+    opened_year: 1978
+
+  IXM:
+    name: Madurai Airport
+    city: Madurai
+    state: Tamil Nadu
+    lat: 9.8345
+    lon: 78.0934
+    tier: tier2
+    opened_year: 1956
+
+  BHO:
+    name: Raja Bhoj Airport
+    city: Bhopal
+    state: Madhya Pradesh
+    lat: 23.2875
+    lon: 77.3372
+    tier: tier2
+    opened_year: 1958
+
+  # ── Tier 3 (<1M annual passengers — selected) ──
+  AJL:
+    name: Lengpui Airport
+    city: Aizawl
+    state: Mizoram
+    lat: 23.8406
+    lon: 92.6197
+    tier: tier3
+    opened_year: 1998
+
+  DMU:
+    name: Dimapur Airport
+    city: Dimapur
+    state: Nagaland
+    lat: 25.8839
+    lon: 93.7711
+    tier: tier3
+    opened_year: 1943
+
+  JRH:
+    name: Jorhat Airport
+    city: Jorhat
+    state: Assam
+    lat: 26.7315
+    lon: 94.1753
+    tier: tier3
+    opened_year: 1943
+
+  HBX:
+    name: Hubli Airport
+    city: Hubli
+    state: Karnataka
+    lat: 15.3617
+    lon: 75.0849
+    tier: tier3
+    opened_year: 1960
+
+  BEK:
+    name: Bareilly Airport
+    city: Bareilly
+    state: Uttar Pradesh
+    lat: 28.4221
+    lon: 79.4508
+    tier: tier3
+    opened_year: 2021
+
+  KLH:
+    name: Kalaburagi Airport
+    city: Kalaburagi
+    state: Karnataka
+    lat: 17.3190
+    lon: 76.8297
+    tier: tier3
+    opened_year: 2019
+
+  SHL:
+    name: Shillong Airport (Umroi)
+    city: Shillong
+    state: Meghalaya
+    lat: 25.7036
+    lon: 91.9787
+    tier: tier3
+    opened_year: 1966
+
+  KNU:
+    name: Kanpur Airport
+    city: Kanpur
+    state: Uttar Pradesh
+    lat: 26.4414
+    lon: 80.3648
+    tier: tier3
+    opened_year: 2023
+
+  AGR:
+    name: Agra Airport
+    city: Agra
+    state: Uttar Pradesh
+    lat: 27.1557
+    lon: 77.9609
+    tier: tier3
+    opened_year: 2023
+
+  PYG:
+    name: Pakyong Airport
+    city: Gangtok
+    state: Sikkim
+    lat: 27.2259
+    lon: 88.5862
+    tier: tier3
+    opened_year: 2018
+
+  KUU:
+    name: Kullu-Manali Airport (Bhuntar)
+    city: Kullu
+    state: Himachal Pradesh
+    lat: 31.8767
+    lon: 77.1544
+    tier: tier3
+    opened_year: 1988
+
+  DHM:
+    name: Gaggal Airport
+    city: Dharamshala
+    state: Himachal Pradesh
+    lat: 32.1651
+    lon: 76.2634
+    tier: tier3
+    opened_year: 1970
+
+  # ── Greenfield (under construction / newly opened) ──
+  NIA:
+    name: Noida International Airport
+    city: Jewar
+    state: Uttar Pradesh
+    lat: 28.1646
+    lon: 77.5801
+    tier: greenfield
+    opened_year: 2026
+    opening_date: "2026-04"
+    phase1_capacity: 12000000
+    ultimate_capacity: 70000000
+
+  NMIA:
+    name: Navi Mumbai International Airport
+    city: Navi Mumbai
+    state: Maharashtra
+    lat: 18.8853
+    lon: 73.1185
+    tier: greenfield
+    opened_year: 2025
+    opening_date: "2025-12"
+    phase1_capacity: 20000000
+    ultimate_capacity: 90000000
+
+  BPM:
+    name: Bhogapuram International Airport
+    city: Bhogapuram
+    state: Andhra Pradesh
+    lat: 18.0175
+    lon: 83.4922
+    tier: greenfield
+    opened_year: 2027
+    opening_date: "2027-06"
+    phase1_capacity: 6000000
+    ultimate_capacity: 20000000
+
+  HGI:
+    name: Hollongi Airport (Donyi Polo)
+    city: Itanagar
+    state: Arunachal Pradesh
+    lat: 27.1631
+    lon: 93.6645
+    tier: tier3
+    opened_year: 2022
+
+  DGH:
+    name: Durgapur Airport (Kazi Nazrul Islam)
+    city: Durgapur
+    state: West Bengal
+    lat: 23.6225
+    lon: 87.2431
+    tier: tier3
+    opened_year: 2022
+
+  GOP:
+    name: Gorakhpur Airport
+    city: Gorakhpur
+    state: Uttar Pradesh
+    lat: 26.7397
+    lon: 83.4497
+    tier: tier3
+    opened_year: 2023
+
+  PYB:
+    name: Jeypore Airport
+    city: Jeypore
+    state: Odisha
+    lat: 18.8800
+    lon: 82.5519
+    tier: tier3
+    opened_year: 2024
+
+# ─────────────────────────────────────────────────────────────
+# Airline groups
+# ─────────────────────────────────────────────────────────────
+
+airline_groups:
+  IndiGo:
+    - IndiGo
+    - InterGlobe Aviation
+
+  Air India Group:
+    - Air India
+    - Air India Express
+    - AIX Connect
+    - Air India (erstwhile Vistara)
+
+  Vistara:
+    - Vistara
+    # Note: Vistara merged into Air India effective Nov 2024
+
+  SpiceJet:
+    - SpiceJet
+
+  Akasa Air:
+    - Akasa Air
+    - SNV Aviation
+
+  Go First:
+    - Go First
+    - GoAir
+    # Note: Go First ceased operations May 2023
+
+  Alliance Air:
+    - Alliance Air
+    - AIATSL
+
+  Star Air:
+    - Star Air
+
+  FlyBig:
+    - FlyBig
+
+  Fly91:
+    - Fly91
+
+# ─────────────────────────────────────────────────────────────
+# Color palettes
+# ─────────────────────────────────────────────────────────────
+
+tier_colors:
+  metro: "#3b82f6"
+  tier1: "#14b8a6"
+  tier2: "#22c55e"
+  tier3: "#94a3b8"
+  greenfield: "#fbbf24"
+
+airport_colors:
+  DEL: "#f72585"
+  BOM: "#4cc9f0"
+  NIA: "#fbbf24"
+  BLR: "#4ade80"
+  HYD: "#a78bfa"
+  MAA: "#fb923c"
+  CCU: "#f87171"
+
+airline_colors:
+  IndiGo: "#3b82f6"
+  Air India Group: "#f72585"
+  SpiceJet: "#fbbf24"
+  Akasa Air: "#fb923c"
+  Vistara: "#a78bfa"
+  Go First: "#22c55e"
+  Alliance Air: "#14b8a6"
+
+# ─────────────────────────────────────────────────────────────
+# Key milestones (for chart annotations)
+# ─────────────────────────────────────────────────────────────
+
+milestones:
+  - date: "2016-10"
+    label: "UDAN scheme launched"
+    description: "Regional Connectivity Scheme to subsidise routes to underserved airports"
+
+  - date: "2017-01"
+    label: "Demonetisation aftermath"
+    description: "Short-term demand shock after Nov 2016 demonetisation"
+
+  - date: "2019-04"
+    label: "Jet Airways ceases operations"
+    description: "India's oldest private airline shuts down; capacity gap"
+
+  - date: "2020-03"
+    label: "COVID-19 lockdown"
+    description: "All domestic flights suspended 25 Mar – 25 May 2020"
+
+  - date: "2020-05"
+    label: "Vande Bharat Mission"
+    description: "Evacuation flights; phased domestic restart"
+
+  - date: "2021-05"
+    label: "Second COVID wave"
+    description: "Delta variant wave; state-level restrictions"
+
+  - date: "2022-03"
+    label: "Full recovery milestone"
+    description: "Domestic traffic exceeds pre-COVID levels"
+
+  - date: "2022-10"
+    label: "Akasa Air launches"
+    description: "New LCC enters market with 737 MAX fleet"
+
+  - date: "2023-01"
+    label: "Air India mega-order"
+    description: "Air India orders 470 aircraft (Airbus + Boeing)"
+
+  - date: "2023-05"
+    label: "Go First ceases operations"
+    description: "Budget carrier files for insolvency"
+
+  - date: "2023-10"
+    label: "Manohar (Goa) airport opens"
+    description: "New greenfield airport operational"
+
+  - date: "2024-07"
+    label: "Rajkot Hirasar opens"
+    description: "Gujarat's newest airport; 1.08M pax first year"
+
+  - date: "2024-11-17"
+    label: "Record single day"
+    description: "505,000 domestic passengers — all-time record"
+
+  - date: "2024-11"
+    label: "Vistara merges into Air India"
+    description: "Tata Group consolidation; Air India becomes full-service + LCC"
+
+  - date: "2025-12"
+    label: "NMIA opening (planned)"
+    description: "Navi Mumbai International Airport Phase 1: 20M capacity"
+
+  - date: "2026-04"
+    label: "NIA opening (planned)"
+    description: "Noida International Airport Phase 1: 12M capacity"
+
+  - date: "2027-06"
+    label: "Bhogapuram opening (planned)"
+    description: "Andhra Pradesh greenfield; Phase 1: 6M capacity"
+
+# ─────────────────────────────────────────────────────────────
+# Greenfield airports (quick-reference for projection model)
+# ─────────────────────────────────────────────────────────────
+
+greenfield_airports:
+  NIA:
+    opening: "2026-04"
+    phase1: 12000000
+    ultimate: 70000000
+
+  NMIA:
+    opening: "2025-12"
+    phase1: 20000000
+    ultimate: 90000000
+
+  BPM:
+    opening: "2027-06"
+    phase1: 6000000
+    ultimate: 20000000

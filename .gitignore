@@ -1,0 +1,23 @@
+# Raw downloaded data (large CSVs, Excel files)
+data/raw/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Temp
+*.tmp
+
+# Logs (regenerated each run)
+warnings.log
