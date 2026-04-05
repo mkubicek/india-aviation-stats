@@ -173,6 +173,49 @@ def process_macro():
     macro = gdp.merge(pop, on="year", how="outer").merge(pax, on="year", how="outer")
     macro = macro.sort_values("year").reset_index(drop=True)
 
+    # Fill World Bank air_passengers gaps using Vonter carrier data.
+    # WB IS.AIR.PSGR lags 1-2 years; Vonter carrier.csv is current.
+    carrier_path = RAW_DIR / "vonter" / "domestic" / "carrier.csv"
+    if carrier_path.exists():
+        carrier = pd.read_csv(carrier_path)
+        carrier_yearly = (
+            carrier.groupby("Year")["Passenger Number"]
+            .sum()
+            .reset_index()
+            .rename(columns={"Year": "year", "Passenger Number": "carrier_pax"})
+        )
+        # Only use complete years (12 months of data)
+        months_per_year = carrier.groupby("Year")["Month"].nunique()
+        complete_years = months_per_year[months_per_year >= 12].index
+        carrier_yearly = carrier_yearly[carrier_yearly["year"].isin(complete_years)]
+
+        # Compute WB-to-Vonter ratio from overlapping years
+        merged = macro.merge(carrier_yearly, on="year", how="inner")
+        overlap = merged.dropna(subset=["air_passengers", "carrier_pax"])
+        if len(overlap) >= 3:
+            ratio = (overlap["air_passengers"] / overlap["carrier_pax"]).median()
+            print(f"    WB/Vonter-carrier ratio (median of {len(overlap)} years): {ratio:.4f}")
+
+            # Fill missing air_passengers years
+            for _, row in carrier_yearly.iterrows():
+                yr = int(row["year"])
+                mask_yr = macro["year"] == yr
+                if mask_yr.any() and macro.loc[mask_yr, "air_passengers"].isna().all():
+                    estimated = row["carrier_pax"] * ratio
+                    macro.loc[mask_yr, "air_passengers"] = estimated
+                    print(f"    Filled {yr} air_passengers = {estimated:,.0f} "
+                          f"(carrier {row['carrier_pax']:,.0f} x {ratio:.4f})")
+                elif not mask_yr.any():
+                    new_row = {"year": yr, "air_passengers": row["carrier_pax"] * ratio}
+                    macro = pd.concat(
+                        [macro, pd.DataFrame([new_row])], ignore_index=True
+                    )
+                    print(f"    Added {yr} air_passengers = {row['carrier_pax'] * ratio:,.0f}")
+        else:
+            print(f"    WARNING: only {len(overlap)} overlapping years, skipping carrier fill")
+
+    macro = macro.sort_values("year").reset_index(drop=True)
+
     # Derive flights per capita
     mask = macro["air_passengers"].notna() & macro["population"].notna()
     macro.loc[mask, "flights_per_capita"] = (
