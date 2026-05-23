@@ -96,7 +96,7 @@ Personal project — views are my own, not those of any employer or affiliate
 ### Definition Line
 
 Below chart title, gray text (`#94a3b8`), explains scope/methodology:
-- Example: "Scheduled commercial passengers at Indian airports | Log-log GDP regression"
+- Example: "Scheduled domestic passenger flows by airport | Trailing 12-month total"
 
 ### General Rules
 
@@ -104,7 +104,7 @@ Below chart title, gray text (`#94a3b8`), explains scope/methodology:
 - Legends: outside chart area (`bbox_to_anchor`) or inline labels
 - Year axes: always show every year with explicit `xticks`
 - Partial years: exclude incomplete years from annual charts
-- Chart filenames: descriptive names (e.g., `gdp_flights_correlation.png`)
+- Chart filenames: descriptive names (e.g., `airport_passenger_race.gif`)
 
 ---
 
@@ -114,24 +114,20 @@ Below chart title, gray text (`#94a3b8`), explains scope/methodology:
 - Frame rate: 300 ms per frame, last frame 3000 ms pause
 - Fixed axes: lock x/y limits across all frames
 - National total counter: top-right corner, formatted with commas
-- Circle sizes: proportional to passenger volume (sqrt scale for area)
-- New airports: appear at opening date with fade-in effect
+- Bar labels must stay inside or just outside the plot without clipping.
 
 ---
 
 ## Pipeline
 
 ```
-download.py → process.py → validate.py → project.py → milestones.py → chart.py → report.py
+download.py → process.py → validate.py → chart.py
 ```
 
-1. **download.py** — Fetch data from World Bank API, DGCA/MoCA sources
+1. **download.py** — Fetch DGCA/MoCA source data
 2. **process.py** — Parse, merge, aggregate → `data/processed/`
-3. **validate.py** — Plausibility checks + `check_milestone_stability` → `warnings.log`
-4. **project.py** — GDP regression (emits `cov_params`) + passenger projections → `projection.json` (schema v1)
-5. **milestones.py** — Monte Carlo inverse prediction from `projection.json` + `milestones.yaml` → `milestones.json` (schema v1)
-6. **chart.py** — Generate milestones table (hero) + correlation + projection + GIF map → `charts/`
-7. **report.py** — Monthly delta report with milestones section → `reports/`, writes monthly snapshot under `data/processed/snapshots/monthly/`
+3. **validate.py** — Source/data checks → `warnings.log`
+4. **chart.py** — Generate passenger ranking/race charts → `charts/`
 
 Each step is idempotent and can be re-run independently.
 
@@ -140,9 +136,8 @@ Each step is idempotent and can be re-run independently.
 ## Conventions
 
 - `mappings.yaml` drives all classification — edit mappings, not code
-- Unknown values → "Other" bucket + logged to `warnings.log`
-- `validate.py` cross-checks against `reference.yaml`
-- `warnings.log` is unified: unmapped values + plausibility checks
+- Unknown airport/city values stay visible as uppercase source names
+- `warnings.log` contains advisory validation warnings
 - Raw data not committed (gitignored), only processed CSVs and charts
 - Charts regenerated on every pipeline run via GitHub Actions
 - Financial year labelling: "FY2024-25" format for Indian data
@@ -152,33 +147,17 @@ Each step is idempotent and can be re-run independently.
 ## CI / GitHub Actions
 
 - **Schedule:** Monthly (5th of each month at 08:00 UTC)
-- **Cache:** Raw data cached between runs, keyed by `scripts/download.py` hash
-- **Incremental downloads:** `download.py` uses `If-Modified-Since` to skip
-  unchanged files
+- **Cache:** Raw data cached as `data/raw.tar.zst`, restored before download and
+  refreshed by `cache-keepalive.yml`
+- **Incremental downloads:** source files are cached locally and freshness is
+  preserved by the raw-data archive
 - **Soft timeout:** `DOWNLOAD_TIMEOUT=600` (10 min) stops new downloads before
   job timeout
 - **GIF generation:** Only on 5th of month or manual dispatch (`--skip-gifs`
   flag on other runs)
 
-### Story cadence ≠ CI cadence
+### Story cadence != CI cadence
 
 The monthly CI schedule is infrastructure: it keeps the pipeline fresh, catches
 data-source breakage early, and regenerates charts so the README never goes
-stale. The *story* is annual-centric because the regression's load-bearing
-inputs (World Bank `IS.AIR.PSGR`, `NY.GDP.PCAP.PP.CD`, DGCA annual totals)
-update annually. `check_milestone_stability` runs every pipeline invocation
-but only flags drift versus **release snapshots** (annual DGCA release or the
-planned v1.1 IMF WEO release cadence), not monthly-to-monthly noise.
-
----
-
-## Map Specifics (Animated Airport Map)
-
-- **Base map:** Natural Earth or datameet/maps GeoJSON (NO Mapbox)
-- **Projection:** Suitable for India (Lambert Conformal Conic or Mercator crop)
-- **Airport circles:** `sqrt(passengers)` scaling for perceptual area accuracy
-- **Color:** By tier (see Tier Palette above)
-- **Animation timeline:** 2015 → 2025 (actual) → 2030 → 2035 → 2040 (projected)
-- **Greenfield airports:** Appear at `opening_date` with gold pulsing effect
-- **Counter:** National total in top-right, formatted in millions
-  (e.g., "340M passengers")
+stale. The current story is observed passenger traffic only.

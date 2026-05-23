@@ -1,68 +1,18 @@
 """Tests for source processing helpers."""
 
-import pandas as pd
-
-from process import aggregate_carrier_yearly_passengers
+from process import city_to_iata, source_csv
 
 
-def test_aggregate_carrier_yearly_prefers_total_rows():
-    rows = []
-    for month in range(1, 13):
-        rows.extend(
-            [
-                {
-                    "Year": 2025,
-                    "Month": month,
-                    "Type": "ScheduledDomestic",
-                    "Airline": "IndiGo",
-                    "Passenger Number": 60,
-                },
-                {
-                    "Year": 2025,
-                    "Month": month,
-                    "Type": "ScheduledDomestic",
-                    "Airline": "Air India",
-                    "Passenger Number": 40,
-                },
-                {
-                    "Year": 2025,
-                    "Month": month,
-                    "Type": "ScheduledDomestic",
-                    "Airline": "Total Domestic",
-                    "Passenger Number": 100,
-                },
-            ]
-        )
-    df = pd.DataFrame(rows)
-
-    yearly = aggregate_carrier_yearly_passengers(df)
-
-    assert yearly.to_dict("records") == [{"year": 2025, "carrier_pax": 1200}]
+def test_city_to_iata_aliases_common_city_names():
+    assert city_to_iata("Bengaluru") == "BLR"
+    assert city_to_iata("Bombay") == "BOM"
+    assert city_to_iata("Trivandrum") == "TRV"
 
 
-def test_aggregate_carrier_yearly_falls_back_without_total_rows():
-    rows = []
-    for month in range(1, 13):
-        rows.extend(
-            [
-                {
-                    "Year": 2025,
-                    "Month": month,
-                    "Type": "ScheduledDomestic",
-                    "Airline": "IndiGo",
-                    "Passenger Number": 60,
-                },
-                {
-                    "Year": 2025,
-                    "Month": month,
-                    "Type": "ScheduledDomestic",
-                    "Airline": "Air India",
-                    "Passenger Number": 40,
-                },
-            ]
-        )
-    df = pd.DataFrame(rows)
+def test_city_to_iata_keeps_unknown_as_uppercase_source_name():
+    assert city_to_iata("Unknown Field") == "UNKNOWN FIELD"
 
-    yearly = aggregate_carrier_yearly_passengers(df)
 
-    assert yearly.to_dict("records") == [{"year": 2025, "carrier_pax": 1200}]
+def test_source_csv_points_to_direct_aviation_aggregate():
+    path = source_csv("domestic/city.csv")
+    assert path.as_posix().endswith("data/raw/aviation/aggregated/domestic/city.csv")

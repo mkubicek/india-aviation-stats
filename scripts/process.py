@@ -1,7 +1,4 @@
-"""Data processing pipeline for India aviation statistics.
-
-Merges World Bank macro data with official-source aviation aggregates into
-unified CSVs for analysis, charting, and projection.
+"""Process official-source India aviation aggregates into chart-ready tables.
 
 Aviation aggregate format:
   - domestic/city.csv: Year, Month, City1, City2, PaxToCity2, PaxFromCity2, ...
@@ -9,11 +6,12 @@ Aviation aggregate format:
   - domestic/carrier.csv: carrier-level data
 
 Outputs (in data/processed/):
-  - india_macro.csv         Yearly GDP, population, passengers, flights_per_capita
-  - airport_monthly.csv     Monthly passenger data per city (domestic)
-  - airport_yearly.csv      Yearly passenger data per city with tier
-  - carrier_monthly.csv     Monthly passenger data per carrier (domestic)
-  - metadata.json           Processing metadata
+  - airport_monthly.csv  Airport passenger data. Domestic rows are monthly;
+                         international rows are quarterly source values mapped
+                         to the middle month of each quarter.
+  - airport_yearly.csv   Calendar-year airport passenger totals by category.
+  - carrier_monthly.csv  Domestic carrier source rows.
+  - metadata.json        Processing metadata.
 """
 
 import json
@@ -26,7 +24,6 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
 AVIATION_AGG_DIR = RAW_DIR / "aviation" / "aggregated"
-LEGACY_VONTER_DIR = RAW_DIR / "vonter"
 PROCESSED_DIR = ROOT / "data" / "processed"
 PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -136,147 +133,8 @@ def city_to_iata(city_name: str) -> str:
 
 
 def source_csv(rel_path: str) -> Path:
-    """Return the direct-source aggregate path, with legacy Vonter fallback."""
-    direct = AVIATION_AGG_DIR / rel_path
-    if direct.exists():
-        return direct
-    return LEGACY_VONTER_DIR / rel_path
-
-
-# ── World Bank parsing ───────────────────────────────────────
-
-
-def parse_world_bank_json(path: Path) -> pd.DataFrame:
-    """Parse a World Bank API JSON response into a year→value DataFrame."""
-    data = json.loads(path.read_text())
-    if not isinstance(data, list) or len(data) < 2:
-        print(f"  WARNING: Unexpected World Bank format in {path.name}")
-        return pd.DataFrame(columns=["year", "value"])
-
-    records = []
-    for entry in data[1]:
-        year = int(entry["date"])
-        value = entry["value"]
-        if value is not None:
-            records.append({"year": year, "value": float(value)})
-
-    return pd.DataFrame(records).sort_values("year").reset_index(drop=True)
-
-
-def aggregate_carrier_yearly_passengers(carrier: pd.DataFrame) -> pd.DataFrame:
-    """Aggregate carrier passengers without double-counting total rows.
-
-    DGCA carrier workbooks often contain both airline-level rows and explicit
-    total rows for the same year/month/type. Prefer the official total row when
-    present; otherwise fall back to summing airline-level rows for that bucket.
-    """
-    if carrier.empty:
-        return pd.DataFrame(columns=["year", "carrier_pax"])
-
-    df = carrier.copy()
-    df["Passenger Number"] = pd.to_numeric(
-        df["Passenger Number"], errors="coerce"
-    ).fillna(0)
-    df["Year"] = pd.to_numeric(df["Year"], errors="coerce")
-    df["Month"] = pd.to_numeric(df["Month"], errors="coerce")
-    df = df.dropna(subset=["Year", "Month"])
-    df["Year"] = df["Year"].astype(int)
-    df["Month"] = df["Month"].astype(int)
-    df["_airline_key"] = (
-        df["Airline"]
-        .astype(str)
-        .str.upper()
-        .str.replace(r"[^A-Z]+", "", regex=True)
-    )
-
-    total_keys = {"TOTALDOMESTIC", "TOTALINTERNATIONAL", "TOTALDOM", "TOTALINT"}
-    bucket_cols = ["Year", "Month", "Type"]
-    totals = df[df["_airline_key"].isin(total_keys)].copy()
-    non_totals = df[~df["_airline_key"].isin(total_keys)].copy()
-
-    if not totals.empty:
-        total_buckets = set(map(tuple, totals[bucket_cols].drop_duplicates().to_numpy()))
-        non_totals = non_totals[
-            ~non_totals[bucket_cols].apply(tuple, axis=1).isin(total_buckets)
-        ]
-
-    selected = pd.concat([totals, non_totals], ignore_index=True)
-    complete_years = (
-        selected.groupby("Year")["Month"].nunique().loc[lambda s: s >= 12].index
-    )
-    selected = selected[selected["Year"].isin(complete_years)]
-
-    return (
-        selected.groupby("Year")["Passenger Number"]
-        .sum()
-        .reset_index()
-        .rename(columns={"Year": "year", "Passenger Number": "carrier_pax"})
-    )
-
-
-def process_macro():
-    """Build india_macro.csv from World Bank data."""
-    print("  Processing World Bank macro data...", flush=True)
-    wb_dir = RAW_DIR / "worldbank"
-
-    gdp_path = wb_dir / "gdp_per_capita_ppp.json"
-    pop_path = wb_dir / "population.json"
-    pax_path = wb_dir / "air_passengers.json"
-
-    if not all(p.exists() for p in [gdp_path, pop_path, pax_path]):
-        print("  WARNING: World Bank data incomplete, skipping macro", flush=True)
-        return
-
-    gdp = parse_world_bank_json(gdp_path).rename(columns={"value": "gdp_per_capita_ppp"})
-    pop = parse_world_bank_json(pop_path).rename(columns={"value": "population"})
-    pax = parse_world_bank_json(pax_path).rename(columns={"value": "air_passengers"})
-
-    macro = gdp.merge(pop, on="year", how="outer").merge(pax, on="year", how="outer")
-    macro = macro.sort_values("year").reset_index(drop=True)
-
-    # Fill World Bank air_passengers gaps using carrier data.
-    # WB IS.AIR.PSGR lags 1-2 years; DGCA carrier.csv is current.
-    carrier_path = source_csv("domestic/carrier.csv")
-    if carrier_path.exists():
-        carrier = pd.read_csv(carrier_path)
-        carrier_yearly = aggregate_carrier_yearly_passengers(carrier)
-
-        # Compute WB-to-DGCA-carrier ratio from overlapping years
-        merged = macro.merge(carrier_yearly, on="year", how="inner")
-        overlap = merged.dropna(subset=["air_passengers", "carrier_pax"])
-        if len(overlap) >= 3:
-            ratio = (overlap["air_passengers"] / overlap["carrier_pax"]).median()
-            print(f"    WB/DGCA-carrier ratio (median of {len(overlap)} years): {ratio:.4f}")
-
-            # Fill missing air_passengers years
-            for _, row in carrier_yearly.iterrows():
-                yr = int(row["year"])
-                mask_yr = macro["year"] == yr
-                if mask_yr.any() and macro.loc[mask_yr, "air_passengers"].isna().all():
-                    estimated = row["carrier_pax"] * ratio
-                    macro.loc[mask_yr, "air_passengers"] = estimated
-                    print(f"    Filled {yr} air_passengers = {estimated:,.0f} "
-                          f"(carrier {row['carrier_pax']:,.0f} x {ratio:.4f})")
-                elif not mask_yr.any():
-                    new_row = {"year": yr, "air_passengers": row["carrier_pax"] * ratio}
-                    macro = pd.concat(
-                        [macro, pd.DataFrame([new_row])], ignore_index=True
-                    )
-                    print(f"    Added {yr} air_passengers = {row['carrier_pax'] * ratio:,.0f}")
-        else:
-            print(f"    WARNING: only {len(overlap)} overlapping years, skipping carrier fill")
-
-    macro = macro.sort_values("year").reset_index(drop=True)
-
-    # Derive flights per capita
-    mask = macro["air_passengers"].notna() & macro["population"].notna()
-    macro.loc[mask, "flights_per_capita"] = (
-        macro.loc[mask, "air_passengers"] / macro.loc[mask, "population"]
-    )
-
-    out = PROCESSED_DIR / "india_macro.csv"
-    macro.to_csv(out, index=False)
-    print(f"  Saved: {out.name} ({len(macro)} rows, {int(macro['year'].min())}–{int(macro['year'].max())})")
+    """Return a normalized direct-source aggregate path."""
+    return AVIATION_AGG_DIR / rel_path
 
 
 # ── Aviation city data ───────────────────────────────────────
@@ -514,7 +372,6 @@ def write_metadata():
 
 def main():
     print("=== Processing Data ===\n", flush=True)
-    process_macro()
     process_airport_data()
     process_carrier_data()
     write_metadata()
