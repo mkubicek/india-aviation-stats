@@ -1,0 +1,74 @@
+# Milestone thresholds for inverse-prediction via Monte Carlo.
+#
+# Each projected milestone is a threshold on a specific metric. milestones.py
+# runs N=1000 draws over regression + GDP uncertainty and reports the year
+# distribution {p10, p50, p90} at which the metric first persistently crosses
+# the threshold.
+#
+# Milestone types:
+#   - national_passengers: national annual passenger total (World Bank basis,
+#     IS.AIR.PSGR as projected). Threshold in absolute pax.
+#   - airport_passengers: single airport pax = national * latest_share. Needs
+#     airport IATA code.
+#   - tier_share: cumulative share of a tier (metro/tier1/tier2/tier3).
+#     Deterministic under v1 share-freeze; method reports as "deterministic".
+#
+# Scheduled milestones come from mappings.yaml greenfield_airports section;
+# they're dates, not projections. Listed here only for documentation of which
+# scheduled rows to surface.
+#
+# Cap: 7 projected. Resist adding an 8th without dropping one.
+# Version bumps on breaking changes only.
+
+schema_version: 1
+
+projected:
+  india_total_500m:
+    label: "India crosses 500M annual passengers"
+    metric: national_passengers
+    threshold: 500000000
+
+  india_total_750m:
+    label: "India crosses 750M annual passengers"
+    metric: national_passengers
+    threshold: 750000000
+
+  bom_100m:
+    label: "BOM (Mumbai) crosses 100M annual passengers"
+    metric: airport_passengers
+    airport: BOM
+    threshold: 100000000
+
+  del_150m:
+    label: "DEL (Delhi) crosses 150M annual passengers"
+    metric: airport_passengers
+    airport: DEL
+    threshold: 150000000
+
+  blr_75m:
+    label: "BLR (Bengaluru) crosses 75M annual passengers"
+    metric: airport_passengers
+    airport: BLR
+    threshold: 75000000
+
+  hyd_50m:
+    label: "HYD (Hyderabad) crosses 50M annual passengers"
+    metric: airport_passengers
+    airport: HYD
+    threshold: 50000000
+
+  tier2_share_20pct:
+    label: "Tier 2 airports cumulatively exceed 20% of national passengers"
+    metric: tier_share
+    tier: tier2
+    threshold: 0.20
+
+scheduled:
+  nia_operational:
+    label: "NIA (Noida) operational"
+    airport: NIA
+    # scheduled_date and phase1_capacity pulled from mappings.yaml
+
+  nmia_operational:
+    label: "NMIA (Navi Mumbai) operational"
+    airport: NMIA

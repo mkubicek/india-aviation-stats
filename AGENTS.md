@@ -122,15 +122,16 @@ Below chart title, gray text (`#94a3b8`), explains scope/methodology:
 ## Pipeline
 
 ```
-download.py → process.py → validate.py → project.py → chart.py → report.py
+download.py → process.py → validate.py → project.py → milestones.py → chart.py → report.py
 ```
 
-1. **download.py** — Fetch data from World Bank API, Vonter repo, IMF
+1. **download.py** — Fetch data from World Bank API, DGCA/MoCA sources
 2. **process.py** — Parse, merge, aggregate → `data/processed/`
-3. **validate.py** — Plausibility checks → `warnings.log`
-4. **project.py** — GDP regression + passenger projections → `projection.json`
-5. **chart.py** — Generate PNG + GIF charts → `charts/`
-6. **report.py** — Monthly delta report → `reports/`
+3. **validate.py** — Plausibility checks + `check_milestone_stability` → `warnings.log`
+4. **project.py** — GDP regression (emits `cov_params`) + passenger projections → `projection.json` (schema v1)
+5. **milestones.py** — Monte Carlo inverse prediction from `projection.json` + `milestones.yaml` → `milestones.json` (schema v1)
+6. **chart.py** — Generate milestones table (hero) + correlation + projection + GIF map → `charts/`
+7. **report.py** — Monthly delta report with milestones section → `reports/`, writes monthly snapshot under `data/processed/snapshots/monthly/`
 
 Each step is idempotent and can be re-run independently.
 
@@ -158,6 +159,16 @@ Each step is idempotent and can be re-run independently.
   job timeout
 - **GIF generation:** Only on 5th of month or manual dispatch (`--skip-gifs`
   flag on other runs)
+
+### Story cadence ≠ CI cadence
+
+The monthly CI schedule is infrastructure: it keeps the pipeline fresh, catches
+data-source breakage early, and regenerates charts so the README never goes
+stale. The *story* is annual-centric because the regression's load-bearing
+inputs (World Bank `IS.AIR.PSGR`, `NY.GDP.PCAP.PP.CD`, DGCA annual totals)
+update annually. `check_milestone_stability` runs every pipeline invocation
+but only flags drift versus **release snapshots** (annual DGCA release or the
+planned v1.1 IMF WEO release cadence), not monthly-to-monthly noise.
 
 ---
 

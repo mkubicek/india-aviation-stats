@@ -1,9 +1,12 @@
 """Chart generation for India aviation statistics.
 
-Three flagship charts:
+Flagship charts:
   1. GDP–Flights Correlation (dual Y-axis, with projection)
   2. National Passenger Growth Projection (bar + line overlay)
-  3. The Great Indian Airport Boom (animated GIF map)
+  3. Top Airport Rankings Over Time (bump chart)
+  4. Airport Passenger Race (animated GIF bar race)
+  5. The Great Indian Airport Boom (animated GIF map)
+  6. Milestones Table (hero)
 
 All charts use the dark theme defined in AGENTS.md.
 """
@@ -44,6 +47,32 @@ ACCENT_GREEN = "#22c55e"
 
 TIER_COLORS = MAPPINGS.get("tier_colors", {})
 AIRPORT_COLORS = MAPPINGS.get("airport_colors", {})
+FALLBACK_COLORS = [
+    "#4cc9f0",
+    "#f72585",
+    "#4ade80",
+    "#fbbf24",
+    "#a78bfa",
+    "#fb923c",
+    "#22d3ee",
+    "#f87171",
+    "#34d399",
+    "#e879f9",
+]
+MONTH_NAMES = {
+    1: "Jan",
+    2: "Feb",
+    3: "Mar",
+    4: "Apr",
+    5: "May",
+    6: "Jun",
+    7: "Jul",
+    8: "Aug",
+    9: "Sep",
+    10: "Oct",
+    11: "Nov",
+    12: "Dec",
+}
 
 DISCLAIMER = (
     "Personal project \u2014 views are my own, "
@@ -84,6 +113,29 @@ def load_metadata() -> dict:
     return {}
 
 
+# Schema of projection.json this chart module expects. Bumped by project.py
+# when regression fields or emitted structure change in a breaking way. We
+# warn on mismatch rather than raising because charts are meant to render
+# something even with slightly stale data, but we refuse to silently pretend.
+EXPECTED_PROJECTION_SCHEMA = 1
+
+
+def load_projection() -> dict | None:
+    """Load projection.json, verifying schema_version with a warning on drift."""
+    path = PROCESSED_DIR / "projection.json"
+    if not path.exists():
+        return None
+    data = json.loads(path.read_text())
+    version = data.get("schema_version")
+    if version != EXPECTED_PROJECTION_SCHEMA:
+        print(
+            f"    WARNING: projection.json schema_version={version} but chart.py "
+            f"expects {EXPECTED_PROJECTION_SCHEMA}. Charts may render incorrectly.",
+            flush=True,
+        )
+    return data
+
+
 def get_attribution(fontsize: int = 8) -> str:
     """Build attribution string for charts."""
     repo = get_repo_url()
@@ -92,7 +144,7 @@ def get_attribution(fontsize: int = 8) -> str:
     parts = []
     if short:
         parts.append(short)
-    data_str = "Data: World Bank, Vonter/india-aviation-traffic"
+    data_str = "Data: World Bank, DGCA, MoCA"
     if "data_date" in meta:
         data_str += f" (as of {meta['data_date']})"
     parts.append(data_str)
@@ -129,8 +181,10 @@ def style_chart(
         ax.set_ylabel(ylabel, color=TEXT, fontsize=11)
     ax.tick_params(colors=TEXT, labelsize=9)
     ax.grid(axis="y", alpha=0.2, color=GRID_COLOR, linestyle="--")
-    for spine in ax.spines.values():
-        spine.set_color(GRID_COLOR)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["bottom"].set_color(GRID_COLOR)
+    ax.spines["left"].set_color(GRID_COLOR)
 
 
 def add_attribution(ax, fontsize: int = 8):
@@ -434,7 +488,389 @@ def chart_passenger_projection():
     print(f"    Saved: {out.name}")
 
 
-# ── Chart 3: The Great Indian Airport Boom (animated GIF) ───
+# ── Chart 3: Top Airport Rankings Over Time ─────────────────
+
+
+def _complete_airport_years(monthly: pd.DataFrame) -> list[int]:
+    """Return annual years with complete domestic months and international quarters."""
+    years_by_category: list[set[int]] = []
+
+    domestic = monthly[monthly["category"] == "domestic"]
+    if not domestic.empty:
+        domestic_years = (
+            domestic.groupby("year")["month"].nunique().loc[lambda s: s == 12].index
+        )
+        years_by_category.append(set(int(year) for year in domestic_years))
+
+    international = monthly[monthly["category"] == "international"]
+    if not international.empty:
+        international_years = (
+            international.groupby("year")["month"].nunique().loc[lambda s: s == 4].index
+        )
+        years_by_category.append(set(int(year) for year in international_years))
+
+    if not years_by_category:
+        return []
+    complete = set.intersection(*years_by_category)
+    return sorted(complete)
+
+
+def chart_airport_rankings():
+    """Bump chart: current top airport rankings across complete DGCA years."""
+    print("  Generating: airport_rankings.png", flush=True)
+
+    yearly_path = PROCESSED_DIR / "airport_yearly.csv"
+    monthly_path = PROCESSED_DIR / "airport_monthly.csv"
+    if not yearly_path.exists() or not monthly_path.exists():
+        print("    WARNING: airport processed data not found, skipping", flush=True)
+        return
+
+    yearly = pd.read_csv(yearly_path)
+    monthly = pd.read_csv(monthly_path)
+    complete_years = _complete_airport_years(monthly)
+    if not complete_years:
+        print("    WARNING: no complete annual airport years found, skipping", flush=True)
+        return
+
+    annual = (
+        yearly[yearly["year"].isin(complete_years)]
+        .assign(airport=lambda df: df["airport"].astype(str).str.upper())
+        .groupby(["year", "airport"], as_index=False)["passengers"]
+        .sum()
+    )
+    if annual.empty:
+        print("    WARNING: no complete annual airport records found, skipping", flush=True)
+        return
+
+    annual["rank"] = annual.groupby("year")["passengers"].rank(
+        ascending=False, method="min"
+    )
+    latest_year = max(complete_years)
+    latest = annual[annual["year"] == latest_year].nlargest(10, "passengers")
+    top_airports = latest["airport"].tolist()
+    if not top_airports:
+        print("    WARNING: no ranked airports found, skipping", flush=True)
+        return
+
+    ranked = annual[annual["airport"].isin(top_airports)].copy()
+    all_years = list(range(min(complete_years), max(complete_years) + 1))
+    max_rank = int(np.ceil(ranked["rank"].max()))
+
+    fig, ax = plt.subplots(figsize=(14, 8), facecolor=BG)
+
+    latest_lookup = latest.set_index("airport")["passengers"].to_dict()
+    for idx, airport in enumerate(top_airports):
+        airport_data = (
+            ranked[ranked["airport"] == airport]
+            .sort_values("year")
+            .set_index("year")
+            .reindex(all_years)
+        )
+        color = AIRPORT_COLORS.get(airport, FALLBACK_COLORS[idx % len(FALLBACK_COLORS)])
+        ax.plot(
+            all_years,
+            airport_data["rank"],
+            marker="o",
+            linewidth=2.5,
+            color=color,
+            markersize=7,
+            zorder=3,
+        )
+
+        valid = airport_data.dropna(subset=["rank"])
+        if not valid.empty:
+            last = valid.iloc[-1]
+            label = f"{airport}  {latest_lookup.get(airport, 0) / 1e6:.1f}M"
+            ax.annotate(
+                label,
+                (int(last.name), last["rank"]),
+                textcoords="offset points",
+                xytext=(8, 0),
+                fontsize=9,
+                fontweight="bold",
+                color=color,
+                va="center",
+                clip_on=False,
+            )
+
+    ax.invert_yaxis()
+    ax.set_yticks(range(1, max_rank + 1))
+    ax.set_yticklabels([f"#{rank}" for rank in range(1, max_rank + 1)])
+    ax.set_xticks(all_years)
+    ax.set_xticklabels([str(year) for year in all_years])
+    ax.grid(axis="x", alpha=0.2, color=GRID_COLOR, linestyle="--")
+    ax.set_xlim(min(all_years) - 0.4, max(all_years) + 1.15)
+    ax.set_ylim(max_rank + 0.6, 0.4)
+
+    style_chart(
+        ax,
+        "India's Top Airport Rankings Over Time",
+        subtitle=(
+            f"Current top 10 airports by annual passengers | Complete DGCA years only "
+            f"| Latest complete year: {latest_year}"
+        ),
+        ylabel="Rank",
+    )
+    ax.set_xlabel("")
+
+    missing_years = sorted(set(all_years) - set(complete_years))
+    for year in missing_years:
+        ax.axvspan(year - 0.5, year + 0.5, color=GRID_COLOR, alpha=0.10, zorder=0)
+        ax.text(
+            year,
+            max_rank + 0.35,
+            "partial",
+            ha="center",
+            va="bottom",
+            fontsize=7,
+            color=SUBTLE,
+            rotation=90,
+            alpha=0.7,
+        )
+
+    add_attribution(ax)
+    add_disclaimer(ax)
+
+    fig.tight_layout()
+    out = CHARTS_DIR / "airport_rankings.png"
+    fig.savefig(out, dpi=150, bbox_inches="tight", facecolor=BG)
+    plt.close(fig)
+    print(f"    Saved: {out.name}")
+
+
+# ── Chart 4: Airport Passenger Race (animated GIF) ──────────
+
+
+def _domestic_trailing_airport_passengers(
+    monthly: pd.DataFrame,
+    window: int = 12,
+) -> pd.DataFrame:
+    """Return complete rolling domestic passenger totals by airport-month."""
+    domestic = monthly[monthly["category"] == "domestic"].copy()
+    if domestic.empty:
+        return pd.DataFrame()
+
+    domestic["period"] = pd.to_datetime(
+        {
+            "year": domestic["year"].astype(int),
+            "month": domestic["month"].astype(int),
+            "day": 1,
+        }
+    ).dt.to_period("M")
+    airport_monthly = (
+        domestic.groupby(["period", "airport"], as_index=False)["passengers"].sum()
+    )
+    pivot = (
+        airport_monthly.pivot(index="period", columns="airport", values="passengers")
+        .fillna(0)
+        .sort_index()
+    )
+
+    available_periods = set(pivot.index)
+    complete_periods = [
+        period
+        for period in pivot.index
+        if all((period - offset) in available_periods for offset in range(window))
+    ]
+    if not complete_periods:
+        return pd.DataFrame()
+
+    return pivot.rolling(window, min_periods=window).sum().loc[complete_periods]
+
+
+def chart_airport_passenger_race():
+    """Animated bar race: top airports by trailing 12-month domestic passengers."""
+    print("  Generating: airport_passenger_race.gif", flush=True)
+
+    monthly_path = PROCESSED_DIR / "airport_monthly.csv"
+    if not monthly_path.exists():
+        print("    WARNING: airport_monthly.csv not found, skipping", flush=True)
+        return
+
+    monthly = pd.read_csv(monthly_path)
+    trailing = _domestic_trailing_airport_passengers(monthly)
+    if trailing.empty:
+        print("    WARNING: no complete trailing passenger windows found, skipping", flush=True)
+        return
+
+    global_max = float(trailing.max(axis=1).max())
+    fixed_xlim = global_max * 1.28
+    frame_periods = list(trailing.index)
+    attribution = get_attribution(fontsize=11)
+
+    images = []
+    for frame_idx, period in enumerate(frame_periods, start=1):
+        series = trailing.loc[period].sort_values(ascending=False)
+        top10 = series.head(10)
+        if top10.empty:
+            continue
+
+        airports = list(reversed(top10.index.tolist()))
+        values = list(reversed(top10.values.tolist()))
+        colors = [
+            AIRPORT_COLORS.get(
+                airport,
+                FALLBACK_COLORS[i % len(FALLBACK_COLORS)],
+            )
+            for i, airport in enumerate(airports)
+        ]
+        national_total = float(trailing.loc[period].sum())
+
+        fig, ax = plt.subplots(figsize=(14, 8), facecolor=BG)
+        ax.set_facecolor(BG)
+
+        ax.barh(
+            range(len(airports)),
+            values,
+            color=colors,
+            height=0.72,
+            edgecolor="none",
+        )
+
+        label_offset = global_max * 0.012
+        for y_pos, value in enumerate(values):
+            ax.text(
+                value + label_offset,
+                y_pos,
+                f"{value / 1e6:.1f}M",
+                va="center",
+                ha="left",
+                fontsize=10,
+                color=TEXT,
+                fontweight="bold",
+            )
+
+        ax.set_yticks(range(len(airports)))
+        ax.set_yticklabels(
+            airports,
+            fontsize=12,
+            color=TEXT,
+            fontweight="bold",
+        )
+        ax.set_xlim(0, fixed_xlim)
+        ax.set_xlabel("Trailing 12-Month Domestic Passengers", color=TEXT, fontsize=11)
+        ax.xaxis.set_major_formatter(
+            plt.FuncFormatter(lambda x, _: f"{x / 1e6:.0f}M")
+        )
+        ax.tick_params(colors=TEXT, labelsize=9)
+        ax.grid(axis="x", alpha=0.2, color=GRID_COLOR, linestyle="--")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["bottom"].set_color(GRID_COLOR)
+        ax.spines["left"].set_color(GRID_COLOR)
+
+        month_label = f"{MONTH_NAMES[int(period.month)]} {int(period.year)}"
+        ax.text(
+            0.0,
+            1.13,
+            month_label,
+            transform=ax.transAxes,
+            ha="left",
+            va="bottom",
+            fontsize=26,
+            fontweight="bold",
+            fontfamily="monospace",
+            color=ACCENT_GOLD,
+        )
+        ax.text(
+            0.0,
+            1.075,
+            "India Airport Passenger Race",
+            transform=ax.transAxes,
+            ha="left",
+            va="bottom",
+            fontsize=18,
+            fontweight="bold",
+            color=TEXT,
+        )
+        ax.text(
+            0.0,
+            1.035,
+            "Scheduled domestic passenger flows by airport | Trailing 12-month total",
+            transform=ax.transAxes,
+            ha="left",
+            va="bottom",
+            fontsize=9,
+            color=SUBTLE,
+        )
+        ax.text(
+            1.0,
+            1.105,
+            f"{national_total / 1e6:,.0f}M passengers",
+            transform=ax.transAxes,
+            ha="right",
+            va="bottom",
+            fontsize=17,
+            fontweight="bold",
+            fontfamily="monospace",
+            color=TEXT,
+        )
+        ax.text(
+            1.0,
+            1.06,
+            "national trailing total",
+            transform=ax.transAxes,
+            ha="right",
+            va="bottom",
+            fontsize=9,
+            color=SUBTLE,
+        )
+        ax.text(
+            1.0,
+            -0.17,
+            attribution,
+            transform=ax.transAxes,
+            ha="right",
+            va="top",
+            fontsize=11,
+            color=SUBTLE,
+            alpha=0.7,
+        )
+        ax.text(
+            1.0,
+            -0.215,
+            DISCLAIMER,
+            transform=ax.transAxes,
+            ha="right",
+            va="top",
+            fontsize=9,
+            color=SUBTLE,
+            alpha=0.5,
+        )
+
+        fig.subplots_adjust(left=0.14, right=0.92, top=0.78, bottom=0.18)
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=100, facecolor=BG)
+        plt.close(fig)
+        buf.seek(0)
+        images.append(Image.open(buf).copy())
+        buf.close()
+
+        if frame_idx % 24 == 0:
+            print(
+                f"    airport_passenger_race: frame {frame_idx}/{len(frame_periods)}",
+                flush=True,
+            )
+
+    if not images:
+        print("    WARNING: no race frames generated, skipping", flush=True)
+        return
+
+    durations = [300] * len(images)
+    durations[-1] = 3000
+    out = CHARTS_DIR / "airport_passenger_race.gif"
+    images[0].save(
+        out,
+        save_all=True,
+        append_images=images[1:],
+        duration=durations,
+        loop=0,
+        optimize=True,
+    )
+    print(f"    Saved: {out.name} ({len(images)} frames)")
+
+
+# ── Chart 5: The Great Indian Airport Boom (animated GIF) ───
 
 
 def chart_airport_map():
@@ -678,6 +1114,213 @@ def chart_airport_map():
     print(f"    Saved: {out.name} ({len(images)} frames)")
 
 
+# ── Chart 6: Milestones Table (hero) ─────────────────────────
+
+
+def _format_threshold(threshold, metric: str) -> str:
+    """Human-format the threshold cell by metric type."""
+    if metric == "tier_share":
+        return f"{threshold * 100:.0f}%"
+    t = float(threshold)
+    if t >= 1e9:
+        return f"{t / 1e9:.1f}B pax"
+    if t >= 1e6:
+        return f"{t / 1e6:.0f}M pax"
+    return f"{t:,.0f}"
+
+
+def _format_year_cell(entry: dict) -> tuple[str, str, str]:
+    """Return (p10, p50, p90) strings for a milestone entry.
+
+    Handles achieved (actual year in center), projected (p10/p50/p90),
+    beyond_horizon (">2040" marker), deterministic (center only).
+    """
+    if "actual_year" in entry:
+        return ("", f"{entry['actual_year']} (actual)", "")
+    status = entry.get("status")
+    if status == "beyond_horizon":
+        return ("—", ">2040", "—")
+    method = entry.get("method")
+    if method == "deterministic" and entry.get("p50_year") is None:
+        return ("—", ">2040", "—")
+    p10 = str(entry.get("p10_year") or "—")
+    p50 = str(entry.get("p50_year") or "—")
+    p90 = str(entry.get("p90_year") or "—")
+    return (p10, p50, p90)
+
+
+def chart_milestones_table():
+    """Hero chart: operational milestones with p10/p50/p90 year bands.
+
+    Reads milestones.json (must be produced by scripts/milestones.py first)
+    and renders a dark-theme table in three visually distinct row groups:
+    achieved, projected, scheduled.
+    """
+    print("  Generating: milestones_table.png", flush=True)
+
+    path = PROCESSED_DIR / "milestones.json"
+    if not path.exists():
+        print("    WARNING: milestones.json not found, skipping", flush=True)
+        print("    (run scripts/milestones.py after project.py)", flush=True)
+        return
+
+    m = json.loads(path.read_text())
+
+    # Flatten all three blocks into ordered rows with group tags so we can
+    # paint background strips by group.
+    rows: list[dict] = []
+    for mid, e in (m.get("achieved") or {}).items():
+        rows.append({"group": "achieved", "id": mid, "entry": e})
+    for mid, e in (m.get("projected") or {}).items():
+        rows.append({"group": "projected", "id": mid, "entry": e})
+    for mid, e in (m.get("scheduled") or {}).items():
+        rows.append({"group": "scheduled", "id": mid, "entry": e})
+
+    if not rows:
+        print("    WARNING: milestones.json has no rows, skipping", flush=True)
+        return
+
+    # Figure: wide enough to avoid label wrap, tall enough per row for dark
+    # table legibility on phone screenshot.
+    fig_height = 1.5 + 0.5 * len(rows)
+    fig, ax = plt.subplots(figsize=(13, fig_height))
+    fig.patch.set_facecolor(BG)
+    ax.set_facecolor(BG)
+    ax.axis("off")
+
+    # Header band
+    col_x = [0.02, 0.50, 0.65, 0.80, 0.92]
+    col_align = ["left", "right", "center", "center", "center"]
+    headers = ["Milestone", "Threshold", "p10", "p50", "p90"]
+    header_y = 1.0 - 0.08
+    for x, h, al in zip(col_x, headers, col_align):
+        ax.text(
+            x, header_y, h,
+            transform=ax.transAxes, ha=al, va="center",
+            fontsize=11, fontweight="bold", color=TEXT,
+        )
+
+    # Divider below header
+    ax.plot(
+        [0.02, 0.98], [header_y - 0.04, header_y - 0.04],
+        transform=ax.transAxes, color=GRID_COLOR, linewidth=1,
+    )
+
+    row_height = 0.92 / max(len(rows) + 1, 8)
+    y = header_y - 0.06 - row_height
+
+    # Group colors (dark-theme-safe, colorblind-aware):
+    #   achieved   = accent green (already happened)
+    #   projected  = white / subtle (the MC rows)
+    #   scheduled  = accent gold italic (per AGENTS.md greenfield palette)
+    group_color = {
+        "achieved": ACCENT_GREEN,
+        "projected": TEXT,
+        "scheduled": ACCENT_GOLD,
+    }
+    group_style = {
+        "achieved": "normal",
+        "projected": "normal",
+        "scheduled": "italic",
+    }
+    # Group headers appear once per block if that block has >=1 row.
+    last_group: str | None = None
+    for row in rows:
+        group = row["group"]
+        if group != last_group:
+            # Group label on a thin row above the first row of the group
+            ax.text(
+                0.02, y, group.upper(),
+                transform=ax.transAxes, ha="left", va="center",
+                fontsize=9, color=SUBTLE, fontweight="bold",
+            )
+            y -= row_height
+            last_group = group
+
+        entry = row["entry"]
+        color = group_color[group]
+        style = group_style[group]
+        p10, p50, p90 = _format_year_cell(entry)
+
+        # Label
+        ax.text(
+            col_x[0], y, entry.get("label", row["id"]),
+            transform=ax.transAxes, ha=col_align[0], va="center",
+            fontsize=10, color=color, style=style,
+        )
+
+        # Threshold column — skip for scheduled (uses phase1_capacity instead)
+        if group == "scheduled":
+            cap = entry.get("phase1_capacity")
+            cap_text = f"phase1: {cap/1e6:.0f}M pax" if cap else ""
+            ax.text(
+                col_x[1], y, cap_text,
+                transform=ax.transAxes, ha=col_align[1], va="center",
+                fontsize=10, color=color, style=style,
+            )
+            # p10/p50/p90 columns: scheduled date in center cell
+            sd = entry.get("scheduled_date") or "—"
+            ax.text(
+                col_x[3], y, sd,
+                transform=ax.transAxes, ha=col_align[3], va="center",
+                fontsize=10, color=color, style=style,
+            )
+        else:
+            metric = entry.get("metric", "")
+            thr = entry.get("threshold")
+            thr_text = _format_threshold(thr, metric) if thr is not None else ""
+            ax.text(
+                col_x[1], y, thr_text,
+                transform=ax.transAxes, ha=col_align[1], va="center",
+                fontsize=10, color=color, style=style,
+            )
+            for xi, text in zip(col_x[2:], (p10, p50, p90)):
+                ax.text(
+                    xi, y, text,
+                    transform=ax.transAxes, ha="center", va="center",
+                    # Emphasize p50 (the quotable number)
+                    fontsize=11 if xi == col_x[3] else 10,
+                    fontweight="bold" if xi == col_x[3] else "normal",
+                    color=color, style=style,
+                )
+        y -= row_height
+
+    # Title + subtitle
+    fig.suptitle(
+        "When will India's aviation milestones arrive?",
+        color=TEXT, fontsize=18, fontweight="bold", y=0.97,
+    )
+    meta = load_metadata()
+    data_date = meta.get("data_date", "")
+    n_draws = m.get("n_draws", 1000)
+    subtitle = (
+        f"p10/p50/p90 from {n_draws} Monte Carlo draws over regression + GDP path "
+        f"uncertainty (excludes structural-break risk)   |   as of {data_date}"
+    )
+    ax.text(
+        0.5, header_y + 0.035, subtitle,
+        transform=ax.transAxes, ha="center", va="bottom",
+        fontsize=9, color=SUBTLE,
+    )
+
+    # Attribution + disclaimer (per AGENTS.md) at bottom
+    ax.text(
+        1.0, -0.02, get_attribution(8),
+        transform=ax.transAxes, ha="right", va="top",
+        fontsize=8, color=SUBTLE, alpha=0.7,
+    )
+    ax.text(
+        1.0, -0.05, DISCLAIMER,
+        transform=ax.transAxes, ha="right", va="top",
+        fontsize=7, color=SUBTLE, alpha=0.5,
+    )
+
+    out = CHARTS_DIR / "milestones_table.png"
+    fig.savefig(out, dpi=150, bbox_inches="tight", facecolor=BG)
+    plt.close(fig)
+    print(f"    Saved: {out.name}")
+
+
 # ── Main ─────────────────────────────────────────────────────
 
 
@@ -693,12 +1336,15 @@ def main():
         print("ERROR: No processed data. Run process.py and project.py first.")
         return
 
+    chart_milestones_table()
     chart_gdp_flights_correlation()
     chart_passenger_projection()
+    chart_airport_rankings()
 
     if skip_gifs:
         print("  Skipping GIF generation (--skip-gifs)")
     else:
+        chart_airport_passenger_race()
         chart_airport_map()
 
     print("\nDone.", flush=True)

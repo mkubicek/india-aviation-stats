@@ -1,9 +1,9 @@
 """Data processing pipeline for India aviation statistics.
 
-Merges World Bank macro data with Vonter airport-level data into unified
-CSVs for analysis, charting, and projection.
+Merges World Bank macro data with official-source aviation aggregates into
+unified CSVs for analysis, charting, and projection.
 
-Vonter data format:
+Aviation aggregate format:
   - domestic/city.csv: Year, Month, City1, City2, PaxToCity2, PaxFromCity2, ...
   - international/city.csv: Year(2-digit), Quarter, City1, City2, PaxToCity2, PaxFromCity2, ...
   - domestic/carrier.csv: carrier-level data
@@ -25,12 +25,14 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
+AVIATION_AGG_DIR = RAW_DIR / "aviation" / "aggregated"
+LEGACY_VONTER_DIR = RAW_DIR / "vonter"
 PROCESSED_DIR = ROOT / "data" / "processed"
 PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
 MAPPINGS = yaml.safe_load((ROOT / "mappings.yaml").read_text())
 
-# City name → IATA code mapping (Vonter uses city names, not IATA codes)
+# City name → IATA code mapping (DGCA source files use city names, not IATA codes)
 # Built from mappings.yaml airports section
 CITY_TO_IATA = {}
 for iata, info in MAPPINGS.get("airports", {}).items():
@@ -42,7 +44,7 @@ for iata, info in MAPPINGS.get("airports", {}).items():
     if name:
         CITY_TO_IATA[name] = iata
 
-# Additional city name mappings (Vonter uses inconsistent naming)
+# Additional city name mappings (DGCA source files use inconsistent naming)
 CITY_ALIASES = {
     "DELHI": "DEL",
     "NEW DELHI": "DEL",
@@ -124,13 +126,21 @@ CITY_ALIASES = {k.upper(): v for k, v in CITY_ALIASES.items()}
 
 
 def city_to_iata(city_name: str) -> str:
-    """Map a Vonter city name to IATA code. Returns city name if no mapping."""
+    """Map a source city name to IATA code. Returns city name if no mapping."""
     name = city_name.strip().upper()
     if name in CITY_ALIASES:
         return CITY_ALIASES[name]
     if name in CITY_TO_IATA:
         return CITY_TO_IATA[name]
     return name  # Return as-is if no mapping found
+
+
+def source_csv(rel_path: str) -> Path:
+    """Return the direct-source aggregate path, with legacy Vonter fallback."""
+    direct = AVIATION_AGG_DIR / rel_path
+    if direct.exists():
+        return direct
+    return LEGACY_VONTER_DIR / rel_path
 
 
 # ── World Bank parsing ───────────────────────────────────────
@@ -153,6 +163,57 @@ def parse_world_bank_json(path: Path) -> pd.DataFrame:
     return pd.DataFrame(records).sort_values("year").reset_index(drop=True)
 
 
+def aggregate_carrier_yearly_passengers(carrier: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate carrier passengers without double-counting total rows.
+
+    DGCA carrier workbooks often contain both airline-level rows and explicit
+    total rows for the same year/month/type. Prefer the official total row when
+    present; otherwise fall back to summing airline-level rows for that bucket.
+    """
+    if carrier.empty:
+        return pd.DataFrame(columns=["year", "carrier_pax"])
+
+    df = carrier.copy()
+    df["Passenger Number"] = pd.to_numeric(
+        df["Passenger Number"], errors="coerce"
+    ).fillna(0)
+    df["Year"] = pd.to_numeric(df["Year"], errors="coerce")
+    df["Month"] = pd.to_numeric(df["Month"], errors="coerce")
+    df = df.dropna(subset=["Year", "Month"])
+    df["Year"] = df["Year"].astype(int)
+    df["Month"] = df["Month"].astype(int)
+    df["_airline_key"] = (
+        df["Airline"]
+        .astype(str)
+        .str.upper()
+        .str.replace(r"[^A-Z]+", "", regex=True)
+    )
+
+    total_keys = {"TOTALDOMESTIC", "TOTALINTERNATIONAL", "TOTALDOM", "TOTALINT"}
+    bucket_cols = ["Year", "Month", "Type"]
+    totals = df[df["_airline_key"].isin(total_keys)].copy()
+    non_totals = df[~df["_airline_key"].isin(total_keys)].copy()
+
+    if not totals.empty:
+        total_buckets = set(map(tuple, totals[bucket_cols].drop_duplicates().to_numpy()))
+        non_totals = non_totals[
+            ~non_totals[bucket_cols].apply(tuple, axis=1).isin(total_buckets)
+        ]
+
+    selected = pd.concat([totals, non_totals], ignore_index=True)
+    complete_years = (
+        selected.groupby("Year")["Month"].nunique().loc[lambda s: s >= 12].index
+    )
+    selected = selected[selected["Year"].isin(complete_years)]
+
+    return (
+        selected.groupby("Year")["Passenger Number"]
+        .sum()
+        .reset_index()
+        .rename(columns={"Year": "year", "Passenger Number": "carrier_pax"})
+    )
+
+
 def process_macro():
     """Build india_macro.csv from World Bank data."""
     print("  Processing World Bank macro data...", flush=True)
@@ -173,28 +234,19 @@ def process_macro():
     macro = gdp.merge(pop, on="year", how="outer").merge(pax, on="year", how="outer")
     macro = macro.sort_values("year").reset_index(drop=True)
 
-    # Fill World Bank air_passengers gaps using Vonter carrier data.
-    # WB IS.AIR.PSGR lags 1-2 years; Vonter carrier.csv is current.
-    carrier_path = RAW_DIR / "vonter" / "domestic" / "carrier.csv"
+    # Fill World Bank air_passengers gaps using carrier data.
+    # WB IS.AIR.PSGR lags 1-2 years; DGCA carrier.csv is current.
+    carrier_path = source_csv("domestic/carrier.csv")
     if carrier_path.exists():
         carrier = pd.read_csv(carrier_path)
-        carrier_yearly = (
-            carrier.groupby("Year")["Passenger Number"]
-            .sum()
-            .reset_index()
-            .rename(columns={"Year": "year", "Passenger Number": "carrier_pax"})
-        )
-        # Only use complete years (12 months of data)
-        months_per_year = carrier.groupby("Year")["Month"].nunique()
-        complete_years = months_per_year[months_per_year >= 12].index
-        carrier_yearly = carrier_yearly[carrier_yearly["year"].isin(complete_years)]
+        carrier_yearly = aggregate_carrier_yearly_passengers(carrier)
 
-        # Compute WB-to-Vonter ratio from overlapping years
+        # Compute WB-to-DGCA-carrier ratio from overlapping years
         merged = macro.merge(carrier_yearly, on="year", how="inner")
         overlap = merged.dropna(subset=["air_passengers", "carrier_pax"])
         if len(overlap) >= 3:
             ratio = (overlap["air_passengers"] / overlap["carrier_pax"]).median()
-            print(f"    WB/Vonter-carrier ratio (median of {len(overlap)} years): {ratio:.4f}")
+            print(f"    WB/DGCA-carrier ratio (median of {len(overlap)} years): {ratio:.4f}")
 
             # Fill missing air_passengers years
             for _, row in carrier_yearly.iterrows():
@@ -227,22 +279,22 @@ def process_macro():
     print(f"  Saved: {out.name} ({len(macro)} rows, {int(macro['year'].min())}–{int(macro['year'].max())})")
 
 
-# ── Vonter domestic city data ────────────────────────────────
+# ── Aviation city data ───────────────────────────────────────
 
 
 def process_domestic_city():
-    """Parse Vonter domestic/city.csv into airport-level monthly data.
+    """Parse domestic/city.csv into airport-level monthly data.
 
     Format: Year, Month, City1, City2, PaxToCity2, PaxFromCity2, Freight..., Mail...
     PaxToCity2 = passengers flying City1→City2
     PaxFromCity2 = passengers flying City2→City1
     """
-    path = RAW_DIR / "vonter" / "domestic" / "city.csv"
+    path = source_csv("domestic/city.csv")
     if not path.exists():
         print("  WARNING: domestic/city.csv not found, skipping", flush=True)
         return None
 
-    print("  Processing Vonter domestic/city.csv...", flush=True)
+    print(f"  Processing {path.relative_to(ROOT)}...", flush=True)
     df = pd.read_csv(path)
     print(f"    Raw rows: {len(df):,}, columns: {list(df.columns)}")
 
@@ -292,17 +344,17 @@ def process_domestic_city():
 
 
 def process_international_city():
-    """Parse Vonter international/city.csv into airport-level quarterly data.
+    """Parse international/city.csv into airport-level quarterly data.
 
     Format: Year(2-digit), Quarter, City1, City2, PaxToCity2, PaxFromCity2, Freight...
     Note: Year is 2-digit (15=2015, 20=2020, etc.)
     """
-    path = RAW_DIR / "vonter" / "international" / "city.csv"
+    path = source_csv("international/city.csv")
     if not path.exists():
         print("  WARNING: international/city.csv not found, skipping", flush=True)
         return None
 
-    print("  Processing Vonter international/city.csv...", flush=True)
+    print(f"  Processing {path.relative_to(ROOT)}...", flush=True)
     df = pd.read_csv(path)
     print(f"    Raw rows: {len(df):,}, columns: {list(df.columns)}")
 
@@ -382,7 +434,7 @@ def classify_airport(iata: str, annual_pax: float) -> str:
 
 
 def process_airport_data():
-    """Build airport_monthly.csv and airport_yearly.csv from Vonter data."""
+    """Build airport_monthly.csv and airport_yearly.csv from aviation data."""
     frames = []
 
     domestic = process_domestic_city()
@@ -394,7 +446,7 @@ def process_airport_data():
         frames.append(international)
 
     if not frames:
-        print("  WARNING: No Vonter city data available", flush=True)
+        print("  WARNING: No aviation city data available", flush=True)
         return
 
     combined = pd.concat(frames, ignore_index=True)
@@ -427,17 +479,17 @@ def process_airport_data():
         print(f"    {iata:>10s}: {pax:>15,.0f}  ({tier})")
 
 
-# ── Vonter carrier data ──────────────────────────────────────
+# ── Aviation carrier data ────────────────────────────────────
 
 
 def process_carrier_data():
-    """Build carrier_monthly.csv from Vonter carrier data."""
-    path = RAW_DIR / "vonter" / "domestic" / "carrier.csv"
+    """Build carrier_monthly.csv from source carrier data."""
+    path = source_csv("domestic/carrier.csv")
     if not path.exists():
         print("  WARNING: domestic/carrier.csv not found, skipping", flush=True)
         return
 
-    print("  Processing Vonter domestic/carrier.csv...", flush=True)
+    print(f"  Processing {path.relative_to(ROOT)}...", flush=True)
     df = pd.read_csv(path)
     print(f"    Raw rows: {len(df):,}, columns: {list(df.columns)}")
 

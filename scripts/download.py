@@ -2,7 +2,7 @@
 
 Sources:
   1. World Bank API — GDP per capita PPP, population, air passengers
-  2. Vonter/india-aviation-traffic — Pre-aggregated DGCA/MoCA CSVs
+  2. DGCA/MoCA official sources — raw workbooks/HTML normalized locally
   3. IMF WEO — GDP projections (Excel)
 
 Downloads are cached locally with If-Modified-Since freshness checks.
@@ -16,12 +16,15 @@ from pathlib import Path
 
 import requests
 
+from ingest_sources import ingest_aviation_sources, was_timed_out
+
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
 RAW_DIR.mkdir(parents=True, exist_ok=True)
 
 DOWNLOAD_TIMEOUT = int(os.environ.get("DOWNLOAD_TIMEOUT", 0))
 _start_time = time.monotonic()
+_timed_out = False
 
 # ── World Bank indicators ────────────────────────────────────
 
@@ -36,32 +39,29 @@ WORLD_BANK_URL = (
     "?format=json&per_page=100&date=1990:2025"
 )
 
-# ── Vonter repo CSV files ────────────────────────────────────
-
-VONTER_BASE = (
-    "https://raw.githubusercontent.com/Vonter/india-aviation-traffic"
-    "/main/aggregated"
-)
-
-VONTER_FILES = [
-    "domestic/city.csv",
-    "domestic/carrier.csv",
-    "international/city.csv",
-    "international/carrier.csv",
-    "international/carrier_quarterly.csv",
-    "international/country.csv",
-    "daily.csv",
-]
-
 # ── Helpers ──────────────────────────────────────────────────
 
 
 def _time_remaining() -> bool:
     """Check if we have time for another download (soft timeout)."""
+    global _timed_out
     if DOWNLOAD_TIMEOUT <= 0:
         return True
     elapsed = time.monotonic() - _start_time
-    return elapsed < DOWNLOAD_TIMEOUT
+    if elapsed < DOWNLOAD_TIMEOUT:
+        return True
+    _timed_out = True
+    return False
+
+
+def write_github_output() -> None:
+    """Expose soft-timeout status to GitHub Actions, when running in CI."""
+    output_path = os.environ.get("GITHUB_OUTPUT")
+    if not output_path:
+        return
+    timed_out = "true" if (_timed_out or was_timed_out()) else "false"
+    with open(output_path, "a") as handle:
+        handle.write(f"timed_out={timed_out}\n")
 
 
 def download_file(url: str, dest: Path, force: bool = False) -> bool:
@@ -145,18 +145,19 @@ def download_world_bank():
             print(f"  ERROR parsing {name}: {e}", flush=True)
 
 
-# ── Vonter repo ──────────────────────────────────────────────
+# ── Official aviation sources ────────────────────────────────
 
 
-def download_vonter():
-    """Fetch aggregated CSVs from Vonter/india-aviation-traffic."""
-    print("\n── Vonter/india-aviation-traffic ──", flush=True)
-    vonter_dir = RAW_DIR / "vonter"
-
-    for rel_path in VONTER_FILES:
-        url = f"{VONTER_BASE}/{rel_path}"
-        dest = vonter_dir / rel_path
-        download_file(url, dest)
+def download_aviation_sources():
+    """Fetch and normalize DGCA/MoCA source data without Vonter."""
+    include_daily = os.environ.get("INCLUDE_MCA_DAILY", "0") == "1"
+    refresh_urls = os.environ.get("DGCA_REFRESH_URLS", "1") != "0"
+    ingest_aviation_sources(
+        refresh_urls=refresh_urls,
+        include_daily=include_daily,
+        aggregate=True,
+        timeout_started_at=_start_time,
+    )
 
 
 # ── Cleanup ──────────────────────────────────────────────────
@@ -175,8 +176,11 @@ def cleanup_tmp_files():
 def main():
     print("=== Downloading Data ===\n", flush=True)
     cleanup_tmp_files()
-    download_world_bank()
-    download_vonter()
+    try:
+        download_world_bank()
+        download_aviation_sources()
+    finally:
+        write_github_output()
     print("\nDone.", flush=True)
 
 

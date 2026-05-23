@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-05",
+  "data_date": "2026-05-23",
+  "seed": 20260424,
+  "n_draws": 1000,
+  "horizon": 2040,
+  "achieved": {},
+  "projected": {
+    "india_total_500m": {
+      "label": "India crosses 500M annual passengers",
+      "metric": "national_passengers",
+      "threshold": 500000000,
+      "status": "projected",
+      "p10_year": 2030,
+      "p50_year": 2031,
+      "p90_year": 2033,
+      "method": "monte_carlo_n1000",
+      "draws_total": 1000,
+      "draws_crossed": 1000
+    },
+    "india_total_750m": {
+      "label": "India crosses 750M annual passengers",
+      "metric": "national_passengers",
+      "threshold": 750000000,
+      "status": "projected",
+      "p10_year": 2034,
+      "p50_year": 2035,
+      "p90_year": 2037,
+      "method": "monte_carlo_n1000",
+      "draws_total": 1000,
+      "draws_crossed": 1000
+    },
+    "bom_100m": {
+      "label": "BOM (Mumbai) crosses 100M annual passengers",
+      "metric": "airport_passengers",
+      "threshold": 100000000,
+      "airport": "BOM",
+      "status": "projected",
+      "p10_year": 2035,
+      "p50_year": 2036,
+      "p90_year": 2038,
+      "method": "monte_carlo_n1000",
+      "draws_total": 1000,
+      "draws_crossed": 996,
+      "airport_share": 0.1182002463227688
+    },
+    "del_150m": {
+      "label": "DEL (Delhi) crosses 150M annual passengers",
+      "metric": "airport_passengers",
+      "threshold": 150000000,
+      "airport": "DEL",
+      "status": "projected",
+      "p10_year": 2035,
+      "p50_year": 2036,
+      "p90_year": 2038,
+      "method": "monte_carlo_n1000",
+      "draws_total": 1000,
+      "draws_crossed": 989,
+      "airport_share": 0.17333736080072504
+    },
+    "blr_75m": {
+      "label": "BLR (Bengaluru) crosses 75M annual passengers",
+      "metric": "airport_passengers",
+      "threshold": 75000000,
+      "airport": "BLR",
+      "status": "projected",
+      "p10_year": 2033,
+      "p50_year": 2034,
+      "p90_year": 2036,
+      "method": "monte_carlo_n1000",
+      "draws_total": 1000,
+      "draws_crossed": 1000,
+      "airport_share": 0.10705362479963296
+    },
+    "hyd_50m": {
+      "label": "HYD (Hyderabad) crosses 50M annual passengers",
+      "metric": "airport_passengers",
+      "threshold": 50000000,
+      "airport": "HYD",
+      "status": "projected",
+      "p10_year": 2033,
+      "p50_year": 2035,
+      "p90_year": 2036,
+      "method": "monte_carlo_n1000",
+      "draws_total": 1000,
+      "draws_crossed": 1000,
+      "airport_share": 0.06858015474714349
+    },
+    "tier2_share_20pct": {
+      "label": "Tier 2 airports cumulatively exceed 20% of national passengers",
+      "metric": "tier_share",
+      "threshold": 0.2,
+      "tier": "tier2",
+      "status": "beyond_horizon",
+      "p10_year": null,
+      "p50_year": null,
+      "p90_year": null,
+      "method": "deterministic",
+      "current_value": 0.1248,
+      "note": "Deterministic under v1 share-freeze; will not cross without tier-CAGR model (TODOS P1)."
+    }
+  },
+  "scheduled": {
+    "nia_operational": {
+      "label": "NIA (Noida) operational",
+      "airport": "NIA",
+      "scheduled_date": "2026-04",
+      "phase1_capacity": 12000000,
+      "ultimate_capacity": 70000000,
+      "note": "Scheduled date from public announcements (mappings.yaml). Slippage is typical in Indian greenfield projects; treat as schedule, not projection."
+    },
+    "nmia_operational": {
+      "label": "NMIA (Navi Mumbai) operational",
+      "airport": "NMIA",
+      "scheduled_date": "2025-12",
+      "phase1_capacity": 20000000,
+      "ultimate_capacity": 90000000,
+      "note": "Scheduled date from public announcements (mappings.yaml). Slippage is typical in Indian greenfield projects; treat as schedule, not projection."
+    }
+  }
+}

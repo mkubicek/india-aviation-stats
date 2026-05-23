@@ -1,5 +1,6 @@
 # Raw downloaded data (large CSVs, Excel files)
 data/raw/
+data/raw.tar.zst
 
 # Python
 __pycache__/

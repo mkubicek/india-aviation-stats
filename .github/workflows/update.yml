@@ -11,6 +11,9 @@ on:
         type: boolean
         default: true
 
+permissions:
+  contents: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -31,36 +34,67 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-      - name: Restore cached raw data
+      - name: Run tests
+        run: uv run pytest -q
+
+      - name: Restore raw data cache
+        id: raw-cache
         uses: actions/cache/restore@v4
         with:
-          path: data/raw
-          key: raw-data-${{ hashFiles('scripts/download.py') }}-${{ github.run_id }}
+          path: data/raw.tar.zst
+          key: raw-data-v4-${{ hashFiles('scripts/download.py', 'scripts/ingest_sources.py', 'pyproject.toml', 'uv.lock') }}-${{ runner.os }}
           restore-keys: |
-            raw-data-${{ hashFiles('scripts/download.py') }}-
-            raw-data-
+            raw-data-v4-
+
+      - name: Extract cached raw data
+        if: hashFiles('data/raw.tar.zst') != ''
+        run: |
+          mkdir -p data/raw
+          tar --zstd -xf data/raw.tar.zst -C data/
+          rm -f data/raw.tar.zst
+          echo "Cached raw files:"
+          find data/raw -type f | wc -l
+          du -sh data/raw || true
 
       - name: Download data
+        id: download
         run: uv run python scripts/download.py
         env:
           DOWNLOAD_TIMEOUT: "600"
 
+      - name: Re-pack raw data cache
+        if: always()
+        run: |
+          if [ -d data/raw ] && find data/raw -type f | grep -q .; then
+            tar --zstd -cf data/raw.tar.zst -C data raw/
+            du -sh data/raw.tar.zst
+          fi
+
       - name: Save raw data cache
+        if: always() && hashFiles('data/raw.tar.zst') != ''
         uses: actions/cache/save@v4
         with:
-          path: data/raw
-          key: raw-data-${{ hashFiles('scripts/download.py') }}-${{ github.run_id }}
+          path: data/raw.tar.zst
+          key: raw-data-v4-${{ hashFiles('scripts/download.py', 'scripts/ingest_sources.py', 'pyproject.toml', 'uv.lock') }}-${{ github.run_id }}
 
       - name: Process data
+        if: steps.download.outputs.timed_out != 'true'
         run: uv run python scripts/process.py
 
-      - name: Validate data
-        run: uv run python scripts/validate.py
-
       - name: Run projections
+        if: steps.download.outputs.timed_out != 'true'
         run: uv run python scripts/project.py
 
+      - name: Compute milestones
+        if: steps.download.outputs.timed_out != 'true'
+        run: uv run python scripts/milestones.py
+
+      - name: Validate data + milestone stability
+        if: steps.download.outputs.timed_out != 'true'
+        run: uv run python scripts/validate.py
+
       - name: Generate charts
+        if: steps.download.outputs.timed_out != 'true'
         run: |
           if [[ "${{ github.event_name }}" == "schedule" || "${{ inputs.generate_gifs }}" == "true" ]]; then
             uv run python scripts/chart.py
@@ -69,9 +103,11 @@ jobs:
           fi
 
       - name: Generate report
+        if: steps.download.outputs.timed_out != 'true'
         run: uv run python scripts/report.py
 
       - name: Commit and push
+        if: steps.download.outputs.timed_out != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

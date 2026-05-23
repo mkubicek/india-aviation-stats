@@ -1,0 +1,35 @@
+name: Cache Keepalive
+
+on:
+  schedule:
+    # Refresh the raw-data cache before GitHub's inactivity eviction window.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restore raw data cache
+        uses: actions/cache/restore@v4
+        with:
+          path: data/raw.tar.zst
+          key: raw-data-v4-${{ hashFiles('scripts/download.py', 'scripts/ingest_sources.py', 'pyproject.toml', 'uv.lock') }}-${{ runner.os }}
+          restore-keys: |
+            raw-data-v4-
+
+      - name: Re-save raw data cache
+        if: hashFiles('data/raw.tar.zst') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: data/raw.tar.zst
+          key: raw-data-v4-keepalive-${{ github.run_id }}

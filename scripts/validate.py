@@ -4,6 +4,7 @@ All checks are advisory — warnings are logged but never block the pipeline.
 Output: warnings.log (unified with unmapped-value warnings from process.py).
 """
 
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -11,6 +12,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 PROCESSED_DIR = ROOT / "data" / "processed"
+SNAPSHOTS_DIR = PROCESSED_DIR / "snapshots"
 REFERENCE = yaml.safe_load((ROOT / "reference.yaml").read_text())
 WARNINGS_PATH = ROOT / "warnings.log"
 
@@ -18,6 +20,7 @@ YEARLY_TOLERANCE = 0.05       # ±5% for national totals
 AIRPORT_TOLERANCE = 0.10      # ±10% for airport totals
 YOY_SPIKE_THRESHOLD = 0.50    # >50% YoY change flagged
 COVID_YEARS = {2020, 2021}    # Excluded from spike checks
+MILESTONE_DRIFT_THRESHOLD_YEARS = 1  # p50 drift > 1 year flagged
 
 
 def check_national_totals(macro: pd.DataFrame) -> list[str]:
@@ -185,6 +188,73 @@ def check_gdp_correlation() -> list[str]:
     return warnings
 
 
+def check_milestone_stability() -> list[str]:
+    """Flag p50_year drift >1 year vs the most recent prior-release snapshot.
+
+    Scope: compares current `milestones.json` against the latest file in
+    `data/processed/snapshots/releases/`. Drift vs prior monthly runs is
+    reported by report.py, not here. Rationale (design doc step 5 +
+    autoplan eng consensus): story cadence is annual-centric, so stability
+    is measured across WEO/DGCA releases, not monthly CI runs. First run
+    with no snapshot = silent success, no warning.
+    """
+    warnings: list[str] = []
+    current_path = PROCESSED_DIR / "milestones.json"
+    if not current_path.exists():
+        # milestones.py hasn't been run or failed. Not our concern here;
+        # the missing file would be noticed by report.py / chart.py.
+        return warnings
+
+    try:
+        current = json.loads(current_path.read_text())
+    except (json.JSONDecodeError, OSError) as e:
+        warnings.append(f"check_milestone_stability: cannot read current milestones.json — {e}")
+        return warnings
+
+    releases_dir = SNAPSHOTS_DIR / "releases"
+    if not releases_dir.exists():
+        # First run. Nothing to compare against; silent.
+        return warnings
+
+    snapshots = sorted(releases_dir.glob("*.json"))
+    if not snapshots:
+        return warnings
+
+    prior_path = snapshots[-1]
+    try:
+        prior = json.loads(prior_path.read_text())
+    except (json.JSONDecodeError, OSError) as e:
+        # Corrupt snapshot: log warning, do not crash pipeline.
+        warnings.append(
+            f"check_milestone_stability: prior snapshot {prior_path.name} is unreadable — {e}"
+        )
+        return warnings
+
+    current_projected = current.get("projected") or {}
+    prior_projected = prior.get("projected") or {}
+
+    for mid, entry in current_projected.items():
+        current_p50 = entry.get("p50_year")
+        if current_p50 is None:
+            continue
+        prior_entry = prior_projected.get(mid)
+        if prior_entry is None:
+            continue
+        prior_p50 = prior_entry.get("p50_year")
+        if prior_p50 is None:
+            continue
+        drift = abs(int(current_p50) - int(prior_p50))
+        if drift > MILESTONE_DRIFT_THRESHOLD_YEARS:
+            direction = "later" if current_p50 > prior_p50 else "earlier"
+            warnings.append(
+                f"check_milestone_stability:{mid}: "
+                f"p50 drifted {drift}y {direction} ({prior_p50} → {current_p50}) "
+                f"vs {prior_path.name}"
+            )
+
+    return warnings
+
+
 # ── Main ─────────────────────────────────────────────────────
 
 
@@ -204,6 +274,7 @@ def main():
 
     all_warnings.extend(check_airport_totals())
     all_warnings.extend(check_tier_consistency())
+    all_warnings.extend(check_milestone_stability())
 
     # Merge with any existing warnings (from process.py unmapped values)
     existing = []

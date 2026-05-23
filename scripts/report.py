@@ -18,6 +18,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 PROCESSED_DIR = ROOT / "data" / "processed"
+SNAPSHOTS_MONTHLY = PROCESSED_DIR / "snapshots" / "monthly"
 REPORT_DIR = ROOT / "reports"
 REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -60,6 +61,139 @@ def delta_str(new: float, old: float) -> str:
     pct = pct_change(new, old)
     sign = "+" if diff >= 0 else ""
     return f"{sign}{diff:,.0f} ({pct})"
+
+
+def _load_milestones() -> dict | None:
+    """Load milestones.json if present. Returns None if missing/invalid."""
+    path = PROCESSED_DIR / "milestones.json"
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text())
+    except json.JSONDecodeError:
+        return None
+
+
+def _load_prior_monthly_snapshot(year: int, month: int) -> dict | None:
+    """Load the most recent monthly snapshot that predates (year, month)."""
+    if not SNAPSHOTS_MONTHLY.exists():
+        return None
+    tag = f"{year:04d}-{month:02d}"
+    prior = sorted(p for p in SNAPSHOTS_MONTHLY.glob("*.json") if p.stem < tag)
+    if not prior:
+        return None
+    try:
+        return json.loads(prior[-1].read_text())
+    except json.JSONDecodeError:
+        return None
+
+
+def _build_milestones_section(year: int, month: int) -> list[str]:
+    """Return markdown lines for the Milestones section of the monthly report.
+
+    Surfaces projected→achieved transitions as lead items. Shows current
+    projected milestones with p10/p50/p90 and, when a prior monthly snapshot
+    exists, the year-over-year delta for each.
+    """
+    m = _load_milestones()
+    if not m:
+        return ["", "## Milestones", "", "_milestones.json not available — run scripts/milestones.py_"]
+
+    prior = _load_prior_monthly_snapshot(year, month)
+
+    lines: list[str] = ["", "## Milestones", ""]
+
+    # Lead: newly-achieved milestones (transitioned from projected → achieved)
+    newly_achieved: list[tuple[str, dict]] = []
+    current_achieved = m.get("achieved") or {}
+    prior_achieved = (prior or {}).get("achieved") or {}
+    for mid, entry in current_achieved.items():
+        if mid not in prior_achieved:
+            newly_achieved.append((mid, entry))
+
+    if newly_achieved:
+        lines.append("### Newly achieved")
+        lines.append("")
+        for mid, entry in newly_achieved:
+            label = entry.get("label", mid)
+            yr = entry.get("actual_year")
+            val = entry.get("actual_value")
+            val_str = f" ({val:,.0f} pax)" if isinstance(val, (int, float)) else ""
+            lines.append(f"- **{label}** — achieved in {yr}{val_str}")
+        lines.append("")
+
+    # Projected
+    projected = m.get("projected") or {}
+    prior_projected = (prior or {}).get("projected") or {}
+    if projected:
+        lines.append("### Projected")
+        lines.append("")
+        lines.append("| Milestone | Threshold | p10 | p50 | p90 | Δ p50 vs prior |")
+        lines.append("|-----------|----------:|----:|----:|----:|---------------:|")
+        for mid, entry in projected.items():
+            label = entry.get("label", mid)
+            thr = entry.get("threshold")
+            thr_str = _format_threshold_for_report(thr, entry.get("metric", ""))
+            p50 = entry.get("p50_year")
+            if p50 is None:
+                p_cells = ("—", ">2040", "—")
+            else:
+                p_cells = (
+                    str(entry.get("p10_year") or "—"),
+                    str(p50),
+                    str(entry.get("p90_year") or "—"),
+                )
+            delta = ""
+            prior_p50 = (prior_projected.get(mid) or {}).get("p50_year")
+            if prior_p50 is not None and p50 is not None:
+                diff = int(p50) - int(prior_p50)
+                if diff == 0:
+                    delta = "—"
+                else:
+                    sign = "+" if diff > 0 else ""
+                    delta = f"{sign}{diff}y"
+            lines.append(
+                f"| {label} | {thr_str} | {p_cells[0]} | {p_cells[1]} | {p_cells[2]} | {delta} |"
+            )
+        lines.append("")
+
+    # Scheduled (footnote style)
+    scheduled = m.get("scheduled") or {}
+    if scheduled:
+        lines.append("### Scheduled (greenfield airports)")
+        lines.append("")
+        for mid, entry in scheduled.items():
+            label = entry.get("label", mid)
+            sd = entry.get("scheduled_date") or "TBD"
+            cap = entry.get("phase1_capacity")
+            cap_str = f", phase-1 capacity {cap/1e6:.0f}M" if cap else ""
+            lines.append(f"- _{label}_ — scheduled {sd}{cap_str}")
+        lines.append("")
+
+    return lines
+
+
+def _format_threshold_for_report(threshold, metric: str) -> str:
+    if threshold is None:
+        return ""
+    if metric == "tier_share":
+        return f"{threshold * 100:.0f}%"
+    t = float(threshold)
+    if t >= 1e9:
+        return f"{t / 1e9:.1f}B pax"
+    if t >= 1e6:
+        return f"{t / 1e6:.0f}M pax"
+    return f"{t:,.0f}"
+
+
+def _write_monthly_snapshot(year: int, month: int) -> None:
+    """Persist a monthly snapshot of milestones.json for next-month diffing."""
+    m = _load_milestones()
+    if not m:
+        return
+    SNAPSHOTS_MONTHLY.mkdir(parents=True, exist_ok=True)
+    tag = f"{year:04d}-{month:02d}"
+    (SNAPSHOTS_MONTHLY / f"{tag}.json").write_text(json.dumps(m, indent=2))
 
 
 def generate_report(target_year: int = None, target_month: int = None):
@@ -163,15 +297,19 @@ def generate_report(target_year: int = None, target_month: int = None):
     else:
         lines.append("Projection data not yet available. Run project.py first.")
 
+    # \u2500\u2500 Milestones section (appended between Projection and Methodology) \u2500\u2500
+    lines.extend(_build_milestones_section(year, month))
+
     lines.extend([
         "",
         "## Methodology",
         "",
         "Projections use a log-log OLS regression of flights per capita on "
         "GDP per capita (PPP), fitted on 20 years of Indian data excluding "
-        "COVID years (2020\u20132021). GDP projections from IMF WEO forecasts "
-        "extrapolated to 2040. See [METHODOLOGY.md](../METHODOLOGY.md) for "
-        "full details.",
+        "COVID years (2020\u20132021). GDP for 2025\u20132040 uses log-linear "
+        "extrapolation from the last 10 observed years; IMF WEO integration "
+        "is a planned v1.1 upgrade. See [METHODOLOGY.md](../METHODOLOGY.md) "
+        "for full details and known limitations.",
         "",
         "## Key Context",
         "",
@@ -193,8 +331,7 @@ def generate_report(target_year: int = None, target_month: int = None):
         "",
         "---",
         "",
-        f"*Data sources: World Bank Open Data, Vonter/india-aviation-traffic, "
-        f"DGCA*",
+        f"*Data sources: World Bank Open Data, DGCA, MoCA*",
     ])
 
     # Save report
@@ -202,6 +339,10 @@ def generate_report(target_year: int = None, target_month: int = None):
     report_path = REPORT_DIR / filename
     report_path.write_text("\n".join(lines) + "\n")
     print(f"  Saved: {report_path}")
+
+    # Persist a monthly snapshot of milestones.json so next month can diff
+    _write_monthly_snapshot(year, month)
+
     return report_path
 
 

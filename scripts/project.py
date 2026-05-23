@@ -23,6 +23,10 @@ MAPPINGS = yaml.safe_load((ROOT / "mappings.yaml").read_text())
 
 COVID_YEARS = {2020, 2021}
 PROJECTION_END = 2040
+# Bump on breaking schema changes to projection.json (rename/remove fields or
+# change units). Additive changes (new optional fields) do not bump.
+# Consumers (milestones.py, chart.py) check this and raise on mismatch.
+PROJECTION_SCHEMA_VERSION = 1
 
 
 def load_macro() -> pd.DataFrame:
@@ -57,6 +61,12 @@ def fit_gdp_flights_regression(macro: pd.DataFrame) -> dict:
         X = sm.add_constant(x)
         model = sm.OLS(y, X).fit()
 
+        # Full 2×2 covariance matrix [[var(intercept), cov], [cov, var(slope)]].
+        # Milestone Monte Carlo needs this: sampling (b0, b1) from independent
+        # marginals produces systematically wrong intervals because the
+        # off-diagonal Cov(intercept, slope) is structurally negative at India's x̄.
+        cov_params = np.asarray(model.cov_params()).tolist()
+
         return {
             "intercept": float(model.params[0]),
             "slope": float(model.params[1]),
@@ -64,6 +74,8 @@ def fit_gdp_flights_regression(macro: pd.DataFrame) -> dict:
             "r_squared_adj": float(model.rsquared_adj),
             "std_err_slope": float(model.bse[1]),
             "std_err_intercept": float(model.bse[0]),
+            "cov_params": cov_params,
+            "coef_names": ["intercept", "slope"],
             "n_observations": int(model.nobs),
             "residual_std": float(np.sqrt(model.mse_resid)),
             "years_used": sorted(valid["year"].astype(int).tolist()),
@@ -84,6 +96,19 @@ def fit_gdp_flights_regression(macro: pd.DataFrame) -> dict:
         r_squared = 1 - ss_res / ss_tot
         residual_std = np.sqrt(ss_res / (n - 2))
 
+        # Manually compute the 2×2 covariance matrix for [intercept, slope].
+        # Var(slope) = σ² / Σ(x-x̄)²
+        # Var(intercept) = σ² * (1/n + x̄²/Σ(x-x̄)²)
+        # Cov(intercept, slope) = -x̄ * σ² / Σ(x-x̄)²
+        sigma2 = ss_res / (n - 2)
+        var_slope = sigma2 / ss_xx
+        var_intercept = sigma2 * (1 / n + x_mean**2 / ss_xx)
+        cov_intercept_slope = -x_mean * sigma2 / ss_xx
+        cov_params = [
+            [float(var_intercept), float(cov_intercept_slope)],
+            [float(cov_intercept_slope), float(var_slope)],
+        ]
+
         return {
             "intercept": float(intercept),
             "slope": float(slope),
@@ -93,6 +118,8 @@ def fit_gdp_flights_regression(macro: pd.DataFrame) -> dict:
             "std_err_intercept": float(
                 residual_std * np.sqrt(1 / n + x_mean**2 / ss_xx)
             ),
+            "cov_params": cov_params,
+            "coef_names": ["intercept", "slope"],
             "n_observations": n,
             "residual_std": float(residual_std),
             "years_used": sorted(valid["year"].astype(int).tolist()),
@@ -332,6 +359,7 @@ def main():
 
     # Step 5: Output
     result = {
+        "schema_version": PROJECTION_SCHEMA_VERSION,
         "regression": regression,
         "national_timeline": national_timeline,
         "airport_projections": airport_projections,
@@ -339,7 +367,8 @@ def main():
             "projection_end": PROJECTION_END,
             "covid_years_excluded": sorted(COVID_YEARS),
             "model": "log-log OLS (flights_per_capita ~ gdp_per_capita_ppp)",
-            "confidence_band": "2sigma",
+            "gdp_projection_method": "log-linear extrapolation from last 10 years observed GDP",
+            "confidence_band": "2sigma on log(fpc); milestone bands use Monte Carlo inverse prediction",
         },
     }
 
