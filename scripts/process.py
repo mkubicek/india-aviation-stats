@@ -137,6 +137,31 @@ def source_csv(rel_path: str) -> Path:
     return AVIATION_AGG_DIR / rel_path
 
 
+def aggregate_airport_periods(df: pd.DataFrame) -> pd.DataFrame:
+    """Ensure one row per airport, period, and category after city-code mapping."""
+    group_cols = ["year", "month", "airport", "category"]
+    output_cols = [
+        "year",
+        "month",
+        "airport",
+        "category",
+        "passengers",
+        "departures",
+        "arrivals",
+    ]
+    result = (
+        df.groupby(group_cols, as_index=False)
+        .agg(
+            passengers=("passengers", "sum"),
+            departures=("departures", "sum"),
+            arrivals=("arrivals", "sum"),
+        )
+        .sort_values(group_cols)
+        .reset_index(drop=True)
+    )
+    return result[output_cols]
+
+
 # ── Aviation city data ───────────────────────────────────────
 
 
@@ -195,7 +220,17 @@ def process_domestic_city():
     monthly["airport"] = monthly["city"].apply(city_to_iata)
     monthly["category"] = "domestic"
 
-    result = monthly[["year", "month", "airport", "category", "passengers", "departures", "arrivals"]]
+    result = aggregate_airport_periods(
+        monthly[[
+            "year",
+            "month",
+            "airport",
+            "category",
+            "passengers",
+            "departures",
+            "arrivals",
+        ]]
+    )
     print(f"    Processed: {len(result):,} airport-month records, "
           f"{result['airport'].nunique()} unique airports")
     return result
@@ -221,12 +256,6 @@ def process_international_city():
 
     df["PaxToCity2"] = pd.to_numeric(df["PaxToCity2"], errors="coerce").fillna(0)
     df["PaxFromCity2"] = pd.to_numeric(df["PaxFromCity2"], errors="coerce").fillna(0)
-
-    # Aggregate by Indian city only (filter to Indian airports)
-    # International routes: City1 or City2 may be foreign cities
-    all_indian_cities = set(CITY_ALIASES.keys()) | set(
-        info.get("city", "").upper() for info in MAPPINGS.get("airports", {}).values()
-    )
 
     # As City1 (Indian origin for international routes)
     as_origin = (
@@ -268,7 +297,17 @@ def process_international_city():
     quarter_to_month = {1: 2, 2: 5, 3: 8, 4: 11}
     quarterly["month"] = quarterly["quarter"].map(quarter_to_month)
 
-    result = quarterly[["year", "month", "airport", "category", "passengers", "departures", "arrivals"]]
+    result = aggregate_airport_periods(
+        quarterly[[
+            "year",
+            "month",
+            "airport",
+            "category",
+            "passengers",
+            "departures",
+            "arrivals",
+        ]]
+    )
     print(f"    Processed: {len(result):,} airport-quarter records, "
           f"{result['airport'].nunique()} unique Indian airports")
     return result
@@ -307,7 +346,7 @@ def process_airport_data():
         print("  WARNING: No aviation city data available", flush=True)
         return
 
-    combined = pd.concat(frames, ignore_index=True)
+    combined = aggregate_airport_periods(pd.concat(frames, ignore_index=True))
 
     # Save monthly
     monthly_out = PROCESSED_DIR / "airport_monthly.csv"

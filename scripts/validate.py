@@ -102,6 +102,29 @@ def check_negative_passengers(monthly: pd.DataFrame) -> list[str]:
     return [f"values:passengers: {len(negative)} negative passenger row(s)"]
 
 
+def check_duplicate_airport_periods(monthly: pd.DataFrame) -> list[str]:
+    key = ["year", "month", "airport", "category"]
+    duplicate_count = int(monthly.duplicated(key).sum())
+    if duplicate_count == 0:
+        return []
+    examples = (
+        monthly.loc[monthly.duplicated(key, keep=False), key]
+        .drop_duplicates()
+        .sort_values(key)
+        .head(5)
+    )
+    labels = ", ".join(
+        f"{row.year}-{int(row.month):02d}:{row.airport}:{row.category}"
+        for row in examples.itertuples(index=False)
+    )
+    suffix = "..." if duplicate_count > len(examples) else ""
+    return [
+        "grain:airport_monthly: "
+        f"{duplicate_count} duplicate airport-period-category row(s): "
+        f"{labels}{suffix}"
+    ]
+
+
 def check_tier_consistency(monthly: pd.DataFrame, yearly: pd.DataFrame) -> list[str]:
     complete_years = _complete_years(monthly)
     if not complete_years:
@@ -146,6 +169,7 @@ def main() -> None:
         warnings.extend(check_domestic_month_coverage(monthly))
         warnings.extend(check_international_quarter_coverage(monthly))
         warnings.extend(check_negative_passengers(monthly))
+        warnings.extend(check_duplicate_airport_periods(monthly))
 
         if yearly_path.exists():
             yearly = pd.read_csv(yearly_path)

@@ -3,6 +3,7 @@
 import pandas as pd
 
 from validate import (
+    check_duplicate_airport_periods,
     check_domestic_month_coverage,
     check_international_quarter_coverage,
     check_negative_passengers,
@@ -57,4 +58,30 @@ def test_negative_passengers_warns():
 
     assert check_negative_passengers(monthly) == [
         "values:passengers: 1 negative passenger row(s)"
+    ]
+
+
+def test_duplicate_airport_periods_warns():
+    monthly = pd.DataFrame(
+        [
+            {
+                "year": 2025,
+                "month": 1,
+                "airport": "DEL",
+                "category": "domestic",
+                "passengers": 1,
+            },
+            {
+                "year": 2025,
+                "month": 1,
+                "airport": "DEL",
+                "category": "domestic",
+                "passengers": 2,
+            },
+        ]
+    )
+
+    assert check_duplicate_airport_periods(monthly) == [
+        "grain:airport_monthly: "
+        "1 duplicate airport-period-category row(s): 2025-01:DEL:domestic"
     ]

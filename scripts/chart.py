@@ -65,8 +65,9 @@ MONTH_NAMES = {
 }
 
 DISCLAIMER = (
-    "Personal project - views are my own, "
-    "not those of any employer or affiliate"
+    "This is a personal open-source project. Views and analysis are my own "
+    "and do not represent Flughafen Zürich AG, Noida International Airport, "
+    "or any affiliated entity."
 )
 
 

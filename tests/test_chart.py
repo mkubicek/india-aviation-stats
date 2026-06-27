@@ -1,8 +1,20 @@
-"""Tests for chart data selection helpers."""
+"""Tests for chart generation helpers."""
 
 import pandas as pd
 
-from chart import _complete_airport_years, _domestic_trailing_airport_passengers
+from chart import (
+    DISCLAIMER,
+    _complete_airport_years,
+    _domestic_trailing_airport_passengers,
+)
+
+
+def test_disclaimer_matches_project_required_text():
+    assert DISCLAIMER == (
+        "This is a personal open-source project. Views and analysis are my own "
+        "and do not represent Flughafen Zürich AG, Noida International Airport, "
+        "or any affiliated entity."
+    )
 
 
 def test_complete_airport_years_requires_domestic_months_and_international_quarters():

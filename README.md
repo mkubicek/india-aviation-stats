@@ -29,7 +29,7 @@ GDP correlation, passenger projections, milestones, and reports are not part of
 
 Animated bar race of the top airports by scheduled domestic passengers on a
 trailing 12-month basis. The current source coverage supports continuous
-monthly frames from Mar 2016 through Mar 2026.
+monthly frames from Mar 2016 through May 2026.
 
 ![India airport passenger race](charts/airport_passenger_race.gif)
 
@@ -104,8 +104,10 @@ Raw downloads are gitignored and cached in GitHub Actions as a compressed
 ```
 india-aviation-stats/
 ├── AGENTS.md
+├── CHANGELOG.md
 ├── METHODOLOGY.md
 ├── README.md
+├── TODOS.md
 ├── LICENSE
 ├── mappings.yaml
 ├── scripts/
@@ -124,6 +126,12 @@ india-aviation-stats/
 │   └── cache-keepalive.yml
 └── pyproject.toml
 ```
+
+---
+
+## Release History
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ---
 

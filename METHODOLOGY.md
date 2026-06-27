@@ -141,4 +141,4 @@ Validation is advisory and writes `warnings.log`.
 
 | Date | Version | Change |
 |------|---------|--------|
-| 2026-05 | 0.2 | Main branch reset to direct-source ingestion and observed passenger charts |
+| 2026-06 | 0.1.0 | Initial observed-data release methodology |
