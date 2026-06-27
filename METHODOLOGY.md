@@ -77,12 +77,15 @@ source workbook columns preserved.
 
 ---
 
-## Airport Classification
+## Project Airport Tiers
 
-Airport tiers are defined in `mappings.yaml`.
+Airport tiers are project-defined convenience bands used for chart coloring,
+filtering, and validation. They are not official DGCA, AAI, MoCA, regulatory, or
+industry-standard airport classifications. Tier assignments are defined in
+`mappings.yaml`.
 
-| Annual Passengers | Classification |
-|-------------------|----------------|
+| Annual Passengers | Project Tier |
+|-------------------|--------------|
 | > 20M             | Metro |
 | 5M-20M            | Tier 1 |
 | 1M-5M             | Tier 2 |
@@ -98,9 +101,13 @@ mismatches in the latest complete observed DGCA year.
 
 ### Airport Rankings
 
-`airport_rankings.png` ranks the current top 10 airports by annual passengers.
-It uses domestic + international totals and only includes years with complete
-domestic months and complete international quarters.
+`airport_rankings.png` ranks the top 10 airports in the latest complete source
+year by annual passengers. It uses domestic + international totals and only
+includes years with complete domestic months and complete international quarters.
+The static ranking is annual rather than monthly because the international
+source data is quarterly, and annual complete-year ranking avoids misleading
+month-to-month movement from mixed source cadences. Monthly movement is covered
+separately by `airport_passenger_race.gif`, using domestic data only.
 
 ### Airport Passenger Race
 
