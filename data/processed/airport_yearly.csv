@@ -471,7 +471,6 @@ year,airport,category,passengers,tier
 2019,CJB,international,240800.0,tier2
 2019,COK,domestic,5681993.0,tier1
 2019,COK,international,4481676.0,tier1
-2019,DABOLIM,domestic,7960888.0,tier1
 2019,DEHRA DUN,domestic,1322060.0,tier2
 2019,DEL,domestic,52005839.0,metro
 2019,DEL,international,16928726.0,metro
@@ -485,6 +484,7 @@ year,airport,category,passengers,tier
 2019,GAY,domestic,96429.0,tier2
 2019,GAY,international,90861.0,tier2
 2019,GHAZIABAD,domestic,2854.0,tier3
+2019,GOI,domestic,7960888.0,tier1
 2019,GOI,international,489163.0,tier1
 2019,GOP,domestic,614291.0,tier3
 2019,GWALIOR,domestic,115081.0,tier3
@@ -603,7 +603,6 @@ year,airport,category,passengers,tier
 2020,CJB,international,62744.0,tier2
 2020,COK,domestic,1946125.0,tier1
 2020,COK,international,1287166.0,tier1
-2020,DABOLIM,domestic,2894682.0,tier2
 2020,DARBHANGA,domestic,49973.0,tier3
 2020,DEHRA DUN,domestic,650648.0,tier3
 2020,DEL,domestic,23053272.0,metro
@@ -618,6 +617,7 @@ year,airport,category,passengers,tier
 2020,GAY,domestic,57316.0,tier2
 2020,GAY,international,35233.0,tier2
 2020,GHAZIABAD,domestic,10398.0,tier3
+2020,GOI,domestic,2894682.0,tier1
 2020,GOI,international,143986.0,tier1
 2020,GOP,domestic,497004.0,tier3
 2020,GWALIOR,domestic,77964.0,tier3
@@ -738,7 +738,6 @@ year,airport,category,passengers,tier
 2021,CJB,international,50838.0,tier2
 2021,COK,domestic,2430900.0,tier1
 2021,COK,international,1711341.0,tier1
-2021,DABOLIM,domestic,5163784.0,tier1
 2021,DARBHANGA,domestic,629666.0,tier3
 2021,DEHRA DUN,domestic,965612.0,tier3
 2021,DEL,domestic,32002443.0,metro
@@ -751,6 +750,7 @@ year,airport,category,passengers,tier
 2021,GAU,domestic,3448234.0,tier1
 2021,GAY,domestic,54328.0,tier2
 2021,GHAZIABAD,domestic,27856.0,tier3
+2021,GOI,domestic,5163784.0,tier1
 2021,GOI,international,65721.0,tier1
 2021,GOP,domestic,629226.0,tier3
 2021,GWALIOR,domestic,175966.0,tier3
@@ -873,7 +873,6 @@ year,airport,category,passengers,tier
 2022,CJB,international,166835.0,tier2
 2022,COK,domestic,4078245.0,tier1
 2022,COK,international,3724155.0,tier1
-2022,DABOLIM,domestic,7536171.0,tier1
 2022,DARBHANGA,domestic,630097.0,tier3
 2022,DEHRA DUN,domestic,1523301.0,tier2
 2022,DEL,domestic,46144544.0,metro
@@ -889,6 +888,7 @@ year,airport,category,passengers,tier
 2022,GAY,domestic,119885.0,tier2
 2022,GAY,international,18742.0,tier2
 2022,GHAZIABAD,domestic,26600.0,tier3
+2022,GOI,domestic,7536171.0,tier1
 2022,GOI,international,265735.0,tier1
 2022,GONDIA AIRPORT,domestic,19057.0,tier3
 2022,GOP,domestic,684823.0,tier3
@@ -1024,7 +1024,6 @@ year,airport,category,passengers,tier
 2023,COK,international,4659358.0,tier1
 2023,COOCH BEHAR,domestic,2079.0,tier3
 2023,CUDDAPAH,domestic,46381.0,tier3
-2023,DABOLIM,domestic,6994520.0,tier1
 2023,DARBHANGA,domestic,582172.0,tier3
 2023,DED,domestic,1056591.0,tier2
 2023,DEHRA DUN,domestic,553796.0,tier3
@@ -1041,10 +1040,11 @@ year,airport,category,passengers,tier
 2023,GAY,domestic,207558.0,tier2
 2023,GAY,international,62985.0,tier2
 2023,GHAZIABAD,domestic,2198.0,tier3
-2023,GOI,domestic,2549822.0,tier1
-2023,GOI,international,427437.0,tier1
+2023,GOI,domestic,6994520.0,tier1
 2023,GONDIA,domestic,1603.0,tier3
 2023,GOP,domestic,728959.0,tier3
+2023,GOX,domestic,3755021.0,tier1
+2023,GOX,international,427437.0,tier1
 2023,GWALIOR,domestic,275532.0,tier3
 2023,HBX,domestic,361729.0,tier3
 2023,HGI,domestic,94443.0,tier3
@@ -1099,7 +1099,6 @@ year,airport,category,passengers,tier
 2023,MALVAN,domestic,10106.0,tier3
 2023,MAQ,domestic,404831.0,tier2
 2023,MAQ,international,809887.0,tier2
-2023,MOPA GOA,domestic,1205199.0,tier2
 2023,MYSORE,domestic,134416.0,tier3
 2023,NAG,domestic,2802995.0,tier1
 2023,NAG,international,91131.0,tier1
@@ -1185,7 +1184,6 @@ year,airport,category,passengers,tier
 2024,COK,international,5010577.0,tier1
 2024,COOCH BEHAR,domestic,5080.0,tier3
 2024,CUDDAPAH,domestic,45408.0,tier3
-2024,DABOLIM,domestic,6612053.0,tier1
 2024,DARBHANGA,domestic,483134.0,tier3
 2024,DED,domestic,1637541.0,tier2
 2024,DEL,domestic,55842125.0,metro
@@ -1201,10 +1199,11 @@ year,airport,category,passengers,tier
 2024,GAY,domestic,223908.0,tier2
 2024,GAY,international,74368.0,tier2
 2024,GHAZIABAD,domestic,84.0,tier3
-2024,GOI,domestic,4457212.0,tier1
-2024,GOI,international,478285.0,tier1
+2024,GOI,domestic,6612053.0,tier1
 2024,GONDIA,domestic,30107.0,tier3
 2024,GOP,domestic,741137.0,tier3
+2024,GOX,domestic,4457212.0,tier1
+2024,GOX,international,478285.0,tier1
 2024,GWALIOR,domestic,389377.0,tier3
 2024,HBX,domestic,334827.0,tier3
 2024,HGI,domestic,167287.0,tier3
@@ -1343,7 +1342,6 @@ year,airport,category,passengers,tier
 2025,COK,international,5258547.0,tier1
 2025,COOCH BEHAR,domestic,5623.0,tier3
 2025,CUDDAPAH,domestic,68388.0,tier3
-2025,DABOLIM,domestic,6238974.0,tier1
 2025,DARBHANGA,domestic,719258.0,tier3
 2025,DATIA AIRPORT,domestic,825.0,tier3
 2025,DED,domestic,1799771.0,tier2
@@ -1360,10 +1358,11 @@ year,airport,category,passengers,tier
 2025,GAY,domestic,241377.0,tier2
 2025,GAY,international,45060.0,tier2
 2025,GHAZIABAD,domestic,80685.0,tier3
-2025,GOI,domestic,4678632.0,tier1
-2025,GOI,international,490476.0,tier1
+2025,GOI,domestic,6238974.0,tier1
 2025,GONDIA,domestic,32850.0,tier3
 2025,GOP,domestic,1152245.0,tier3
+2025,GOX,domestic,4678632.0,tier1
+2025,GOX,international,490476.0,tier1
 2025,GWALIOR,domestic,292535.0,tier3
 2025,HBX,domestic,363730.0,tier3
 2025,HGI,domestic,183177.0,tier3
@@ -1507,10 +1506,10 @@ year,airport,category,passengers,tier
 2026,GAU,domestic,2779958.0,tier1
 2026,GAY,domestic,108681.0,tier2
 2026,GHAZIABAD,domestic,346533.0,tier3
-2026,GOA DABOLIM SOUTH GOA,domestic,2497851.0,tier2
-2026,GOA MOPA NORTH GOA,domestic,2175128.0,tier2
+2026,GOI,domestic,2497851.0,tier1
 2026,GONDIA,domestic,10745.0,tier3
 2026,GOP,domestic,502323.0,tier3
+2026,GOX,domestic,2175128.0,tier1
 2026,GWALIOR,domestic,113417.0,tier3
 2026,HBX,domestic,167079.0,tier3
 2026,HGI,domestic,94723.0,tier3

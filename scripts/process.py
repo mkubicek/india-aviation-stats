@@ -21,6 +21,8 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
+from entities import build_airport_resolver
+
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
 AVIATION_AGG_DIR = RAW_DIR / "aviation" / "aggregated"
@@ -28,6 +30,10 @@ PROCESSED_DIR = ROOT / "data" / "processed"
 PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
 MAPPINGS = yaml.safe_load((ROOT / "mappings.yaml").read_text())
+
+# Validity-window entity resolver (handles labels whose meaning changes over time,
+# e.g. the Goa "GOA" label = Dabolim through 2018, Mopa from 2023). Built once.
+AIRPORT_RESOLVER = build_airport_resolver(MAPPINGS)
 
 # City name → IATA code mapping (DGCA source files use city names, not IATA codes)
 # Built from mappings.yaml airports section
@@ -123,13 +129,26 @@ CITY_ALIASES = {k.upper(): v for k, v in CITY_ALIASES.items()}
 
 
 def city_to_iata(city_name: str) -> str:
-    """Map a source city name to IATA code. Returns city name if no mapping."""
+    """Map a source city name to IATA code (period-agnostic legacy fallback)."""
     name = city_name.strip().upper()
     if name in CITY_ALIASES:
         return CITY_ALIASES[name]
     if name in CITY_TO_IATA:
         return CITY_TO_IATA[name]
     return name  # Return as-is if no mapping found
+
+
+def resolve_airport(label: str, year, month) -> str:
+    """Resolve a source label to a canonical IATA for a specific period.
+
+    Tries the validity-window entity resolver first (handles time-varying labels
+    like the Goa "GOA" label, which is Dabolim through 2018 and Mopa from 2023),
+    then falls back to the legacy flat alias map, then to the uppercase raw name.
+    """
+    key = AIRPORT_RESOLVER.resolve(label, int(year), int(month))
+    if key is not None:
+        return key
+    return city_to_iata(label)
 
 
 def source_csv(rel_path: str) -> Path:
@@ -216,8 +235,10 @@ def process_domestic_city():
     monthly["passengers"] = monthly["departures"] + monthly["arrivals"]
     monthly = monthly.rename(columns={"Year": "year", "Month": "month"})
 
-    # Map city names to IATA codes
-    monthly["airport"] = monthly["city"].apply(city_to_iata)
+    # Map city names to IATA codes (period-aware: resolves time-varying labels)
+    monthly["airport"] = monthly.apply(
+        lambda r: resolve_airport(r["city"], r["year"], r["month"]), axis=1
+    )
     monthly["category"] = "domestic"
 
     result = aggregate_airport_periods(
@@ -282,8 +303,12 @@ def process_international_city():
     quarterly["passengers"] = quarterly["departures"] + quarterly["arrivals"]
     quarterly = quarterly.rename(columns={"Year": "year", "Quarter": "quarter"})
 
-    # Map city names to IATA codes
-    quarterly["airport"] = quarterly["city"].apply(city_to_iata)
+    # Map city names to IATA codes (period-aware; quarter -> midpoint month)
+    _qmid = {1: 2, 2: 5, 3: 8, 4: 11}
+    quarterly["airport"] = quarterly.apply(
+        lambda r: resolve_airport(r["city"], r["year"], _qmid.get(int(r["quarter"]), 6)),
+        axis=1,
+    )
 
     # Filter to known Indian airports (discard foreign city rows)
     known_iata = set(MAPPINGS.get("airports", {}).keys())
