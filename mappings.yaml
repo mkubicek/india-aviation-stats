@@ -28,6 +28,11 @@ airports:
     tier: metro
     opened_year: 1942
 
+    variants:
+      - label: Mumbai
+      - label: Chhatrapati Shivaji Maharaj International Airport
+      - label: MUMBAI MUMBAI
+        valid_from: 2026-01
   BLR:
     name: Kempegowda International Airport
     city: Bengaluru
@@ -167,6 +172,10 @@ airports:
     tier: tier1
     opened_year: 1951
 
+    variants:
+      - label: Mangaluru
+      - label: Mangalore International Airport
+      - label: MANGALORE MANGALURU
   CCJ:
     name: Calicut International Airport
     city: Kozhikode
@@ -212,6 +221,11 @@ airports:
     tier: tier1
     opened_year: 1948
 
+    variants:
+      - label: Visakhapatnam
+      - label: Visakhapatnam Airport
+      - label: VISHAKHAPATNAM VISAKHAPATNAM
+        valid_from: 2026-01
   NAG:
     name: Dr. Babasaheb Ambedkar International Airport
     city: Nagpur
@@ -447,6 +461,10 @@ airports:
     tier: tier2
     opened_year: 1942
 
+    variants:
+      - label: Tiruchirappalli
+      - label: Tiruchirappalli International Airport
+      - label: TIRUCHIRAPALLY
   DED:
     name: Jolly Grant Airport
     city: Dehradun
@@ -456,6 +474,10 @@ airports:
     tier: tier2
     opened_year: 1978
 
+    variants:
+      - label: Dehradun
+      - label: Jolly Grant Airport
+      - label: DEHRA DUN
   IXM:
     name: Madurai Airport
     city: Madurai
@@ -520,15 +542,6 @@ airports:
     tier: tier3
     opened_year: 2021
 
-  KLH:
-    name: Kalaburagi Airport
-    city: Kalaburagi
-    state: Karnataka
-    lat: 17.3190
-    lon: 76.8297
-    tier: tier3
-    opened_year: 2019
-
   SHL:
     name: Shillong Airport (Umroi)
     city: Shillong
@@ -565,6 +578,10 @@ airports:
     tier: tier3
     opened_year: 2018
 
+    variants:
+      - label: Gangtok
+      - label: Pakyong Airport
+      - label: PAKYONG
   KUU:
     name: Kullu-Manali Airport (Bhuntar)
     city: Kullu
@@ -584,6 +601,10 @@ airports:
     opened_year: 1970
 
   # ── Greenfield (under construction / newly opened) ──
+    variants:
+      - label: Dharamshala
+      - label: Gaggal Airport
+      - label: DHARAMSALA
   NIA:
     name: Noida International Airport
     city: Jewar
@@ -608,6 +629,10 @@ airports:
     phase1_capacity: 20000000
     ultimate_capacity: 90000000
 
+    variants:
+      - label: Navi Mumbai
+      - label: Navi Mumbai International Airport
+      - label: MUMBAI NAVI MUMBAI
   BPM:
     name: Bhogapuram International Airport
     city: Bhogapuram
@@ -629,6 +654,10 @@ airports:
     tier: tier3
     opened_year: 2022
 
+    variants:
+      - label: Itanagar
+      - label: Hollongi Airport (Donyi Polo)
+      - label: HOLLONGI AIRPORT ITANAGAR
   DGH:
     name: Durgapur Airport (Kazi Nazrul Islam)
     city: Durgapur
@@ -660,6 +689,421 @@ airports:
 # Airline groups
 # ─────────────────────────────────────────────────────────────
 
+  GBI:
+    name: Kalaburagi Airport
+    city: Kalaburagi
+    state: Karnataka
+    lat: 17.3190
+    lon: 76.8297
+    tier: tier3
+    opened_year: 2019
+
+    variants:
+      - label: KALABURAGI
+      - label: KALABURAGI KARNATAKA
+  KLH:
+    name: Chhatrapati Rajaram Maharaj Airport
+    city: Kolhapur
+    state: Maharashtra
+    opened_year: 2002
+    variants:
+      - label: KOLHAPUR
+  LUH:
+    name: Sahnewal Airport
+    city: Ludhiana
+    state: Punjab
+    variants:
+      - label: LUDHIANA
+        valid_to: 2025-12
+  HWR:
+    name: Halwara International Airport
+    city: Ludhiana
+    state: Punjab
+    opened_year: 2026
+    variants:
+      - label: LUDHIANA
+        valid_from: 2026-01
+  PXN:
+    name: Purnea Airport
+    city: Purnea
+    state: Bihar
+    opened_year: 2025
+    variants:
+      - label: PURNEA
+      - label: PURNIA AIRPORT
+  CDP:
+    name: Kadapa Airport
+    city: Kadapa (formerly Cuddapah), Andhra Pradesh
+    variants:
+      - label: KADAPA
+      - label: CUDDAPAH
+      - label: CUDDAPAH KADAPA
+        valid_from: 2026-01
+  SSE:
+    name: Solapur Airport
+    city: Solapur
+    variants:
+      - label: SOLAPUR
+        valid_from: 2026-01
+      - label: SHOLAPUR
+  HSR:
+    name: Rajkot International Airport (Hirasar)
+    city: Rajkot
+    variants:
+      - label: RAJKOT INTERNATIONAL AIRPORT
+      - label: HIRASAR RAJKOT
+  VGA:
+    name: Vijayawada Airport
+    city: Vijayawada
+    variants:
+      - label: VIJAYAWADA
+      - label: VIJAYWADA
+  IXU:
+    name: Chhatrapati Sambhaji Maharaj Airport
+    city: Aurangabad
+    variants:
+      - label: AURANGABAD
+  SAG:
+    name: Shirdi Airport
+    city: Shirdi
+    variants:
+      - label: SHIRDI
+  RJA:
+    name: Rajahmundry Airport
+    city: Rajamahendravaram (Rajahmundry)
+    variants:
+      - label: RAJAHMUNDRY
+  DBR:
+    name: Darbhanga Airport
+    city: Darbhanga
+    variants:
+      - label: DARBHANGA
+  IXD:
+    name: Prayagraj Airport (formerly Allahabad Airport)
+    city: Prayagraj (Allahabad)
+    variants:
+      - label: ALLAHABAD
+      - label: PRAYAGRAJ
+      - label: ALLAHABAD PRAYAGRAJ
+        valid_from: 2026-01
+  IXG:
+    name: Belagavi Airport (Belgaum Airport / Sambra Airport)
+    city: Belagavi (Belgaum)
+    variants:
+      - label: BELGAUM
+  JRG:
+    name: Veer Surendra Sai Airport
+    city: Jharsuguda
+    variants:
+      - label: JHARSUGUDA
+  AYJ:
+    name: Maharishi Valmiki International Airport Ayodhyadham
+    city: Ayodhya
+    variants:
+      - label: AYODHYA INTERNATIONAL AIRPORT
+      - label: AYODHYA
+  TCR:
+    name: Thoothukudi Airport (Tuticorin Airport)
+    city: Thoothukudi (Tuticorin)
+    variants:
+      - label: TUTICORIN
+  GWL:
+    name: Gwalior Airport (Rajmata Vijayaraje Scindia Terminal)
+    city: Gwalior
+    variants:
+      - label: GWALIOR
+  BHJ:
+    name: Bhuj Airport (Rudra Mata Airport)
+    city: Bhuj
+    variants:
+      - label: BHUJ
+  ISK:
+    name: Nashik Airport (Ozar Airport / Gandhinagar Airport)
+    city: Nashik
+    variants:
+      - label: NASIK
+      - label: NASHIK
+        valid_from: 2026-01
+  JSA:
+    name: Jaisalmer Airport
+    city: Jaisalmer
+    variants:
+      - label: JAISALMER
+  JGA:
+    name: Jamnagar Airport (Civil Enclave Govardhanpur)
+    city: Jamnagar
+    variants:
+      - label: JAMNAGAR
+  HDO:
+    name: Hindon Airport (Civil Enclave, Hindan Air Force Station)
+    city: Ghaziabad
+    variants:
+      - label: HINDON AIRPORT
+      - label: GHAZIABAD
+  MYQ:
+    name: Mysore Airport (Mandakalli Airport)
+    city: Mysore (Mysuru)
+    variants:
+      - label: MYSORE
+  NDC:
+    name: Nanded Airport (Shri Guru Gobind Singh Ji Airport)
+    city: Nanded
+    variants:
+      - label: NANDED
+  IXY:
+    name: Kandla Airport (Gandhidham Airport)
+    city: Kandla / Gandhidham, Gujarat
+    variants:
+      - label: KANDLA
+  HJR:
+    name: Khajuraho Airport
+    city: Khajuraho, Madhya Pradesh
+    variants:
+      - label: KHAJURAHO
+  AGX:
+    name: Agatti Airport
+    city: Agatti Island, Lakshadweep
+    variants:
+      - label: AGATTI ISLAND
+  PGH:
+    name: Pantnagar Airport
+    city: Pantnagar, Uttarakhand
+    variants:
+      - label: PANTNAGAR
+  KQH:
+    name: Kishangarh Airport
+    city: Ajmer / Kishangarh
+    variants:
+      - label: AJMER
+      - label: KISHANGARH
+  BHU:
+    name: Bhavnagar Airport
+    city: Bhavnagar
+    variants:
+      - label: BHAVNAGAR
+  SXV:
+    name: Salem Airport
+    city: Salem
+    variants:
+      - label: SALEM
+  JGB:
+    name: Maa Danteswari Airport
+    city: Jagdalpur
+    variants:
+      - label: JAGDALPUR
+  PNY:
+    name: Puducherry Airport
+    city: Puducherry
+    variants:
+      - label: PONDICHERRY
+      - label: PUDUCHERRY
+      - label: PONDICHERRY PUDUCHERRY
+  VDY:
+    name: Jindal Vijayanagar Airport
+    city: Vidyanagar (Toranagallu)
+    variants:
+      - label: VIDYANAGAR
+  JLG:
+    name: Jalgaon Airport
+    city: Jalgaon, Maharashtra
+    variants:
+      - label: JALGAON
+  AIP:
+    name: Adampur Airport (Shri Guru Ravidass Maharaj Ji Airport)
+    city: Jalandhar / Hoshiarpur, Punjab
+    variants:
+      - label: ADAMPUR
+  RQY:
+    name: Shivamogga Airport (Rashtrakavi Kuvempu Airport)
+    city: Shivamogga (Shimoga), Karnataka
+    variants:
+      - label: SHIVAMOGGA AIRPORT
+      - label: SHIVAMOGGA
+  BKB:
+    name: Bikaner Airport (Nal)
+    city: Bikaner, Rajasthan
+    variants:
+      - label: BIKANER
+  PBD:
+    name: Porbandar Airport
+    city: Porbandar
+    variants:
+      - label: PORBANDAR
+  IXI:
+    name: Lilabari Airport (North Lakhimpur Airport)
+    city: North Lakhimpur
+    variants:
+      - label: LILABARI
+  PAB:
+    name: Bilasa Devi Kevat Airport
+    city: Bilaspur
+    variants:
+      - label: BILASPUR
+  KJB:
+    name: Kurnool Airport (Uyyalawada Narasimha Reddy Airport / Orvakal Airport)
+    city: Kurnool
+    variants:
+      - label: KURNOOL
+  BUP:
+    name: Bathinda Airport (Bhatinda Airport / Bhisiana Air Force Station civil enclave)
+    city: Bathinda
+    variants:
+      - label: BHATINDA
+      - label: BATHINDA
+  RUP:
+    name: Rupsi Airport
+    city: Dhubri
+    variants:
+      - label: RUPSI
+  SDW:
+    name: Sindhudurg Airport (Chipi Airport)
+    city: Malvan (Sindhudurg district)
+    variants:
+      - label: MALVAN
+      - label: SINDHUDURG AIRPORT
+  TEZ:
+    name: Tezpur Airport (Salonibari)
+    city: Tezpur
+    variants:
+      - label: TEZPUR
+  SLV:
+    name: Shimla Airport (Jubbarhatti)
+    city: Shimla
+    variants:
+      - label: SIMLA
+      - label: SHIMLA
+  RRK:
+    name: Rourkela Airport
+    city: Rourkela
+    variants:
+      - label: ROURKELA
+  TEI:
+    name: Tezu Airport
+    city: Tezu
+    variants:
+      - label: TEZU
+  GDB:
+    name: Gondia Airport (Birsi Airport)
+    city: Gondia
+    variants:
+      - label: GONDIA
+      - label: GONDIA AIRPORT
+  IXX:
+    name: Bidar Airport
+    city: Bidar
+    variants:
+      - label: BIDAR
+      - label: BIDAR AIRPORT KARNATAKA
+  IXP:
+    name: Pathankot Airport
+    city: Pathankot
+    variants:
+      - label: PATHANKOT
+  IXT:
+    name: Pasighat Airport
+    city: Pasighat
+    variants:
+      - label: PASIGHAT
+  IXK:
+    name: Keshod Airport
+    city: Keshod
+    variants:
+      - label: KESHOD
+  KBK:
+    name: Kushinagar International Airport
+    city: Kushinagar
+    variants:
+      - label: KUSHINAGAR INTERNATIONAL AIRPORT
+      - label: KUSHINAGAR
+  REW:
+    name: Rewa Airport
+    city: Rewa
+    variants:
+      - label: REWA
+  NNS:
+    name: Naini-Saini Airport
+    city: Pithoragarh
+    variants:
+      - label: PITHORAGARH
+  IXW:
+    name: Sonari Airport
+    city: Jamshedpur
+    variants:
+      - label: JAMSHEDPUR
+  COH:
+    name: Cooch Behar Airport
+    city: Cooch Behar
+    variants:
+      - label: COOCH BEHAR
+  UKE:
+    name: Utkela Airport
+    city: Utkela (Kalahandi)
+    variants:
+      - label: UTKELA
+  AVR:
+    name: Amravati Airport (Belora)
+    city: Amravati
+    variants:
+      - label: AMRAVATI
+      - label: AMRAVATI AIRPORT
+  HSS:
+    name: Maharaja Agrasen Airport (Hisar)
+    city: Hisar
+    variants:
+      - label: HISSAR
+      - label: HISAR
+  AHA:
+    name: Maa Mahamaya Airport (Darima Airport)
+    city: Ambikapur, Chhattisgarh
+    variants:
+      - label: AMBIKAPUR
+      - label: AMBIKAPUR AIRPORT
+  MDA:
+    name: Mundra Airport
+    city: Mundra, Gujarat
+    variants:
+      - label: MUNDRA
+  ZER:
+    name: Zero Airport
+    city: Ziro, Arunachal Pradesh
+    variants:
+      - label: ZIRO
+      - label: ZERO AIRPORT
+  HRH:
+    name: Aligarh Airport
+    city: Aligarh
+    variants:
+      - label: ALIGARH AIRPORT
+  CWK:
+    name: Chitrakoot Airport
+    city: Chitrakoot
+    variants:
+      - label: CHITRAKOOT AIRPORT
+  AZH:
+    name: Azamgarh Airport
+    city: Azamgarh
+    variants:
+      - label: AZAMGARH AIRPORT
+  DPP:
+    name: Datia Airport
+    city: Datia
+    variants:
+      - label: DATIA AIRPORT
+  VSV:
+    name: Shravasti Airport
+    city: Shravasti
+    variants:
+      - label: SHRAVASTI AIRPORT
+  MZS:
+    name: Moradabad Mundha Pande Airport
+    city: Moradabad
+    variants:
+      - label: MORADABAD AIRPORT
+  name:uttarlai:
+    name: Uttarlai Air Force Station
+    city: Barmer, Rajasthan
+    variants:
+      - label: UTTARLAI
 airline_groups:
   IndiGo:
     - IndiGo
