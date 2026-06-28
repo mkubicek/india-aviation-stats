@@ -8,12 +8,12 @@
     "trailing_12m_passengers": 336518506,
     "trailing_12m_yoy_pct": 0.9
   },
-  "fingerprint": "sha256:cb5a0e639d4cd6015d57a02ffcbb7b7c5c49b033949d458397f74414ea91081e",
+  "fingerprint": "sha256:59d438231793ec296f2cf56357c7100e47baa4f86fa2fffeae6e5113b82dbf3c",
   "generated_date": "2026-06-28",
   "international": {
     "gateways_latest_quarter": 31,
-    "latest_4q_passengers": 77979936,
-    "latest_4q_yoy_pct": 8.0,
-    "latest_quarter": "2025Q4"
+    "latest_4q_passengers": 77740037,
+    "latest_4q_yoy_pct": 5.5,
+    "latest_quarter": "2026Q1"
   }
 }

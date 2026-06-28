@@ -19,8 +19,8 @@ normalization, entity resolution, and validation.
 - **URL:** <https://www.dgca.gov.in/digigov-portal/>
 - **Format:** Public Excel files discovered through the DGCA portal and S3
   source URLs, normalized locally by `scripts/normalize.py`. A committed
-  fingerprint manifest (`data/sources_manifest.csv`) detects when a workbook is
-  re-published.
+  fingerprint manifest (`data/sources_manifest.csv`) detects when a source file
+  is re-published.
 - **Coverage:** Domestic monthly city-pair and carrier data; international
   quarterly city-pair, country, carrier, and carrier-month tables
 - **Current local coverage:** 2015 through latest available DGCA workbook
@@ -28,6 +28,10 @@ normalization, entity resolution, and validation.
 - **Known quirk:** DGCA portal links are sometimes not the exact S3 object key.
   The downloader retries common filename variants such as uppercase month names
   and an extra space after commas.
+- **Temporary source workaround:** If a DGCA international Table 4 Excel file is
+  listed by the portal but not publicly retrievable, the matching public PDF is
+  ingested for that quarter. Such rows are marked as `source_type=pdf` with a
+  note in `data/sources_manifest.csv`.
 
 ---
 

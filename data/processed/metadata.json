@@ -16,7 +16,7 @@
     },
     "airport_international_quarterly": {
       "schema_version": "1.0",
-      "rows": 1187,
+      "rows": 1218,
       "columns": [
         "year",
         "quarter",

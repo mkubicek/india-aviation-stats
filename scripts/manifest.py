@@ -1,14 +1,15 @@
 """Source-change detection via a committed fingerprint manifest.
 
-``data/sources_manifest.csv`` records one row per raw DGCA workbook:
-``source, etag, content_length, sha256``. It is committed and rewritten **only
-when a fingerprint actually changes**, so the git history of this one file is a
-clean log of real DGCA source changes (no monthly no-op churn). The ``etag`` is
-the file's MD5 hex — which equals an S3 single-part object's ETag — so a HEAD
-sweep can compare it against the live ETag without transferring the body. The
-``sha256`` over the actually-downloaded file is the ground-truth detector;
-HEAD/ETag is only the cheap pre-filter (it is incomplete for multipart objects
-and hosts without HEAD, where sha256 still catches the change).
+``data/sources_manifest.csv`` records one row per raw DGCA source file:
+``source, source_type, note, etag, content_length, sha256``. It is committed and
+rewritten **only when a fingerprint actually changes**, so the git history of
+this one file is a clean log of real DGCA source changes (no monthly no-op
+churn). The ``etag`` is the file's MD5 hex — which equals an S3 single-part
+object's ETag — so a HEAD sweep can compare it against the live ETag without
+transferring the body. The ``sha256`` over the actually-downloaded file is the
+ground-truth detector; HEAD/ETag is only the cheap pre-filter (it is incomplete
+for multipart objects and hosts without HEAD, where sha256 still catches the
+change).
 """
 
 from __future__ import annotations
@@ -20,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DGCA = ROOT / "data" / "raw" / "aviation" / "dgca" / "xlsx"
 MANIFEST_PATH = ROOT / "data" / "sources_manifest.csv"
-FIELDS = ["source", "etag", "content_length", "sha256"]
+FIELDS = ["source", "source_type", "note", "etag", "content_length", "sha256"]
 
 
 def _hashes(path: Path) -> tuple[str, str]:
@@ -32,17 +33,34 @@ def _hashes(path: Path) -> tuple[str, str]:
     return md5.hexdigest(), sha.hexdigest()
 
 
+def _source_type(path: Path) -> str:
+    if path.suffix.lower() == ".pdf":
+        return "pdf"
+    return "excel"
+
+
+def _source_note(path: Path) -> str:
+    if path.suffix.lower() == ".pdf" and path.match("international/*_4.pdf"):
+        return (
+            "temporary PDF fallback for DGCA international Table 4 city-pair "
+            "data; listed Excel source was not publicly retrievable"
+        )
+    return ""
+
+
 def fingerprint_sources(raw_dir: Path = RAW_DGCA) -> list[dict]:
-    """Fingerprint every raw workbook under ``raw_dir`` (sorted, deterministic)."""
+    """Fingerprint every raw DGCA source file under ``raw_dir``."""
     rows = []
     if not raw_dir.exists():
         return rows
     for path in sorted(raw_dir.rglob("*")):
-        if path.suffix.lower() not in {".xls", ".xlsx"} or path.name.endswith(".tmp"):
+        if path.suffix.lower() not in {".xls", ".xlsx", ".pdf"} or path.name.endswith(".tmp"):
             continue
         etag, sha = _hashes(path)
         rows.append({
             "source": str(path.relative_to(raw_dir)),
+            "source_type": _source_type(path),
+            "note": _source_note(path.relative_to(raw_dir)),
             "etag": etag,
             "content_length": str(path.stat().st_size),
             "sha256": sha,

@@ -1,8 +1,9 @@
-"""Fetch DGCA Excel workbooks and normalize them into aggregated CSVs.
+"""Fetch DGCA source files and normalize them into aggregated CSVs.
 
 Downloads DGCA portal/S3 workbooks (domestic monthly + international quarterly
-traffic) and writes tidy aggregate CSVs under data/raw/aviation/aggregated/ for
-the clean stage.
+traffic), with a temporary PDF fallback for inaccessible international Table 4
+Excel sources, and writes tidy aggregate CSVs under data/raw/aviation/aggregated/
+for the clean stage.
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ from urllib.parse import quote, unquote, urlparse
 
 import pandas as pd
 import requests
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
@@ -149,6 +151,54 @@ DOMESTIC_CARRIER_COLUMNS = [
     "Weight Load Factor",
 ]
 
+INTERNATIONAL_COLUMNS = {
+    "1": [
+        "Year",
+        "Quarter",
+        "Airline",
+        "PaxToIndia",
+        "PaxFromIndia",
+        "FreightToIndia",
+        "FreightFromIndia",
+    ],
+    "2": [
+        "Year",
+        "Quarter",
+        "Airline",
+        "PaxToIndiaM1",
+        "PaxFromIndiaM1",
+        "FreightToIndiaM1",
+        "FreightFromIndiaM1",
+        "PaxToIndiaM2",
+        "PaxFromIndiaM2",
+        "FreightToIndiaM2",
+        "FreightFromIndiaM2",
+        "PaxToIndiaM3",
+        "PaxFromIndiaM3",
+        "FreightToIndiaM3",
+        "FreightFromIndiaM3",
+    ],
+    "3": [
+        "Year",
+        "Quarter",
+        "Country",
+        "PaxToIndia",
+        "PaxFromIndia",
+        "FreightToIndia",
+        "FreightFromIndia",
+    ],
+    "4": [
+        "Year",
+        "Quarter",
+        "City1",
+        "City2",
+        "PaxToCity2",
+        "PaxFromCity2",
+        "FreightToCity2",
+        "FreightFromCity2",
+    ],
+}
+
 @dataclass(frozen=True)
 class DownloadStats:
     attempted: int = 0
@@ -242,6 +292,11 @@ def _to_number(value: object) -> float | int | None:
         return None
 
 
+def _to_source_number(value: object) -> float:
+    number = _to_number(value)
+    return 0 if number is None else float(number)
+
+
 def _month_number(value: object) -> str | None:
     key = _clean_key(value).replace("*", "")
     return MONTH_MAP.get(key)
@@ -283,6 +338,19 @@ def _read_excel_sheets(path: Path) -> list[pd.DataFrame]:
         warnings.simplefilter("ignore")
         sheets = pd.read_excel(path, header=None, sheet_name=None)
     return list(sheets.values())
+
+
+def _airport_source_labels() -> list[str]:
+    mappings = yaml.safe_load((ROOT / "mappings.yaml").read_text())
+    labels: set[str] = set()
+    for code, airport in (mappings.get("airports") or {}).items():
+        labels.add(_clean_key(code))
+        labels.add(_clean_key(airport.get("city", "")))
+        for variant in airport.get("variants", []) or []:
+            label = variant.get("label", "") if isinstance(variant, dict) else variant
+            labels.add(_clean_key(label))
+    labels.update(_clean_key(label) for label in (mappings.get("airport_aliases") or {}))
+    return sorted((label for label in labels if label), key=len, reverse=True)
 
 
 def _find_header_row(df: pd.DataFrame, required_terms: list[str]) -> int | None:
@@ -476,6 +544,75 @@ def generate_dgca_international_urls(start_year: int = 2015, end_year: int | Non
     return urls
 
 
+def _international_table_stem(path: Path) -> tuple[str, str] | None:
+    match = re.match(r"(\d{2}Q[1-4])_([1-4])$", path.stem, flags=re.IGNORECASE)
+    if not match:
+        return None
+    return match.group(1).upper(), match.group(2)
+
+
+def missing_international_table4_pdf_urls(source_dir: Path) -> list[str]:
+    """PDF fallbacks for international Table 4 periods whose Excel file is absent.
+
+    DGCA occasionally lists the Table 4 Excel link but leaves the S3 object
+    inaccessible while the matching PDF is public. Limit probing to periods where
+    the sibling international tables are already present locally.
+    """
+    available: dict[str, set[str]] = {}
+    for path in _excel_files(source_dir):
+        parsed = _international_table_stem(path)
+        if parsed is None:
+            continue
+        period, table = parsed
+        available.setdefault(period, set()).add(table)
+
+    urls = []
+    for period, tables in sorted(available.items()):
+        if "4" in tables or not (tables & {"1", "2", "3"}):
+            continue
+        urls.append(f"{DGCA_S3_BASE}/{DGCA_INTERNATIONAL_PATH}/{period}_4.pdf")
+    return urls
+
+
+def cleanup_obsolete_international_pdf_fallbacks(source_dir: Path) -> int:
+    """Remove Table 4 PDF fallbacks once the matching Excel source exists."""
+    excel_periods = {
+        parsed[0]
+        for path in _excel_files(source_dir)
+        if (parsed := _international_table_stem(path)) and parsed[1] == "4"
+    }
+    removed = 0
+    for path in _pdf_files(source_dir):
+        parsed = _international_table_stem(path)
+        if parsed and parsed[1] == "4" and parsed[0] in excel_periods:
+            path.unlink()
+            removed += 1
+    if removed:
+        print(f"  Removed obsolete DGCA international PDF fallback(s): {removed}", flush=True)
+    return removed
+
+
+def download_international_pdf_fallbacks(
+    source_dir: Path,
+    *,
+    force: bool = False,
+) -> DownloadStats:
+    cleanup_obsolete_international_pdf_fallbacks(source_dir)
+    urls = missing_international_table4_pdf_urls(source_dir)
+    if not urls:
+        return DownloadStats()
+    print(f"  Downloading DGCA international PDF fallbacks: {len(urls):,}", flush=True)
+    stats = download_urls(
+        urls,
+        source_dir,
+        force=force,
+        quiet_missing=True,
+        missing_statuses={403, 404},
+    )
+    print(f"    {stats}", flush=True)
+    return stats
+
+
 def _filename_for_url(url: str) -> str:
     return unquote(Path(urlparse(url).path).name)
 
@@ -526,10 +663,12 @@ def download_file(
     started: float,
     force: bool = False,
     quiet_missing: bool = False,
+    missing_statuses: set[int] | None = None,
 ) -> str:
     if not _time_remaining(started):
         return "failed"
 
+    missing_statuses = missing_statuses or {404}
     headers: dict[str, str] = {}
     if dest.exists() and not force:
         headers["If-Modified-Since"] = formatdate(dest.stat().st_mtime, usegmt=True)
@@ -558,7 +697,7 @@ def download_file(
 
     if resp.status_code == 304:
         return "cached"
-    if resp.status_code == 404:
+    if resp.status_code in missing_statuses:
         if not quiet_missing:
             print(f"    Missing at source: {dest.name}", flush=True)
         return "missing"
@@ -593,6 +732,7 @@ def download_urls(
     *,
     force: bool = False,
     quiet_missing: bool = False,
+    missing_statuses: set[int] | None = None,
 ) -> DownloadStats:
     session = _session()
     started = time.monotonic()
@@ -609,6 +749,7 @@ def download_urls(
             started=started,
             force=force,
             quiet_missing=quiet_missing,
+            missing_statuses=missing_statuses,
         )
         stats = stats.add(status)
     return stats
@@ -619,6 +760,14 @@ def _excel_files(path: Path) -> list[Path]:
         file
         for file in path.glob("*")
         if file.suffix.lower() in {".xls", ".xlsx"} and not file.name.endswith(".tmp")
+    )
+
+
+def _pdf_files(path: Path) -> list[Path]:
+    return sorted(
+        file
+        for file in path.glob("*")
+        if file.suffix.lower() == ".pdf" and not file.name.endswith(".tmp")
     )
 
 
@@ -819,10 +968,136 @@ def _international_meta(path: Path) -> tuple[int, int, str] | None:
     return int(match.group(1)), int(match.group(2)), match.group(3)
 
 
+def _split_combined_pdf_city(text: str) -> tuple[str, str]:
+    """Split a collapsed ``City1City2`` PDF token using known Indian endpoints."""
+    city = _clean_key(text)
+    compact = city.replace(" ", "")
+    for label in _airport_source_labels():
+        label_compact = label.replace(" ", "")
+        if len(label_compact) < 3:
+            continue
+        if not compact.endswith(label_compact) or len(compact) <= len(label_compact):
+            continue
+
+        left_len = len(compact) - len(label_compact)
+        kept: list[str] = []
+        seen = 0
+        for char in city:
+            if char != " ":
+                seen += 1
+            if seen <= left_len:
+                kept.append(char)
+        city1 = _clean_key("".join(kept))
+        if city1:
+            return city1, label
+    return city, ""
+
+
+def _iter_pdf_text_lines(path: Path):
+    """Yield positioned text lines from a text-based DGCA PDF."""
+    from pdfminer.high_level import extract_pages
+    from pdfminer.layout import LAParams, LTTextLineHorizontal
+
+    def visit(obj):
+        if isinstance(obj, LTTextLineHorizontal):
+            text = _clean_text(obj.get_text())
+            if text:
+                yield obj.bbox, text
+            return
+        if hasattr(obj, "__iter__"):
+            for child in obj:
+                yield from visit(child)
+
+    laparams = LAParams(char_margin=1.0, word_margin=0.1, line_margin=0.2, boxes_flow=None)
+    for page_number, page in enumerate(extract_pages(path, laparams=laparams), start=1):
+        for bbox, text in visit(page):
+            x0, y0, x1, _ = bbox
+            yield page_number, round(float(y0), 1), float(x0), float(x1), text
+
+
+def _parse_international_table4_pdf(path: Path) -> pd.DataFrame:
+    meta = _international_meta(path)
+    if not meta or meta[2] != "4":
+        return pd.DataFrame(columns=INTERNATIONAL_COLUMNS["4"])
+    year, quarter, _ = meta
+
+    records = []
+    by_page: dict[int, list[tuple[float, float, float, str]]] = {}
+    for page_number, y0, x0, x1, text in _iter_pdf_text_lines(path):
+        by_page.setdefault(page_number, []).append((y0, x0, x1, text))
+
+    rows: list[list[tuple[float, float, str]]] = []
+    for _, lines in sorted(by_page.items()):
+        for y0, x0, x1, text in sorted(lines, key=lambda item: -item[0]):
+            if rows and abs(rows[-1][0][0] - y0) <= 1.2:
+                rows[-1].append((y0, x0, x1, text))
+            else:
+                rows.append([(y0, x0, x1, text)])
+
+    for row in rows:
+        row_tokens = [(x0, x1, text) for _, x0, x1, text in row]
+        tokens = sorted(row_tokens, key=lambda item: item[0])
+        first = next(
+            (
+                token
+                for token in tokens
+                if token[0] < 140 and re.match(r"^\d{1,4}\s+", token[2])
+            ),
+            None,
+        )
+        if first is None:
+            continue
+
+        match = re.match(r"^(\d{1,4})\s+(.+)$", first[2])
+        if not match:
+            continue
+
+        city1 = _clean_key(match.group(2))
+        city2_parts: list[str] = []
+        values = [0.0, 0.0, 0.0, 0.0]
+        for x0, x1, text in tokens:
+            if (x0, x1, text) == first:
+                continue
+            if re.fullmatch(r"-|[\d,]+(?:\.\d+)?", text):
+                center = (x0 + x1) / 2
+                if center < 300:
+                    value_idx = 0
+                elif center < 360:
+                    value_idx = 1
+                elif center < 410:
+                    value_idx = 2
+                else:
+                    value_idx = 3
+                values[value_idx] = _to_source_number(text)
+            elif 125 <= x0 < 245:
+                city2_parts.append(text)
+
+        city2 = _clean_key(" ".join(city2_parts))
+        if not city2:
+            city1, city2 = _split_combined_pdf_city(city1)
+        if not city1 or not city2:
+            continue
+
+        records.append(
+            {
+                "Year": year,
+                "Quarter": quarter,
+                "City1": city1,
+                "City2": city2,
+                "PaxToCity2": values[0],
+                "PaxFromCity2": values[1],
+                "FreightToCity2": values[2],
+                "FreightFromCity2": values[3],
+            }
+        )
+
+    return pd.DataFrame.from_records(records, columns=INTERNATIONAL_COLUMNS["4"])
+
+
 def _parse_international_table(path: Path, table: str) -> pd.DataFrame:
     meta = _international_meta(path)
     if not meta:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=INTERNATIONAL_COLUMNS[table])
     year, quarter, _ = meta
     df = _read_excel(path)
 
@@ -902,7 +1177,7 @@ def _parse_international_table(path: Path, table: str) -> pd.DataFrame:
                     "FreightFromCity2": _to_number(row.iloc[6]),
                 }
             )
-    return pd.DataFrame.from_records(records)
+    return pd.DataFrame.from_records(records, columns=INTERNATIONAL_COLUMNS[table])
 
 
 def aggregate_international(source_dir: Path, output_dir: Path) -> dict[str, pd.DataFrame]:
@@ -913,14 +1188,33 @@ def aggregate_international(source_dir: Path, output_dir: Path) -> dict[str, pd.
         "4": ("city", ["City1", "City2", "Year", "Quarter"]),
     }
     result: dict[str, pd.DataFrame] = {}
+    excel_table4_periods = {
+        parsed[0]
+        for path in _excel_files(source_dir)
+        if (parsed := _international_table_stem(path)) and parsed[1] == "4"
+    }
     for table, (filename, sort_cols) in outputs.items():
         frames = [
             _parse_international_table(path, table)
             for path in _excel_files(source_dir)
             if path.stem.upper().endswith(f"_{table}")
         ]
+        if table == "4":
+            frames.extend(
+                _parse_international_table4_pdf(path)
+                for path in _pdf_files(source_dir)
+                if (
+                    (parsed := _international_table_stem(path))
+                    and parsed[1] == "4"
+                    and parsed[0] not in excel_table4_periods
+                )
+            )
         frames = [frame for frame in frames if not frame.empty]
-        combined = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+        combined = (
+            pd.concat(frames, ignore_index=True)
+            if frames
+            else pd.DataFrame(columns=INTERNATIONAL_COLUMNS[table])
+        )
         if not combined.empty:
             combined = combined.sort_values(sort_cols)
 
@@ -969,6 +1263,10 @@ def ingest_aviation_sources(
         quiet_missing=True,
     )
     print(f"    {international_stats}", flush=True)
+    download_international_pdf_fallbacks(
+        DGCA_RAW_DIR / "xlsx" / "international",
+        force=force,
+    )
 
     if aggregate:
         aggregate_all()

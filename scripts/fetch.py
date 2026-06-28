@@ -1,8 +1,8 @@
-"""Download DGCA Excel workbooks and refresh the source fingerprint manifest.
+"""Download DGCA source files and refresh the source fingerprint manifest.
 
-Fetches DGCA public Excel workbooks (domestic monthly + international quarterly
-traffic), normalizes them into aggregate CSVs under
-data/raw/aviation/aggregated/ for clean.py, and updates sources_manifest.csv.
+Fetches DGCA public Excel workbooks plus documented PDF fallbacks, normalizes
+them into aggregate CSVs under data/raw/aviation/aggregated/ for clean.py, and
+updates sources_manifest.csv.
 """
 
 import os

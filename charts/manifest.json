@@ -48,7 +48,7 @@
         "top_n_each_side": 8,
         "window_quarters": 4
       },
-      "sha256": "2348cf62a56315007a85f236c7df96df6fc46431f3b54e17aa57825bb5ec85bf"
+      "sha256": "37caf27c2f9588a625de542595769a3134faa4dc0dab8ec455006f58bbca33f0"
     },
     "newcomer_airport_rampup_24m": {
       "file": "charts/newcomer_airport_rampup_24m.png",
@@ -81,10 +81,10 @@
   },
   "datasets": {
     "airport_international_quarterly": {
-      "coverage": "2015Q1..2025Q4",
+      "coverage": "2015Q1..2026Q1",
       "path": "data/processed/airport_international_quarterly.csv",
-      "rows": 1187,
-      "sha256": "7e7fbb3ded8f3bd31b0ba0986bed5605ab7fc23485652c6c276a3fa1332ac062"
+      "rows": 1218,
+      "sha256": "f89146307f63c6391a9957a0491cb03cfefb84b09f6e7d2b5dbabe203e36558d"
     },
     "airport_monthly": {
       "coverage": "2015-04..2026-05",
@@ -93,6 +93,6 @@
       "sha256": "2e732cc829cbef8cd07bb59b5c0aa81cde794b43ce9614083a9294e9a0c60937"
     }
   },
-  "input_fingerprint": "sha256:cb5a0e639d4cd6015d57a02ffcbb7b7c5c49b033949d458397f74414ea91081e",
+  "input_fingerprint": "sha256:59d438231793ec296f2cf56357c7100e47baa4f86fa2fffeae6e5113b82dbf3c",
   "manifest_version": 1
 }
