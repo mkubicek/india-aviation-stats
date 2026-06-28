@@ -1,12 +1,8 @@
-"""Download and normalize official India aviation source data.
+"""Download DGCA Excel workbooks and refresh the source fingerprint manifest.
 
-Sources:
-  1. DGCA public Excel workbooks for domestic monthly and international
-     quarterly aviation traffic.
-  2. Optional MoCA daily HTML snapshots from the Internet Archive.
-
-Raw files are cached under data/raw/ and normalized aggregate CSVs are written
-under data/raw/aviation/aggregated/ for clean.py.
+Fetches DGCA public Excel workbooks (domestic monthly + international quarterly
+traffic), normalizes them into aggregate CSVs under
+data/raw/aviation/aggregated/ for clean.py, and updates sources_manifest.csv.
 """
 
 import os
@@ -47,16 +43,14 @@ def write_github_output() -> None:
 
 
 def download_aviation_sources() -> None:
-    """Fetch and normalize DGCA/MoCA source data."""
+    """Fetch and normalize DGCA source data."""
     if not _time_remaining():
         print("  Soft timeout reached before aviation downloads", flush=True)
         return
 
-    include_daily = os.environ.get("INCLUDE_MCA_DAILY", "0") == "1"
     refresh_urls = os.environ.get("DGCA_REFRESH_URLS", "1") != "0"
     ingest_aviation_sources(
         refresh_urls=refresh_urls,
-        include_daily=include_daily,
         aggregate=True,
         timeout_started_at=_start_time,
     )

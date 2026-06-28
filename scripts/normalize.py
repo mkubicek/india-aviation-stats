@@ -1,16 +1,8 @@
-"""Direct-source ingestion for Indian aviation traffic data.
+"""Fetch DGCA Excel workbooks and normalize them into aggregated CSVs.
 
-The historical pipeline consumed pre-aggregated CSVs from
-Vonter/india-aviation-traffic. This module replaces that dependency with
-source-owned ingestion:
-
-* DGCA portal/S3 Excel workbooks for domestic monthly and international
-  quarterly traffic.
-* Optional MoCA daily HTML snapshots from the Internet Archive CDX API.
-
-The normalized CSVs intentionally keep the former aggregate schemas so the
-downstream processing code can remain focused on analytics, not source
-format churn.
+Downloads DGCA portal/S3 workbooks (domestic monthly + international quarterly
+traffic) and writes tidy aggregate CSVs under data/raw/aviation/aggregated/ for
+the clean stage.
 """
 
 from __future__ import annotations
@@ -31,13 +23,11 @@ from urllib.parse import quote, unquote, urlparse
 
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
 AVIATION_RAW_DIR = RAW_DIR / "aviation"
 DGCA_RAW_DIR = AVIATION_RAW_DIR / "dgca"
-MCA_RAW_DIR = AVIATION_RAW_DIR / "mca"
 AGGREGATED_DIR = AVIATION_RAW_DIR / "aggregated"
 _TIMED_OUT = False
 _TIMEOUT_STARTED_AT: float | None = None
@@ -158,23 +148,6 @@ DOMESTIC_CARRIER_COLUMNS = [
     "Available Tonne Kilometer",
     "Weight Load Factor",
 ]
-
-DAILY_PREFERRED_COLUMNS = [
-    "Date",
-    "Domestic (Aircraft Movements)",
-    "Domestic (Airport Footfalls)",
-    "Domestic (Arrival Flights)",
-    "Domestic (Arriving Pax)",
-    "Domestic (Departing Pax)",
-    "Domestic (Departure Flights)",
-    "International (Aircraft Movements)",
-    "International (Airport Footfalls)",
-    "International (Arrival Flights)",
-    "International (Arriving Pax)",
-    "International (Departing Pax)",
-    "International (Departure Flights)",
-]
-
 
 @dataclass(frozen=True)
 class DownloadStats:
@@ -959,160 +932,17 @@ def aggregate_international(source_dir: Path, output_dir: Path) -> dict[str, pd.
     return result
 
 
-def _parse_mca_html(content: str) -> dict[str, object]:
-    soup = BeautifulSoup(content, "html.parser")
-    daily: dict[str, object] = {}
-
-    date_text = ""
-    date_widget = soup.find("span", class_="date-widget")
-    if date_widget:
-        date_text = date_widget.get_text(" ", strip=True)
-    if not date_text:
-        for col in soup.find_all("div", class_="airport-col"):
-            spans = col.find_all("span")
-            if spans:
-                date_text = spans[-1].get_text(" ", strip=True)
-                break
-    if date_text:
-        parsed = pd.to_datetime(date_text, errors="coerce")
-        if not pd.isna(parsed):
-            daily["Date"] = str(parsed.date())
-
-    for col in soup.find_all("div", class_="airport-col"):
-        heading = col.find("h2")
-        if not heading:
-            continue
-        for span in heading.find_all("span"):
-            span.decompose()
-        category = heading.get_text(" ", strip=True)
-        for item in col.find_all("li"):
-            spans = item.find_all("span")
-            if len(spans) < 2:
-                continue
-            label = spans[0].get_text(" ", strip=True).title()
-            value = spans[1].get_text(" ", strip=True)
-            if category and label:
-                daily[f"{category} ({label})"] = value
-
-    for paragraph in soup.find_all("div", class_="paragraph"):
-        title = paragraph.find_previous("span", class_="eng-title")
-        category = title.get_text(" ", strip=True) if title else ""
-        values = [
-            div.get_text(" ", strip=True)
-            for div in paragraph.find_all("div")
-            if "field--name-field-hintdi-text" not in div.get("class", [])
-        ]
-        if category and len(values) >= 2:
-            daily[f"{category} ({values[0].title()})"] = values[1]
-
-    return daily if "Date" in daily and len(daily) > 2 else {}
-
-
-def _normalize_daily_frame(df: pd.DataFrame) -> pd.DataFrame:
-    if df.empty:
-        return df
-    df = df.rename(
-        columns=lambda c: str(c)
-        .replace("Air Sewa Grievances (by entity)", "Grievances")
-        .replace("Air Sewa Grievances (by type)", "Grievances")
-        .replace("Air Sewa Grievances (by volume)", "Grievances")
-        .replace("Domestic Flight", "Domestic")
-        .replace("Domestic traffic", "Domestic")
-        .replace("International Flight", "International")
-        .replace("International traffic", "International")
-        .replace("Pax Load Factor", "Passenger Load Factor")
-    )
-    df = df.loc[:, ~df.columns.duplicated(keep="last")]
-    df = df.drop_duplicates(subset=["Date"], keep="last")
-    for col in df.columns:
-        if col == "Date":
-            continue
-        cleaned = df[col].astype(str).str.replace(",", "", regex=False).str.strip()
-        df[col] = pd.to_numeric(cleaned, errors="ignore")
-
-    ordered = [col for col in DAILY_PREFERRED_COLUMNS if col in df.columns]
-    ordered.extend(col for col in df.columns if col not in ordered)
-    return df[ordered].sort_values("Date")
-
-
-def discover_mca_snapshots(limit: int | None = None) -> list[dict[str, str]]:
-    params: list[tuple[str, str]] = [
-        ("url", "www.civilaviation.gov.in"),
-        ("from", "20200601"),
-        ("output", "json"),
-        ("filter", "statuscode:200"),
-        ("filter", "mimetype:text/html"),
-        ("collapse", "digest"),
-        ("fl", "timestamp,original,digest"),
-    ]
-    if limit:
-        params.append(("limit", str(limit)))
-    resp = _session().get("https://web.archive.org/cdx", params=params, timeout=60)
-    resp.raise_for_status()
-    rows = resp.json()
-    if not rows:
-        return []
-    return [
-        {"timestamp": row[0], "original": row[1], "digest": row[2]}
-        for row in rows[1:]
-        if len(row) >= 3
-    ]
-
-
-def download_mca_snapshots(limit: int | None = None, force: bool = False) -> None:
-    snapshots = discover_mca_snapshots(limit=limit)
-    html_dir = MCA_RAW_DIR / "html"
-    html_dir.mkdir(parents=True, exist_ok=True)
-    session = _session()
-    started = time.monotonic()
-    print(f"  MoCA snapshots: {len(snapshots):,} CDX records", flush=True)
-    for snapshot in snapshots:
-        if not _time_remaining(started):
-            print("  Soft timeout reached; stopping MoCA snapshot downloads", flush=True)
-            break
-        dest = html_dir / f"{snapshot['timestamp']}.html"
-        if dest.exists() and not force:
-            continue
-        url = (
-            "https://web.archive.org/web/"
-            f"{snapshot['timestamp']}id_/{quote(snapshot['original'], safe=':/')}"
-        )
-        status = download_file(url, dest, session, started, force=force, quiet_missing=True)
-        if status == "downloaded" and _sleep_seconds() > 0:
-            time.sleep(_sleep_seconds())
-
-
-def aggregate_mca_daily(output_dir: Path) -> pd.DataFrame:
-    rows = []
-    for path in sorted((MCA_RAW_DIR / "html").glob("*.html")):
-        try:
-            parsed = _parse_mca_html(path.read_text(errors="ignore"))
-        except OSError:
-            continue
-        if parsed:
-            rows.append(parsed)
-    combined = _normalize_daily_frame(pd.DataFrame(rows)) if rows else pd.DataFrame()
-    output = output_dir / "daily.csv"
-    output.parent.mkdir(parents=True, exist_ok=True)
-    combined.to_csv(output, index=False)
-    print(f"  Saved: {_display_path(output)} ({len(combined):,} rows)", flush=True)
-    return combined
-
-
 def aggregate_all() -> None:
     print("\n── Aggregating official source files ──", flush=True)
     aggregate_domestic_city(DGCA_RAW_DIR / "xlsx" / "domestic", AGGREGATED_DIR)
     aggregate_domestic_carrier(DGCA_RAW_DIR / "xlsx" / "domestic", AGGREGATED_DIR)
     aggregate_international(DGCA_RAW_DIR / "xlsx" / "international", AGGREGATED_DIR)
-    if (MCA_RAW_DIR / "html").exists():
-        aggregate_mca_daily(AGGREGATED_DIR)
 
 
 def ingest_aviation_sources(
     *,
     force: bool = False,
     refresh_urls: bool = True,
-    include_daily: bool = False,
     aggregate: bool = True,
     timeout_started_at: float | None = None,
 ) -> None:
@@ -1140,12 +970,6 @@ def ingest_aviation_sources(
     )
     print(f"    {international_stats}", flush=True)
 
-    if include_daily:
-        limit_value = os.environ.get("MCA_DAILY_CDX_LIMIT")
-        limit = int(limit_value) if limit_value else None
-        print("  Downloading MoCA daily snapshots from Internet Archive", flush=True)
-        download_mca_snapshots(limit=limit, force=force)
-
     if aggregate:
         aggregate_all()
 
@@ -1157,11 +981,6 @@ def main() -> None:
         "--use-cached-urls",
         action="store_true",
         help="reuse cached DGCA domestic URL manifest instead of rediscovering",
-    )
-    parser.add_argument(
-        "--include-daily",
-        action="store_true",
-        help="also fetch MoCA daily HTML snapshots from Internet Archive",
     )
     parser.add_argument(
         "--aggregate-only",
@@ -1177,7 +996,6 @@ def main() -> None:
     ingest_aviation_sources(
         force=args.force,
         refresh_urls=not args.use_cached_urls,
-        include_daily=args.include_daily,
     )
 
 
