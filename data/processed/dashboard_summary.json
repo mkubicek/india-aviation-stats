@@ -1,0 +1,19 @@
+{
+  "data_date": "2026-06-28",
+  "domestic": {
+    "airports_latest_month": 122,
+    "latest_month": "2026-05",
+    "latest_month_passengers": 30779402,
+    "latest_month_yoy_pct": 9.5,
+    "trailing_12m_passengers": 336518506,
+    "trailing_12m_yoy_pct": 0.9
+  },
+  "fingerprint": "sha256:cb5a0e639d4cd6015d57a02ffcbb7b7c5c49b033949d458397f74414ea91081e",
+  "generated_date": "2026-06-28",
+  "international": {
+    "gateways_latest_quarter": 31,
+    "latest_4q_passengers": 77979936,
+    "latest_4q_yoy_pct": 8.0,
+    "latest_quarter": "2025Q4"
+  }
+}

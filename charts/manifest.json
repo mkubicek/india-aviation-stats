@@ -1,0 +1,98 @@
+{
+  "chart_script": "scripts/chart.py",
+  "charts": {
+    "airport_seasonality_fingerprint": {
+      "file": "charts/airport_seasonality_fingerprint.png",
+      "inputs": [
+        "airport_monthly"
+      ],
+      "params": {
+        "max_airports": 60,
+        "min_complete_years": 3,
+        "min_latest_t12": 100000,
+        "vcenter": 100,
+        "vmax": 140,
+        "vmin": 60
+      },
+      "sha256": "4dba44cef94b069e9b4977730e0bdef11cf060de4e1062696ae6c8aa234f960e"
+    },
+    "domestic_market_share_gainers": {
+      "file": "charts/domestic_market_share_gainers.png",
+      "inputs": [
+        "airport_monthly"
+      ],
+      "params": {
+        "min_traffic": 100000,
+        "top_n_each_side": 10,
+        "window_months": 12
+      },
+      "sha256": "897a94ead05eaadf42ee535d45c3cf4ec8c0d5ab6923674666c482812a1f8259"
+    },
+    "india_domestic_demand_pulse": {
+      "file": "charts/india_domestic_demand_pulse.png",
+      "inputs": [
+        "airport_monthly"
+      ],
+      "params": {
+        "moving_average_months": 12
+      },
+      "sha256": "4c61c0d594fabf44e73b33ab1a9908b03f7816084f81c065fa6430ee45d929c7"
+    },
+    "international_gateway_share_gainers": {
+      "file": "charts/international_gateway_share_gainers.png",
+      "inputs": [
+        "airport_international_quarterly"
+      ],
+      "params": {
+        "min_traffic": 50000,
+        "top_n_each_side": 8,
+        "window_quarters": 4
+      },
+      "sha256": "0f606312911500f02ca0397abefcea1c7ded8e685264acc38f51c27666ef8758"
+    },
+    "newcomer_airport_rampup_24m": {
+      "file": "charts/newcomer_airport_rampup_24m.png",
+      "inputs": [
+        "airport_monthly"
+      ],
+      "params": {
+        "left_censor_buffer_months": 12,
+        "max_labels": 12,
+        "min_cumulative_available": 100000,
+        "min_observed_months": 3,
+        "min_peak_month": 20000,
+        "ramp_months": 24
+      },
+      "sha256": "3d1a9cebdac24428ca18d7769dfd9f9b9d94b09aa2d9947f35676a4e60f6f375"
+    },
+    "top_airport_traffic_trends": {
+      "file": "charts/top_airport_traffic_trends.png",
+      "inputs": [
+        "airport_monthly"
+      ],
+      "params": {
+        "latest_top_n": 10,
+        "max_lines": 12,
+        "previous_top_n": 10,
+        "trailing_window_months": 12
+      },
+      "sha256": "8131b4ba329736ed8160c86cb2c10ee09ebb1c371a5d1e72c981696ea757694b"
+    }
+  },
+  "datasets": {
+    "airport_international_quarterly": {
+      "coverage": "2015Q1..2025Q4",
+      "path": "data/processed/airport_international_quarterly.csv",
+      "rows": 1187,
+      "sha256": "7e7fbb3ded8f3bd31b0ba0986bed5605ab7fc23485652c6c276a3fa1332ac062"
+    },
+    "airport_monthly": {
+      "coverage": "2015-04..2026-05",
+      "path": "data/processed/airport_monthly.csv",
+      "rows": 13223,
+      "sha256": "2e732cc829cbef8cd07bb59b5c0aa81cde794b43ce9614083a9294e9a0c60937"
+    }
+  },
+  "input_fingerprint": "sha256:cb5a0e639d4cd6015d57a02ffcbb7b7c5c49b033949d458397f74414ea91081e",
+  "manifest_version": 1
+}

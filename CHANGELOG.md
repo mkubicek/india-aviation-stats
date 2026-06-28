@@ -17,7 +17,9 @@ traffic from DGCA's public workbooks.
   merge two concurrent labels; a reverse gate blocks undocumented quirks.
 - **Source-change detection** via committed `sources_manifest.csv`; restated
   values disclosed in `REVISIONS.md`.
-- **Two charts** from the published tables: the domestic passenger race and the
-  "Who's Rising" newcomer-airports chart.
+- **Visible dashboard chart set** from the published tables: domestic
+  demand pulse, top airport trends, newcomer ramp-up, domestic share movers,
+  international gateway share movers, and seasonality fingerprint. The passenger
+  race GIF is now opt-in.
 - Validation runs as a partial CI gate; a blocking failure keeps last-good data
   and opens an issue.

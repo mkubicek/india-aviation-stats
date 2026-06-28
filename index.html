@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>India Aviation Stats Dashboard</title>
+  <meta name="description" content="Dashboard for cleaned DGCA Indian aviation passenger traffic: domestic demand, airport trends, international gateways, and seasonality.">
+  <meta name="theme-color" content="#0d1117">
+  <meta property="og:title" content="India Aviation Stats Dashboard">
+  <meta property="og:description" content="Clean DGCA passenger-traffic data visualized as market pulse, airport momentum, gateway share, and seasonality charts.">
+  <meta property="og:image" content="charts/india_domestic_demand_pulse.png">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:,">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid #21262d;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #f0f6fc;
+    }
+
+    .subtitle {
+      color: #8b949e;
+      font-size: 1.1rem;
+    }
+
+    .data-date {
+      color: #6e7681;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .stat-card {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-title {
+      color: #8b949e;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0;
+      margin-bottom: 0.35rem;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #58a6ff;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      color: #8b949e;
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+
+    section {
+      margin-bottom: 3rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #f0f6fc;
+    }
+
+    .section-desc {
+      color: #8b949e;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .chart-img {
+      width: 100%;
+      border-radius: 8px;
+      display: block;
+      background: #0d1117;
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    footer {
+      text-align: center;
+      padding-top: 2rem;
+      border-top: 1px solid #21262d;
+      color: #8b949e;
+      font-size: 0.85rem;
+    }
+
+    footer p + p { margin-top: 0.4rem; }
+
+    footer a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 1.8rem; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-card { padding: 1rem; }
+      .stat-value { font-size: 1.5rem; }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (min-width: 1000px) {
+      .chart-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>India Aviation Stats Dashboard</h1>
+      <p class="subtitle">Clean DGCA passenger-traffic data: domestic demand, airport momentum, international gateways, and seasonality.</p>
+      <p id="data-date" class="data-date">Data: DGCA public aviation statistics</p>
+    </header>
+
+    <div class="stats-grid" aria-label="Dashboard summary">
+      <div class="stat-card">
+        <div class="stat-title">Latest Domestic Month</div>
+        <div id="domestic-month-value" class="stat-value">&mdash;</div>
+        <div id="domestic-month-label" class="stat-label">Latest domestic passengers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Domestic T12 Growth</div>
+        <div id="domestic-growth-value" class="stat-value">&mdash;</div>
+        <div id="domestic-growth-label" class="stat-label">Trailing 12 months vs previous 12 months</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">International 4Q Traffic</div>
+        <div id="international-traffic-value" class="stat-value">&mdash;</div>
+        <div id="international-traffic-label" class="stat-label">Latest 4 complete quarters</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">International 4Q Growth</div>
+        <div id="international-growth-value" class="stat-value">&mdash;</div>
+        <div id="international-growth-label" class="stat-label">Latest 4Q vs previous 4Q</div>
+      </div>
+    </div>
+
+    <main>
+      <section>
+        <h2>India Domestic Demand Pulse</h2>
+        <p class="section-desc">National scheduled domestic passenger flows by month and trailing 12-month total.</p>
+        <img class="chart-img" src="charts/india_domestic_demand_pulse.png" alt="India domestic demand pulse" loading="lazy">
+      </section>
+
+      <section>
+        <h2>Top Airport Traffic Trends</h2>
+        <p class="section-desc">Trailing 12-month domestic passenger trends for the largest airports.</p>
+        <img class="chart-img" src="charts/top_airport_traffic_trends.png" alt="Top airport traffic trends" loading="lazy">
+      </section>
+
+      <section>
+        <h2>Newcomer Airport Ramp-up</h2>
+        <p class="section-desc">First 24 DGCA-observed months for airports that appear during the dataset and clear the activity threshold.</p>
+        <img class="chart-img" src="charts/newcomer_airport_rampup_24m.png" alt="Newcomer airport ramp-up" loading="lazy">
+      </section>
+
+      <section>
+        <h2>Market Share Movers</h2>
+        <p class="section-desc">Airports gaining or losing share of domestic and international traffic.</p>
+        <div class="chart-grid">
+          <img class="chart-img" src="charts/domestic_market_share_gainers.png" alt="Domestic market share movers" loading="lazy">
+          <img class="chart-img" src="charts/international_gateway_share_gainers.png" alt="International gateway share movers" loading="lazy">
+        </div>
+      </section>
+
+      <section>
+        <h2>Airport Seasonality Fingerprint</h2>
+        <p class="section-desc">Airport-month seasonality indexed to each airport's own average month.</p>
+        <img class="chart-img" src="charts/airport_seasonality_fingerprint.png" alt="Airport seasonality fingerprint" loading="lazy">
+      </section>
+    </main>
+
+    <footer>
+      <p>Data: Directorate General of Civil Aviation (DGCA), India. Charts are generated from the published CSV datasets in this repository.</p>
+      <p>
+        <a href="https://github.com/mkubicek/india-aviation-stats">GitHub</a>
+        &middot; <a href="docs/data-dictionary.md">Data dictionary</a>
+        &middot; <a href="METHODOLOGY.md">Methodology</a>
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    async function loadSummary() {
+      try {
+        const summary = await fetch('data/processed/dashboard_summary.json').then(r => r.json());
+        renderSummary(summary);
+      } catch (err) {
+        console.error('Failed to load dashboard summary:', err);
+      }
+    }
+
+    function fmtMillions(n) {
+      if (n === null || n === undefined) return '\u2014';
+      return `${(Number(n) / 1000000).toFixed(1)}M`;
+    }
+
+    function fmtPct(x) {
+      if (x === null || x === undefined || Number.isNaN(Number(x))) return '\u2014';
+      const n = Number(x);
+      return `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`;
+    }
+
+    function fmtMonthLabel(value) {
+      if (!value || !/^\d{4}-\d{2}$/.test(value)) return value || 'Latest month';
+      const [year, month] = value.split('-');
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return `${monthNames[Number(month) - 1]} ${year}`;
+    }
+
+    function setStat(id, value, label, color = null) {
+      const valueEl = document.getElementById(`${id}-value`);
+      const labelEl = document.getElementById(`${id}-label`);
+      valueEl.textContent = value;
+      labelEl.textContent = label;
+      if (color) valueEl.style.color = color;
+    }
+
+    function pctColor(x) {
+      if (x === null || x === undefined || Number.isNaN(Number(x))) return '#58a6ff';
+      return Number(x) >= 0 ? '#4ade80' : '#f87171';
+    }
+
+    function renderSummary(summary) {
+      const d = summary.domestic || {};
+      const i = summary.international || {};
+
+      setStat(
+        'domestic-month',
+        fmtMillions(d.latest_month_passengers),
+        `${fmtMonthLabel(d.latest_month)} domestic passengers`
+      );
+
+      setStat(
+        'domestic-growth',
+        fmtPct(d.trailing_12m_yoy_pct),
+        'Trailing 12 months vs previous 12 months',
+        pctColor(d.trailing_12m_yoy_pct)
+      );
+
+      setStat(
+        'international-traffic',
+        fmtMillions(i.latest_4q_passengers),
+        `${i.latest_quarter || 'Latest quarter'} rolling 4Q traffic`
+      );
+
+      setStat(
+        'international-growth',
+        fmtPct(i.latest_4q_yoy_pct),
+        'Latest 4Q vs previous 4Q',
+        pctColor(i.latest_4q_yoy_pct)
+      );
+
+      const dataLine = document.getElementById('data-date');
+      if (dataLine) {
+        const dataDate = summary.data_date ? ` (as of ${summary.data_date})` : '';
+        const generatedDate = summary.generated_date ? ` | Generated ${summary.generated_date}` : '';
+        dataLine.textContent = `Data: DGCA public aviation statistics${dataDate}${generatedDate}`;
+      }
+    }
+
+    loadSummary();
+  </script>
+</body>
+</html>

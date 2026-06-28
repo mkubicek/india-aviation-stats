@@ -4,6 +4,8 @@ A clean, continuous, openly-licensed dataset of Indian aviation passenger
 traffic — DGCA's messy public workbooks turned into tidy CSVs you can `curl` and
 trust, **with the proof that the cleaning is correct shipped alongside the data.**
 
+**Live dashboard:** <https://mkubicek.github.io/india-aviation-stats/>
+
 > **Disclaimer:** This is a personal open-source project. Views and analysis
 > are my own and do not represent Flughafen Zürich AG, Noida International
 > Airport, or any affiliated entity.
@@ -52,20 +54,41 @@ See [METHODOLOGY.md](METHODOLOGY.md) for the validation table. `mappings.yaml` i
 the canonical entity table (every source label → airport); `assumptions/` records
 the non-trivial cleanup decisions.
 
+## Dashboard
+
+**Live dashboard:** <https://mkubicek.github.io/india-aviation-stats/>
+
 ## Charts
 
 Generated from the published tables, no editorial overlays.
 
-**Passenger Race** — top airports by trailing 12-month domestic passengers.
+### India Domestic Demand Pulse
 
-![India airport passenger race](charts/airport_passenger_race.gif)
+![India Domestic Demand Pulse](charts/india_domestic_demand_pulse.png)
 
-**Who's Rising** — newcomer airports (Navi Mumbai, Mopa, Ayodhya…). Sourced from
-the deduplicated domestic-monthly table, so it shows real new airports, never source-renames. Any
-new airport appears automatically once DGCA publishes its first month — none is
-special-cased.
+### Top Airport Traffic Trends
 
-![Who's rising: India's newcomer airports](charts/airport_risers.png)
+![Top Airport Traffic Trends](charts/top_airport_traffic_trends.png)
+
+### Newcomer Airport Ramp-up
+
+![Newcomer Airport Ramp-up](charts/newcomer_airport_rampup_24m.png)
+
+### Market Share Movers
+
+![Domestic Market Share Movers](charts/domestic_market_share_gainers.png)
+
+![International Gateway Share Movers](charts/international_gateway_share_gainers.png)
+
+### Airport Seasonality Fingerprint
+
+![Airport Seasonality Fingerprint](charts/airport_seasonality_fingerprint.png)
+
+### Bonus animation
+
+The passenger race GIF can be regenerated with `uv run python scripts/chart.py --include-gifs`.
+
+![Airport Passenger Race](charts/airport_passenger_race.gif)
 
 ## Pipeline
 
@@ -79,7 +102,7 @@ uv sync
 uv run python scripts/fetch.py     # download DGCA raw + fingerprint manifest
 uv run python scripts/clean.py     # build the canonical tables
 PYTHONPATH=scripts uv run python -m validate --assumptions --revisions
-uv run python scripts/chart.py     # (--skip-gifs for fast static)
+uv run python scripts/chart.py     # static dashboard charts + JSON summary
 uv run pytest
 ```
 

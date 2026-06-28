@@ -41,8 +41,8 @@ normalization, entity resolution, and validation.
   to known Indian airports, published with a **real `quarter` column** in
   `airport_international_quarterly.csv` (no midpoint-month hack — domestic and
   international never share a cadence).
-- **Unit:** Passengers (whole-person integers). The passenger race is not a
-  flight/movement count.
+- **Unit:** Passengers (whole-person integers). Charted passenger totals are not
+  flight/movement counts.
 
 ---
 
@@ -97,22 +97,54 @@ industry-standard classifications.
 
 ## Charts
 
-Both charts source the published domestic-monthly table so they never mix
-cadences.
+The visible dashboard charts are generated only from the published tables in
+`data/processed/`. Monthly domestic charts use `airport_monthly.csv`; the
+international gateway chart uses `airport_international_quarterly.csv`. The
+script writes `charts/manifest.json` with input hashes, output hashes, and chart
+parameters, and `data/processed/dashboard_summary.json` for the dashboard cards.
 
-### Airport Passenger Race
+### India Domestic Demand Pulse
 
-`airport_passenger_race.gif` — each frame is a trailing 12-month sum ending in
-that month. Domestic only, so there are no artificial jumps from quarterly data.
+`india_domestic_demand_pulse.png` — national monthly domestic passengers plus a
+trailing 12-month passenger total. The KPI block reports the latest month,
+latest month YoY, latest trailing 12-month total, and trailing 12-month YoY.
 
-### Who's Rising
+### Top Airport Traffic Trends
 
-`airport_risers.png` — monthly ramp curves of genuine newcomer airports
-(canonical entities whose first month of data is recent). It depends on the
-deduplication step: a source-rename (PRAYAGRAJ = Allahabad, MUMBAI MUMBAI = BOM)
-carries its full history under its canonical key, so it is never mistaken for a
-new airport. Any genuine new airport surfaces automatically once DGCA publishes
-its first month — none is special-cased.
+`top_airport_traffic_trends.png` — trailing 12-month domestic passenger totals
+for the union of the current and previous top 10 airports, capped at 12 lines
+with deterministic airport-code tie-breaks.
+
+### Newcomer Airport Ramp-up
+
+`newcomer_airport_rampup_24m.png` — monthly domestic passengers during each
+airport's first 24 DGCA-observed months. Airports first seen in the first 12
+months of the dataset are excluded to avoid left-censoring. An airport qualifies
+with at least 3 observed months and either 100,000 cumulative ramp passengers or
+a 20,000-passenger peak month.
+
+### Market Share Movers
+
+`domestic_market_share_gainers.png` — domestic airport share change between the
+latest trailing 12 months and the previous trailing 12 months, requiring at
+least 100,000 passengers in either window.
+
+`international_gateway_share_gainers.png` — international airport share change
+between the latest 4 quarters and the previous 4 quarters, requiring at least
+50,000 passengers in either window.
+
+### Airport Seasonality Fingerprint
+
+`airport_seasonality_fingerprint.png` — airport-month seasonality indexed to
+each airport's own average month (`100 = average month`). Only complete calendar
+years are used; airports need at least 3 complete years and 100,000 latest
+trailing 12-month domestic passengers. The heatmap uses a fixed 60/100/140 color
+scale.
+
+### Optional Animation
+
+`airport_passenger_race.gif` — optional trailing 12-month domestic passenger
+race, generated only with `uv run python scripts/chart.py --include-gifs`.
 
 ---
 
@@ -152,7 +184,7 @@ confirmed, cited assumption ever reaches `mappings.yaml`.
 
 1. DGCA source publication timing and workbook layouts may change.
 2. International data is quarterly, not monthly (published as its own table).
-3. Domestic passenger race is passenger flow, not aircraft movement count.
+3. Passenger charts show passenger flow, not aircraft movement count.
 4. Airport/airline mapping is only as complete as the reviewed entity tables in
    `mappings.yaml`; an unmapped high-volume label is surfaced as advisory.
 
@@ -162,4 +194,4 @@ confirmed, cited assumption ever reaches `mappings.yaml`.
 
 | Date | Version | Change |
 |------|---------|--------|
-| 2026-06 | 0.1.0 | Canonical multi-table dataset: cadence split, table-driven entity resolution with validity windows, falsifiable assumptions ledger + overlap gate, carrier link-not-collapse, tiers moved to presentation-only |
+| 2026-06 | 0.1.0 | Canonical multi-table dataset: cadence split, table-driven entity resolution with validity windows, falsifiable assumptions ledger + overlap gate, carrier link-not-collapse, tiers moved to presentation-only, six-chart dashboard surface |

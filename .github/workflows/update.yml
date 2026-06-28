@@ -80,7 +80,7 @@ jobs:
           path: data/raw.tar.zst
           key: raw-data-v4-${{ hashFiles('scripts/fetch.py', 'scripts/normalize.py', 'pyproject.toml', 'uv.lock') }}-${{ github.run_id }}
 
-      - name: Clean data into canonical layers
+      - name: Clean data into canonical CSV datasets
         if: steps.download.outputs.timed_out != 'true'
         run: uv run python scripts/clean.py
 
@@ -113,13 +113,13 @@ jobs:
               title, body, labels: ['data-quality'],
             });
 
-      - name: Generate charts
+      - name: Generate charts and dashboard summary
         if: steps.download.outputs.timed_out != 'true' && steps.validate.outcome == 'success'
         run: |
-          if [[ "${{ github.event_name }}" == "schedule" || "${{ inputs.generate_gifs }}" == "true" ]]; then
-            uv run python scripts/chart.py
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.generate_gifs }}" == "true" ]]; then
+            uv run python scripts/chart.py --include-gifs
           else
-            uv run python scripts/chart.py --skip-gifs
+            uv run python scripts/chart.py
           fi
 
       - name: Commit and push
@@ -127,7 +127,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/processed/ charts/ assumptions/index.md
+          git add data/processed/ charts/ index.html .nojekyll assumptions/index.md
           [ -f data/sources_manifest.csv ] && git add data/sources_manifest.csv || true
           if [ -s warnings.log ]; then
             git add -f warnings.log

@@ -43,6 +43,19 @@ International, quarterly — the real cadence, no midpoint-month hack. **v1.0.**
 Key: one row per `(airport, year, quarter)`. Foreign counterpart cities are
 dropped. Source: DGCA international city-pair workbooks.
 
+## `airport_yearly.csv` (derived convenience view)
+
+Whole-calendar-year totals, **derived** from `airport_monthly.csv` and
+`airport_international_quarterly.csv` (domestic years need all 12 months;
+international years all 4 quarters). **v2.0.**
+
+| column | type | unit | key | notes |
+|---|---|---|---|---|
+| `year` | int | calendar year | ✓ | complete years only |
+| `airport` | string | canonical key | ✓ | |
+| `category` | string | `domestic`/`international` | ✓ | |
+| `passengers` | int | persons | | |
+
 ## `carrier_monthly.csv` — carrier monthly (airline operating stats)
 
 Airline-level monthly stats. Airlines **link, not collapse** — a merged brand
@@ -67,18 +80,6 @@ keeps its own series (`succeeded_by` in `mappings.yaml`). **v1.0.**
 
 Key: one row per `(airline, service_type, year, month)`. Aggregate "Total" rows
 dropped. Source: DGCA domestic carrier workbooks.
-
-## `airport_yearly.csv` — yearly (derived convenience view)
-
-Whole-calendar-year totals, **derived** from the monthly + quarterly tables (domestic years need all
-12 months; international years all 4 quarters). **v2.0.**
-
-| column | type | unit | key | notes |
-|---|---|---|---|---|
-| `year` | int | calendar year | ✓ | complete years only |
-| `airport` | string | canonical key | ✓ | |
-| `category` | string | `domestic`/`international` | ✓ | |
-| `passengers` | int | persons | | |
 
 ---
 
