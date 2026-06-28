@@ -22,3 +22,7 @@ Thumbs.db
 
 # Logs (regenerated each run)
 warnings.log
+
+# Triage worklist — transient research scratchpad, only non-empty when the gate
+# is already red; regenerated on demand by `validate --triage`
+data/processed/triage_queue.json

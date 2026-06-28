@@ -138,6 +138,14 @@ The cleanup knowledge base lives in `assumptions/` (Open Knowledge Format) and i
 re-tested by the `validate-assumptions` skill. Restated published values are
 disclosed in `data/processed/REVISIONS.md` (diffed against the last data commit).
 
+The ledger's tests are **internal** — the data re-checked against itself — so the
+gate stays deterministic. Classifying a *new* label (is it a new airport, a
+rename, or a distinct airport sharing a code?) needs world knowledge, so it is
+handled off the blocking path by an advisory `validate --triage` mode: it turns
+each label the gate can detect but not classify into a research question and a
+citable OKF skeleton. Web research and human sign-off happen there; only a
+confirmed, cited assumption ever reaches `mappings.yaml`.
+
 ---
 
 ## Known Limitations
