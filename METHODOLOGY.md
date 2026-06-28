@@ -111,8 +111,8 @@ that month. Domestic only, so there are no artificial jumps from quarterly data.
 (canonical entities whose first month of data is recent). It depends on the
 deduplication layer: a source-rename (PRAYAGRAJ = Allahabad, MUMBAI MUMBAI = BOM)
 carries its full history under its canonical key, so it is never mistaken for a
-new airport. Noida International (NIA) is highlighted and surfaces automatically
-once DGCA publishes it.
+new airport. Any genuine new airport surfaces automatically once DGCA publishes
+its first month — none is special-cased.
 
 ---
 

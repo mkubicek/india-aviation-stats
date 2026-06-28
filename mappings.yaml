@@ -605,7 +605,7 @@ airports:
       - label: Dharamshala
       - label: Gaggal Airport
       - label: DHARAMSALA
-  NIA:
+  DXN:
     name: Noida International Airport
     city: Jewar
     state: Uttar Pradesh
@@ -1168,7 +1168,6 @@ tier_colors:
 airport_colors:
   DEL: "#f72585"
   BOM: "#4cc9f0"
-  NIA: "#fbbf24"
   BLR: "#4ade80"
   HYD: "#a78bfa"
   MAA: "#fb923c"

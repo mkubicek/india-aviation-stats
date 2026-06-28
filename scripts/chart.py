@@ -4,7 +4,7 @@ Charts (both sourced from Layer 1, domestic monthly):
   1. Airport Passenger Race (animated GIF bar race) — the hero.
   2. Who's Rising (airport_risers.png) — monthly ramp curves of genuine newcomer
      airports; depends on the dedup layer so it shows real new airports, never
-     source-renames. Noida International (NIA) highlighted gold, auto-surfaced.
+     source-renames. Any newcomer auto-surfaces once it has rows — none special-cased.
 
 All charts use the dark theme defined in AGENTS.md.
 """
@@ -203,8 +203,8 @@ def chart_airport_risers() -> None:
     Depends on the dedup layer: it shows physical newcomers (Mopa, Navi Mumbai,
     Ayodhya...), never source-renames (PRAYAGRAJ is Allahabad, MUMBAI MUMBAI is
     BOM — both carry old history under their canonical, so they are not new).
-    Noida International (NIA) is highlighted gold and surfaces automatically the
-    moment DGCA publishes it.
+    Any new airport surfaces automatically the moment DGCA publishes its first
+    month — no airport is special-cased; every line uses the shared palette.
     """
     print("  Generating: airport_risers.png", flush=True)
 
@@ -231,12 +231,10 @@ def chart_airport_risers() -> None:
             .groupby("period")["passengers"].sum().sort_index()
         )
         x = [p.to_timestamp() for p in series.index]
-        is_nia = airport == "NIA"
-        color = ACCENT_GOLD if is_nia else AIRPORT_COLORS.get(
+        color = AIRPORT_COLORS.get(
             airport, FALLBACK_COLORS[idx % len(FALLBACK_COLORS)])
         ax.plot(x, series.values / 1e3, marker="o", markersize=4,
-                linewidth=3.0 if is_nia else 2.0, color=color,
-                zorder=5 if is_nia else 3)
+                linewidth=2.0, color=color, zorder=3)
         last_x, last_y = x[-1], series.values[-1] / 1e3
         ax.annotate(f"  {airport_label(airport)}", (last_x, last_y),
                     fontsize=9, fontweight="bold", color=color, va="center", clip_on=False)

@@ -38,8 +38,10 @@ Charts serve the data — keep them purist:
   every mark/label must be verifiable against the dataset. Do **not** caption or
   annotate data that isn't there yet (e.g. an "airport X awaited" note for an
   airport with zero rows). The data-driven path already covers "watch this airport
-  rise": `find_risers()` auto-includes a newcomer once it has qualifying rows, and
-  `is_nia` paints NIA gold — so it surfaces on its own once DGCA publishes it.
+  rise": `find_risers()` auto-includes any newcomer once it has qualifying rows, so
+  a new airport surfaces on its own once DGCA publishes it. **No airport is
+  special-cased or gilded** (not even a future flagship) — every line uses the
+  shared palette.
 - **No employer/legal disclaimer on charts.** It lives in the **README only**.
   Chart surfaces stay clean: title, axes, legend, and the attribution line —
   nothing else.
@@ -58,7 +60,7 @@ dashed alpha 0.2. **Attribution line** (bottom-right, `ax.transAxes` so
 `GITHUB_REPOSITORY` or `git remote`.
 
 **Highlight colours** (`mappings.yaml: airport_colors` / `airline_colors`):
-NIA gold `#fbbf24` · DEL `#f72585` · BOM `#4cc9f0` · BLR `#4ade80` · HYD `#a78bfa`
+DEL `#f72585` · BOM `#4cc9f0` · BLR `#4ade80` · HYD `#a78bfa`
 · MAA `#fb923c` · CCU `#f87171`; IndiGo `#3b82f6` · Air India `#f72585` · SpiceJet
 `#fbbf24` · Akasa `#fb923c` · Vistara `#a78bfa`. Tier bands (presentation only):
 Metro `#3b82f6`, Tier 1 `#14b8a6`, Tier 2 `#22c55e`, Tier 3 `#94a3b8`, Greenfield

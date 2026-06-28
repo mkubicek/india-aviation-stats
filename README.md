@@ -61,9 +61,9 @@ Generated from the published layers, no editorial overlays.
 ![India airport passenger race](charts/airport_passenger_race.gif)
 
 **Who's Rising** — newcomer airports (Navi Mumbai, Mopa, Ayodhya…). Sourced from
-the deduplicated Layer 1, so it shows real new airports, never source-renames;
-Noida International (NIA) is highlighted gold and appears automatically once DGCA
-publishes it.
+the deduplicated Layer 1, so it shows real new airports, never source-renames. Any
+new airport appears automatically once DGCA publishes its first month — none is
+special-cased.
 
 ![Who's rising: India's newcomer airports](charts/airport_risers.png)
 
@@ -93,16 +93,6 @@ now-wrong merge. Source changes are detected via a committed fingerprint manifes
 
 > Kubicek, M. (2026). *India Aviation Stats: a cleaned DGCA passenger-traffic
 > dataset.* GitHub. https://github.com/mkubicek/india-aviation-stats
-
-```bibtex
-@misc{kubicek_india_aviation_stats,
-  author = {Kubicek, Marek},
-  title  = {India Aviation Stats: a cleaned DGCA passenger-traffic dataset},
-  year   = {2026},
-  howpublished = {\url{https://github.com/mkubicek/india-aviation-stats}},
-  note   = {Source: DGCA}
-}
-```
 
 ## License
 
