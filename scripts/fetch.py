@@ -6,14 +6,14 @@ Sources:
   2. Optional MoCA daily HTML snapshots from the Internet Archive.
 
 Raw files are cached under data/raw/ and normalized aggregate CSVs are written
-under data/raw/aviation/aggregated/ for process.py.
+under data/raw/aviation/aggregated/ for clean.py.
 """
 
 import os
 import time
 from pathlib import Path
 
-from ingest_sources import ingest_aviation_sources, was_timed_out
+from normalize import ingest_aviation_sources, was_timed_out
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"

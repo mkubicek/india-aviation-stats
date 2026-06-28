@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from ingest_sources import (
+from normalize import (
     _dgca_source_url_variants,
     aggregate_international,
     parse_domestic_carrier_file,

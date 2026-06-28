@@ -523,7 +523,7 @@ def main() -> None:
 
     monthly_path = PROCESSED_DIR / "airport_monthly.csv"
     if not monthly_path.exists():
-        print("ERROR: No processed airport data. Run process.py first.")
+        print("ERROR: No processed airport data. Run clean.py first.")
         return
 
     chart_airport_risers()

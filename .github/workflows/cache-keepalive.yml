@@ -23,7 +23,7 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: data/raw.tar.zst
-          key: raw-data-v4-${{ hashFiles('scripts/download.py', 'scripts/ingest_sources.py', 'pyproject.toml', 'uv.lock') }}-${{ runner.os }}
+          key: raw-data-v4-${{ hashFiles('scripts/fetch.py', 'scripts/normalize.py', 'pyproject.toml', 'uv.lock') }}-${{ runner.os }}
           restore-keys: |
             raw-data-v4-
 
