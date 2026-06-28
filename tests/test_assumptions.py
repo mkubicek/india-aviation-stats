@@ -26,6 +26,17 @@ def test_all_committed_assumptions_hold():
     assert len(results) >= 5
 
 
+def test_malformed_assumption_triggers_instead_of_crashing():
+    # A file whose params omit what its test needs must BLOCK (TRIGGERED), not crash the run.
+    fake = [{"id": "BAD", "frontmatter": {
+        "falsification": "concurrent-merge-declared",
+        "params": {"labels": ["A", "B"]},  # missing the required 'airport'
+    }}]
+    results = A.evaluate(fake, MAPPINGS)
+    assert results[0]["verdict"] == "TRIGGERED"
+    assert "error" in results[0]["detail"].lower()
+
+
 def test_size_ordering_triggers_when_reversed():
     fake = [{"id": "X", "frontmatter": {
         "falsification": "size-ordering-holds",

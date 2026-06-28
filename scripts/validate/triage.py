@@ -38,9 +38,12 @@ def _q(label: str) -> str:
     return f'"{label}"' if any(c in label for c in " ,:#") else label
 
 
-def _okf_skeleton(*, title, category, falsification, covers, labels, question) -> str:
+def _okf_skeleton(*, title, category, falsification, covers, labels, question, airport=None) -> str:
     covers_yaml = "[" + ", ".join(covers) + "]" if covers else "[]"
     labels_yaml = ", ".join(_q(l) for l in labels)
+    # concurrent-merge-declared reads params.airport; emit it so a drafted file is
+    # complete and won't crash `validate --assumptions`.
+    airport_line = f"  airport: {airport}\n" if airport else ""
     return f"""---
 type: cleanup-assumption
 title: {title}
@@ -48,7 +51,7 @@ category: {category}
 falsification: {falsification}
 covers: {covers_yaml}
 params:
-  labels: [{labels_yaml}]
+{airport_line}  labels: [{labels_yaml}]
 tags: [airport, triage-draft, NEEDS-HUMAN-REVIEW]
 ---
 # Observation
@@ -147,7 +150,7 @@ def build_worklist(mappings: dict, raw_domestic: Path) -> list[dict]:
             "draft": _okf_skeleton(
                 title=f"TODO: are {labels} one airport ({canon}) or distinct?",
                 category="deduplication", falsification="concurrent-merge-declared",
-                covers=[canon], labels=labels, question=q),
+                covers=[canon], labels=labels, question=q, airport=canon),
         })
 
     # Kind 2 — high-volume unmapped labels (a real airport we failed to map).

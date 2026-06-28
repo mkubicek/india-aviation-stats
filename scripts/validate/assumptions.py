@@ -181,7 +181,10 @@ def evaluate(assumptions: list[dict], mappings: dict) -> list[dict]:
         if name not in TESTS:
             verdict, detail = "TRIGGERED", f"unknown falsification test {name!r}"
         else:
-            verdict, detail = TESTS[name](params, ctx)
+            try:
+                verdict, detail = TESTS[name](params, ctx)
+            except Exception as e:  # a malformed file must block, not crash the whole run
+                verdict, detail = "TRIGGERED", f"test {name!r} errored (check params): {e}"
         # staleness overlay (advisory) only if currently holding
         if verdict == "HOLDS" and recheck_by and str(recheck_by) < date.today().strftime("%Y-%m"):
             verdict, detail = "STALE", f"recheck_by {recheck_by} passed"

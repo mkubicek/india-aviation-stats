@@ -66,3 +66,14 @@ def test_skeleton_is_parseable_okf_naming_a_real_test():
     assert fm["params"]["labels"] == ["PURNEA", "PURNIA AIRPORT"]
     assert "NEEDS-HUMAN-REVIEW" in fm["tags"]       # a draft is visibly unfinished
     assert "TODO" in body
+
+
+def test_concurrent_skeleton_carries_airport_param():
+    # `concurrent-merge-declared` reads params['airport']; the skeleton must emit it
+    # so a drafted file does not crash `validate --assumptions`.
+    skel = _okf_skeleton(
+        title="t", category="deduplication", falsification="concurrent-merge-declared",
+        covers=["COK"], labels=["COCHIN", "KOCHI"], question="q?", airport="COK")
+    fm = yaml.safe_load(skel.split("---", 2)[1])
+    assert fm["params"]["airport"] == "COK"
+    assert fm["params"]["labels"] == ["COCHIN", "KOCHI"]

@@ -1184,9 +1184,6 @@ airline_colors:
 
 # Alternate source spellings whose label differs from the airport entry city.
 # Flat (not per-entry variants) because they are pure period-invariant spellings.
-
-# Alternate source spellings whose label differs from the airport entry city.
-# Flat (not per-entry variants) because they are pure period-invariant spellings.
 airport_aliases:
   BAGDOGRA: IXB
   BANGALORE: BLR
