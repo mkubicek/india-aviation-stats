@@ -65,14 +65,35 @@ airports:
     opened_year: 1924
 
   # ── Tier 1 (5M–20M annual passengers) ──
+  # Goa has TWO airports. The DGCA "GOA" source label flips meaning over time:
+  # Dabolim (GOI) through 2018 (only airport then), Mopa (GOX) from 2023 (after Mopa
+  # opened 2023-01-05). Resolved by cited research (AAI @aaigoaairport, MoCA Rajya
+  # Sabha FY23-24). See assumptions/GOA-001.md. NEVER sum DABOLIM + GOA.
   GOI:
-    name: Goa International Airport (Manohar)
+    name: Dabolim Airport
     city: Goa
     state: Goa
     lat: 15.3808
     lon: 73.8314
     tier: tier1
+    opened_year: 1955
+    variants:
+      - {label: GOA, valid_to: "2018-12"}        # GOA = Dabolim before Mopa existed
+      - {label: DABOLIM, valid_from: "2019-01"}  # source switched to DABOLIM in 2019
+      - {label: GOA DABOLIM SOUTH GOA}           # 2026 long-form
+
+  GOX:
+    name: Manohar International Airport (Mopa)
+    city: Goa
+    state: Goa
+    lat: 15.7414
+    lon: 73.8583
+    tier: tier1
     opened_year: 2023
+    variants:
+      - {label: GOA, valid_from: "2023-01"}      # GOA = Mopa from 2023 (~4.6M, matches AAI)
+      - {label: MOPA GOA, valid_from: "2023-01"} # transitional 2023 label
+      - {label: GOA MOPA NORTH GOA}              # 2026 long-form
 
   COK:
     name: Cochin International Airport
