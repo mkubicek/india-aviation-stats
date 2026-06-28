@@ -1,8 +1,10 @@
-"""Chart generation for current India aviation passenger data.
+"""Chart generation for the published canonical layers.
 
-Charts:
-  1. Top Airport Rankings Over Time (static bump chart)
-  2. Airport Passenger Race (animated GIF bar race)
+Charts (both sourced from Layer 1, domestic monthly):
+  1. Airport Passenger Race (animated GIF bar race) — the hero.
+  2. Who's Rising (airport_risers.png) — monthly ramp curves of genuine newcomer
+     airports; depends on the dedup layer so it shows real new airports, never
+     source-renames. Noida International (NIA) highlighted gold, auto-surfaced.
 
 All charts use the dark theme defined in AGENTS.md.
 """
@@ -181,156 +183,116 @@ def add_disclaimer(ax, fontsize: int = 7) -> None:
     )
 
 
-def _complete_airport_years(monthly: pd.DataFrame) -> list[int]:
-    """Return years with complete domestic months and international quarters."""
-    years_by_category: list[set[int]] = []
-
-    domestic = monthly[monthly["category"] == "domestic"]
-    if not domestic.empty:
-        domestic_years = (
-            domestic.groupby("year")["month"].nunique().loc[lambda s: s == 12].index
-        )
-        years_by_category.append(set(int(year) for year in domestic_years))
-
-    international = monthly[monthly["category"] == "international"]
-    if not international.empty:
-        international_years = (
-            international.groupby("year")["month"].nunique().loc[lambda s: s == 4].index
-        )
-        years_by_category.append(set(int(year) for year in international_years))
-
-    if not years_by_category:
-        return []
-    return sorted(set.intersection(*years_by_category))
+RISER_FIRST_PERIOD = pd.Period("2022-01", freq="M")  # "new" = first appeared 2022+
+RISER_MIN_RECENT_PAX = 50_000   # last-12-month total to clear chart clutter
+RISER_MAX_LINES = 7
 
 
-def chart_airport_rankings() -> None:
-    """Bump chart: current top airport rankings across complete DGCA years."""
-    print("  Generating: airport_rankings.png", flush=True)
+def airport_label(iata: str) -> str:
+    info = MAPPINGS.get("airports", {}).get(iata, {})
+    city = info.get("city")
+    return f"{iata} ({city})" if city else iata
 
-    yearly_path = PROCESSED_DIR / "airport_yearly.csv"
+
+def find_risers(monthly: pd.DataFrame) -> list[str]:
+    """Genuine newcomer airports: canonical entities whose FIRST month of data is
+    recent. Source renames are excluded for free — a renamed airport's canonical
+    (e.g. IXD for Allahabad/Prayagraj) carries its full history, so its first
+    month is old, not recent."""
+    m = monthly.copy()
+    m["period"] = pd.PeriodIndex(
+        pd.to_datetime({"year": m["year"], "month": m["month"], "day": 1}), freq="M"
+    )
+    first = m.groupby("airport")["period"].min()
+    newcomers = first[first >= RISER_FIRST_PERIOD].index
+    last_period = m["period"].max()
+    recent = (
+        m[m["period"] > last_period - 12]
+        .groupby("airport")["passengers"].sum()
+    )
+    qualified = [a for a in newcomers if recent.get(a, 0) >= RISER_MIN_RECENT_PAX]
+    qualified.sort(key=lambda a: recent.get(a, 0), reverse=True)
+    return qualified[:RISER_MAX_LINES]
+
+
+def chart_airport_risers() -> None:
+    """Who's rising: monthly ramp curves of genuine newcomer airports (Layer 1).
+
+    Depends on the dedup layer: it shows physical newcomers (Mopa, Navi Mumbai,
+    Ayodhya...), never source-renames (PRAYAGRAJ is Allahabad, MUMBAI MUMBAI is
+    BOM — both carry old history under their canonical, so they are not new).
+    Noida International (NIA) is highlighted gold and surfaces automatically the
+    moment DGCA publishes it.
+    """
+    print("  Generating: airport_risers.png", flush=True)
+
     monthly_path = PROCESSED_DIR / "airport_monthly.csv"
-    if not yearly_path.exists() or not monthly_path.exists():
-        print("    WARNING: airport processed data not found, skipping", flush=True)
+    if not monthly_path.exists():
+        print("    WARNING: airport_monthly.csv not found, skipping", flush=True)
         return
-
-    yearly = pd.read_csv(yearly_path)
     monthly = pd.read_csv(monthly_path)
-    complete_years = _complete_airport_years(monthly)
-    if not complete_years:
-        print("    WARNING: no complete annual airport years found, skipping", flush=True)
+
+    risers = find_risers(monthly)
+    if not risers:
+        print("    WARNING: no newcomer airports found, skipping", flush=True)
         return
 
-    annual = (
-        yearly[yearly["year"].isin(complete_years)]
-        .assign(airport=lambda df: df["airport"].astype(str).str.upper())
-        .groupby(["year", "airport"], as_index=False)["passengers"]
-        .sum()
+    m = monthly.copy()
+    m["period"] = pd.PeriodIndex(
+        pd.to_datetime({"year": m["year"], "month": m["month"], "day": 1}), freq="M"
     )
-    if annual.empty:
-        print("    WARNING: no complete annual airport records found, skipping", flush=True)
-        return
-
-    annual["rank"] = annual.groupby("year")["passengers"].rank(
-        ascending=False,
-        method="min",
-    )
-    latest_year = max(complete_years)
-    latest = annual[annual["year"] == latest_year].nlargest(10, "passengers")
-    top_airports = latest["airport"].tolist()
-    ranked = annual[annual["airport"].isin(top_airports)].copy()
-    all_years = list(range(min(complete_years), max(complete_years) + 1))
-    max_rank = int(np.ceil(ranked["rank"].max()))
 
     fig, ax = plt.subplots(figsize=(14, 8), facecolor=BG)
-    latest_lookup = latest.set_index("airport")["passengers"].to_dict()
-
-    for idx, airport in enumerate(top_airports):
-        airport_data = (
-            ranked[ranked["airport"] == airport]
-            .sort_values("year")
-            .set_index("year")
-            .reindex(all_years)
+    for idx, airport in enumerate(risers):
+        series = (
+            m[m["airport"] == airport]
+            .groupby("period")["passengers"].sum().sort_index()
         )
-        color = AIRPORT_COLORS.get(airport, FALLBACK_COLORS[idx % len(FALLBACK_COLORS)])
-        ax.plot(
-            all_years,
-            airport_data["rank"],
-            marker="o",
-            linewidth=2.5,
-            color=color,
-            markersize=7,
-            zorder=3,
-        )
+        x = [p.to_timestamp() for p in series.index]
+        is_nia = airport == "NIA"
+        color = ACCENT_GOLD if is_nia else AIRPORT_COLORS.get(
+            airport, FALLBACK_COLORS[idx % len(FALLBACK_COLORS)])
+        ax.plot(x, series.values / 1e3, marker="o", markersize=4,
+                linewidth=3.0 if is_nia else 2.0, color=color,
+                zorder=5 if is_nia else 3)
+        last_x, last_y = x[-1], series.values[-1] / 1e3
+        ax.annotate(f"  {airport_label(airport)}", (last_x, last_y),
+                    fontsize=9, fontweight="bold", color=color, va="center", clip_on=False)
 
-        valid = airport_data.dropna(subset=["rank"])
-        if valid.empty:
-            continue
-        last = valid.iloc[-1]
-        label = f"{airport}  {latest_lookup.get(airport, 0) / 1e6:.1f}M"
-        ax.annotate(
-            label,
-            (int(last.name), last["rank"]),
-            textcoords="offset points",
-            xytext=(8, 0),
-            fontsize=9,
-            fontweight="bold",
-            color=color,
-            va="center",
-            clip_on=False,
-        )
-
-    ax.invert_yaxis()
-    ax.set_yticks(range(1, max_rank + 1))
-    ax.set_yticklabels([f"#{rank}" for rank in range(1, max_rank + 1)])
-    ax.set_xticks(all_years)
-    ax.set_xticklabels([str(year) for year in all_years])
-    ax.grid(axis="x", alpha=0.2, color=GRID_COLOR, linestyle="--")
-    ax.set_xlim(min(all_years) - 0.4, max(all_years) + 1.15)
-    ax.set_ylim(max_rank + 0.6, 0.4)
+    if "NIA" not in set(risers):
+        ax.text(0.5, 0.95, "Noida International (NIA): awaited — appears here automatically "
+                "once DGCA publishes its first month",
+                transform=ax.transAxes, ha="center", va="top", fontsize=8,
+                color=ACCENT_GOLD, alpha=0.85)
 
     style_chart(
         ax,
-        "India's Top Airport Rankings Over Time",
-        subtitle=(
-            "Domestic + international passenger totals | Complete DGCA source years "
-            f"| Latest complete year: {latest_year}"
-        ),
-        ylabel="Rank",
+        "Who's Rising: India's Newcomer Airports",
+        subtitle="Monthly domestic passengers since each airport's first DGCA data "
+                 "(genuine new airports, not source-renames) | Source: Layer 1",
+        ylabel="Passengers per month (thousands)",
     )
     ax.set_xlabel("")
-
-    missing_years = sorted(set(all_years) - set(complete_years))
-    for year in missing_years:
-        ax.axvspan(year - 0.5, year + 0.5, color=GRID_COLOR, alpha=0.10, zorder=0)
-        ax.text(
-            year,
-            max_rank + 0.35,
-            "partial",
-            ha="center",
-            va="bottom",
-            fontsize=7,
-            color=SUBTLE,
-            rotation=90,
-            alpha=0.7,
-        )
-
+    ax.grid(axis="y", alpha=0.2, color=GRID_COLOR, linestyle="--")
     add_attribution(ax)
     add_disclaimer(ax)
 
     fig.tight_layout()
-    out = CHARTS_DIR / "airport_rankings.png"
+    out = CHARTS_DIR / "airport_risers.png"
     fig.savefig(out, dpi=150, bbox_inches="tight", facecolor=BG)
     plt.close(fig)
-    print(f"    Saved: {out.name}")
+    print(f"    Saved: {out.name} ({len(risers)} newcomers: {', '.join(risers)})")
 
 
 def _domestic_trailing_airport_passengers(
     monthly: pd.DataFrame,
     window: int = 12,
 ) -> pd.DataFrame:
-    """Return complete rolling domestic passenger totals by airport-month."""
-    domestic = monthly[monthly["category"] == "domestic"].copy()
+    """Return complete rolling domestic passenger totals by airport-month.
+
+    Layer 1 is domestic-only, so every row counts (no category filter).
+    """
+    domestic = monthly.copy()
     if domestic.empty:
         return pd.DataFrame()
 
@@ -560,12 +522,11 @@ def main() -> None:
     print("=== Generating Charts ===\n", flush=True)
 
     monthly_path = PROCESSED_DIR / "airport_monthly.csv"
-    yearly_path = PROCESSED_DIR / "airport_yearly.csv"
-    if not monthly_path.exists() or not yearly_path.exists():
+    if not monthly_path.exists():
         print("ERROR: No processed airport data. Run process.py first.")
         return
 
-    chart_airport_rankings()
+    chart_airport_risers()
 
     if skip_gifs:
         print("  Skipping GIF generation (--skip-gifs)")
