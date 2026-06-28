@@ -25,7 +25,7 @@ Heritage), but brand/legal mergers are **linked, not collapsed**.
 
 # Decision
 
-Each airline keeps its own entity in Layer 4 (`carrier_monthly.csv`); the merger
+Each airline keeps its own entity in the carrier-monthly table (`carrier_monthly.csv`); the merger
 relationship is recorded as `succeeded_by` in `mappings.yaml: airlines`. No
 airline brand is merged into its successor.
 

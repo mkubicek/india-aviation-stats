@@ -1,4 +1,4 @@
-"""Clean normalized DGCA aggregates into the standardized canonical layers.
+"""Clean normalized DGCA aggregates into the standardized canonical tables.
 
 Resolution is 100% table-driven (``mappings.yaml`` entity tables + the flat
 ``airport_aliases`` spelling map) via the validity-window resolver — there is no
@@ -6,15 +6,15 @@ hardcoded fallback. A label that does not resolve is foreign (international
 counterpart city) and is dropped; a *domestic* label that fails to resolve is a
 real coverage loss and is surfaced.
 
-Published layers (in ``data/processed/``):
-  Layer 1 — ``airport_monthly.csv``                domestic, monthly
-  Layer 2 — ``airport_international_quarterly.csv`` international, real quarter
-  Layer 3 — ``airport_yearly.csv``                 derived from L1+L2 (whole years)
-  Layer 4 — ``carrier_monthly.csv``                airline monthly (see clean carrier)
+Published tables (in ``data/processed/``) — three source tables + one derived view:
+  ``airport_monthly.csv``                domestic, monthly (the canonical core)
+  ``airport_international_quarterly.csv`` international, real quarter
+  ``carrier_monthly.csv``                airline monthly (see clean carrier)
+  ``airport_yearly.csv``                 derived from monthly + quarterly (whole years)
 
-Schema (Layers 1/2): ``passengers == departures + arrivals``, whole-person
+Schema (the airport tables): ``passengers == departures + arrivals``, whole-person
 integers. No ``tier`` (presentation-only, lives in chart config) and no
-``category`` on Layer 1 (constant once domestic-only).
+``category`` on airport_monthly (constant once domestic-only).
 """
 
 import json
@@ -66,7 +66,7 @@ CARRIER_COLUMNS = {
 # Aggregate rows in the source that are not airlines.
 CARRIER_TOTAL_ROWS = {"Total Domestic", "Total International"}
 
-# Per-layer schema versions (consumers detect breaking changes via metadata.json).
+# Per-table schema versions (consumers detect breaking changes via metadata.json).
 SCHEMA_VERSIONS = {
     "airport_monthly": "2.0",
     "airport_international_quarterly": "1.0",
@@ -76,16 +76,16 @@ SCHEMA_VERSIONS = {
 SCHEMA_CHANGELOG = [
     {
         "version": "2.0",
-        "layers": ["airport_monthly", "airport_yearly"],
+        "tables": ["airport_monthly", "airport_yearly"],
         "change": "Cadence split: airport_monthly is domestic-only (international "
         "moved to airport_international_quarterly with a real quarter column). "
-        "Dropped 'category' from airport_monthly and 'tier' from all layers. "
+        "Dropped 'category' from airport_monthly and 'tier' from all tables. "
         "Passenger columns are integers.",
     },
 ]
 
 # Quarter -> representative month, used only to resolve validity-windowed labels
-# for international rows. The published Layer 2 keeps the real quarter.
+# for international rows. The published quarterly table keeps the real quarter.
 _QUARTER_MIDPOINT = {1: 2, 2: 5, 3: 8, 4: 11}
 
 
@@ -146,17 +146,17 @@ def _finalize(df: pd.DataFrame, key_cols: list[str]) -> pd.DataFrame:
     return out[cols].sort_values(key_cols).reset_index(drop=True)
 
 
-# ── Layer 1: domestic monthly ────────────────────────────────
+# ── domestic monthly ────────────────────────────────
 
 
 def process_domestic_monthly() -> pd.DataFrame | None:
-    """Layer 1: ``year, month, airport, passengers, departures, arrivals``."""
+    """domestic monthly: ``year, month, airport, passengers, departures, arrivals``."""
     path = source_csv("domestic/city.csv")
     if not path.exists():
         print("  WARNING: domestic/city.csv not found, skipping", flush=True)
         return None
 
-    print(f"  Processing {path.relative_to(ROOT)} -> Layer 1 (domestic monthly)...", flush=True)
+    print(f"  Processing {path.relative_to(ROOT)} -> domestic monthly...", flush=True)
     df = pd.read_csv(path)
     monthly = _split_endpoints(df, ["Year", "Month"]).rename(
         columns={"Year": "year", "Month": "month"}
@@ -174,17 +174,17 @@ def process_domestic_monthly() -> pd.DataFrame | None:
     monthly = monthly[monthly["airport"].notna()]
 
     result = _finalize(monthly, ["year", "month", "airport"])
-    print(f"    Layer 1: {len(result):,} airport-month rows, "
+    print(f"    domestic monthly: {len(result):,} airport-month rows, "
           f"{result['airport'].nunique()} airports, "
           f"{int(result['year'].min())}-{int(result['year'].max())}")
     return result
 
 
-# ── Layer 2: international quarterly ──────────────────────────
+# ── international quarterly ──────────────────────────
 
 
 def process_international_quarterly() -> pd.DataFrame | None:
-    """Layer 2: ``year, quarter, airport, passengers, departures, arrivals``.
+    """international quarterly: ``year, quarter, airport, passengers, departures, arrivals``.
 
     Real quarter column (no midpoint-month hack). Only Indian airports are kept;
     foreign counterpart cities resolve to None and are dropped.
@@ -194,7 +194,7 @@ def process_international_quarterly() -> pd.DataFrame | None:
         print("  WARNING: international/city.csv not found, skipping", flush=True)
         return None
 
-    print(f"  Processing {path.relative_to(ROOT)} -> Layer 2 (international quarterly)...", flush=True)
+    print(f"  Processing {path.relative_to(ROOT)} -> international quarterly...", flush=True)
     df = pd.read_csv(path)
     df["Year"] = df["Year"].apply(lambda y: y + 2000 if y < 100 else y)
 
@@ -211,17 +211,17 @@ def process_international_quarterly() -> pd.DataFrame | None:
     quarterly = quarterly[quarterly["airport"].isin(KNOWN_IATA)]
 
     result = _finalize(quarterly, ["year", "quarter", "airport"])
-    print(f"    Layer 2: {len(result):,} airport-quarter rows, "
+    print(f"    international quarterly: {len(result):,} airport-quarter rows, "
           f"{result['airport'].nunique()} Indian airports, "
           f"quarters {sorted(result['quarter'].unique())}")
     return result
 
 
-# ── Layer 3: derived yearly view ─────────────────────────────
+# ── derived yearly view ─────────────────────────────
 
 
 def build_yearly(monthly: pd.DataFrame | None, quarterly: pd.DataFrame | None) -> pd.DataFrame:
-    """Layer 3 (derived): ``year, airport, category, passengers``, whole years only.
+    """yearly (derived): ``year, airport, category, passengers``, whole years only.
 
     Domestic years need all 12 months; international years need all 4 quarters.
     """
@@ -249,7 +249,7 @@ def build_yearly(monthly: pd.DataFrame | None, quarterly: pd.DataFrame | None) -
 
 
 def process_airport_data() -> dict[str, pd.DataFrame]:
-    """Build and write Layers 1, 2, 3."""
+    """Build and write the monthly, quarterly, and yearly tables."""
     monthly = process_domestic_monthly()
     quarterly = process_international_quarterly()
     yearly = build_yearly(monthly, quarterly)
@@ -278,11 +278,11 @@ def process_airport_data() -> dict[str, pd.DataFrame]:
     return written
 
 
-# ── Layer 4: carrier (passthrough for now; tidied in clean carrier step) ──
+# ── carrier monthly (passthrough for now; tidied in clean carrier step) ──
 
 
 def process_carrier_data() -> pd.DataFrame | None:
-    """Layer 4: tidy airline-monthly operating stats.
+    """carrier monthly: tidy airline-monthly operating stats.
 
     One row per (airline, service_type, year, month). Airline names are
     canonicalized for spelling only (Airheritage -> Air Heritage); brand/legal
@@ -293,7 +293,7 @@ def process_carrier_data() -> pd.DataFrame | None:
     if not path.exists():
         print("  WARNING: domestic/carrier.csv not found, skipping", flush=True)
         return None
-    print(f"  Processing {path.relative_to(ROOT)} -> Layer 4 (carrier monthly)...", flush=True)
+    print(f"  Processing {path.relative_to(ROOT)} -> carrier monthly...", flush=True)
     df = pd.read_csv(path)
 
     df = df[~df["Airline"].isin(CARRIER_TOTAL_ROWS)].copy()
@@ -327,10 +327,10 @@ def process_carrier_data() -> pd.DataFrame | None:
 
 
 def write_metadata(written: dict[str, pd.DataFrame]) -> None:
-    """metadata.json: data date + per-layer schema_version + schema_changelog."""
-    layers = {}
+    """metadata.json: data date + per-table schema_version + schema_changelog."""
+    tables = {}
     for name, df in written.items():
-        layers[name] = {
+        tables[name] = {
             "schema_version": SCHEMA_VERSIONS.get(name, "1.0"),
             "rows": int(len(df)),
             "columns": list(df.columns),
@@ -338,7 +338,7 @@ def write_metadata(written: dict[str, pd.DataFrame]) -> None:
     meta = {
         "data_date": str(date.today()),
         "processed_date": str(date.today()),
-        "layers": layers,
+        "tables": tables,
         "schema_changelog": SCHEMA_CHANGELOG,
     }
     (PROCESSED_DIR / "metadata.json").write_text(json.dumps(meta, indent=2) + "\n")

@@ -5,9 +5,9 @@
 Initial public release — a clean, canonical dataset of Indian aviation passenger
 traffic from DGCA's public workbooks.
 
-- **Four single-cadence layers** in `data/processed/`: domestic monthly,
+- **Four single-grain tables** in `data/processed/`: domestic monthly,
   international quarterly, derived yearly, and carrier monthly. One airport = one
-  entity; integer passengers; `schema_version` per layer.
+  entity; integer passengers; `schema_version` per table.
 - **Table-driven entity resolution** with validity windows — resolves source
   labels whose meaning changes over time (the `GOA` label is Dabolim through 2018,
   Mopa from 2023). All 107 previously-unmapped domestic labels mapped and audited.
@@ -17,7 +17,7 @@ traffic from DGCA's public workbooks.
   merge two concurrent labels; a reverse gate blocks undocumented quirks.
 - **Source-change detection** via committed `sources_manifest.csv`; restated
   values disclosed in `REVISIONS.md`.
-- **Two charts** from the published layers: the domestic passenger race and the
+- **Two charts** from the published tables: the domestic passenger race and the
   "Who's Rising" newcomer-airports chart.
 - Validation runs as a partial CI gate; a blocking failure keeps last-good data
   and opens an issue.

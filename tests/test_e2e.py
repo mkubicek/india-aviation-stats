@@ -9,7 +9,7 @@ packs the three cleanup shapes the design cares about into a handful of rows:
   - Distinct-overlap: two name-similar labels map to different airports (AAA vs
     BBB) — kept apart by construction (different canonical keys).
 
-It proves the chain produces a tidy, conserved Layer 1 and that the overlap gate
+It proves the chain produces a tidy, conserved domestic-monthly table and that the overlap gate
 blocks an undeclared concurrent merge.
 """
 

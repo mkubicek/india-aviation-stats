@@ -104,7 +104,7 @@ def test_no_high_volume_unmapped_domestic_labels():
     assert not _failed(check_unmapped_names(MAPPINGS, RAW_DOMESTIC))
 
 
-# ── Layer 4 carrier ──
+# ── carrier monthly ──
 
 def test_carrier_flags_load_factor_out_of_range():
     df = pd.DataFrame([
@@ -132,7 +132,7 @@ def test_published_carrier_is_tidy_and_links_not_collapses():
     assert int(df.duplicated(["airline", "service_type", "year", "month"]).sum()) == 0
 
 
-# ── schema conformance against the real published layers ──
+# ── schema conformance against the real published tables ──
 
 def test_published_layers_conform_to_schema():
     import json

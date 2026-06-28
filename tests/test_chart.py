@@ -9,7 +9,7 @@ from chart import (
 
 
 def test_domestic_trailing_airport_passengers_requires_complete_windows():
-    # Layer 1 is domestic-only (no category column).
+    # the domestic-monthly table is domestic-only (no category column).
     rows = []
     for month in range(1, 14):
         year = 2025 if month <= 12 else 2026

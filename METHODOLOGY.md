@@ -97,7 +97,7 @@ industry-standard classifications.
 
 ## Charts
 
-Both charts source the published Layer 1 (domestic monthly) so they never mix
+Both charts source the published domestic-monthly table so they never mix
 cadences.
 
 ### Airport Passenger Race
@@ -109,7 +109,7 @@ that month. Domestic only, so there are no artificial jumps from quarterly data.
 
 `airport_risers.png` — monthly ramp curves of genuine newcomer airports
 (canonical entities whose first month of data is recent). It depends on the
-deduplication layer: a source-rename (PRAYAGRAJ = Allahabad, MUMBAI MUMBAI = BOM)
+deduplication step: a source-rename (PRAYAGRAJ = Allahabad, MUMBAI MUMBAI = BOM)
 carries its full history under its canonical key, so it is never mistaken for a
 new airport. Any genuine new airport surfaces automatically once DGCA publishes
 its first month — none is special-cased.
@@ -124,7 +124,7 @@ emits `validation_report.json` (machine) and `warnings.log` (human).
 | Check | Severity | Purpose |
 |-------|----------|---------|
 | Overlap-classification gate | BLOCKING | refuse to sum two concurrent source labels into one airport unless declared in `concurrent_labels` |
-| Cadence integrity | BLOCKING | one row per key; Layer 2 `quarter ∈ 1..4`; no cross-layer contamination |
+| Cadence integrity | BLOCKING | one row per key; the quarterly table's `quarter ∈ 1..4`; no cross-table cadence mixing |
 | Definitional | BLOCKING | `passengers == departures + arrivals`; non-negative integers |
 | Schema conformance | BLOCKING | columns/dtypes match the data dictionary; `schema_version` present |
 | Conservation | TRIPWIRE | per month `sum(departures) == sum(arrivals)` — true by construction; catches a future refactor only |
@@ -151,7 +151,7 @@ confirmed, cited assumption ever reaches `mappings.yaml`.
 ## Known Limitations
 
 1. DGCA source publication timing and workbook layouts may change.
-2. International data is quarterly, not monthly (published as its own layer).
+2. International data is quarterly, not monthly (published as its own table).
 3. Domestic passenger race is passenger flow, not aircraft movement count.
 4. Airport/airline mapping is only as complete as the reviewed entity tables in
    `mappings.yaml`; an unmapped high-volume label is surfaced as advisory.
@@ -162,4 +162,4 @@ confirmed, cited assumption ever reaches `mappings.yaml`.
 
 | Date | Version | Change |
 |------|---------|--------|
-| 2026-06 | 0.1.0 | Canonical layered dataset: cadence split, table-driven entity resolution with validity windows, falsifiable assumptions ledger + overlap gate, carrier link-not-collapse, tiers moved to presentation-only |
+| 2026-06 | 0.1.0 | Canonical multi-table dataset: cadence split, table-driven entity resolution with validity windows, falsifiable assumptions ledger + overlap gate, carrier link-not-collapse, tiers moved to presentation-only |

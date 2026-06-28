@@ -10,15 +10,15 @@ trust, **with the proof that the cleaning is correct shipped alongside the data.
 
 ## The data
 
-Four single-cadence layers in [`data/processed/`](data/processed/) — full schema
+Four single-grain tables (three source + one derived) in [`data/processed/`](data/processed/) — full schema
 in the **[data dictionary](docs/data-dictionary.md)**:
 
-| Layer | File | Grain | Scope |
-|---|---|---|---|
-| 1 | `airport_monthly.csv` | airport × month | domestic (canonical core) |
-| 2 | `airport_international_quarterly.csv` | airport × quarter | international |
-| 3 | `airport_yearly.csv` | airport × year | derived totals |
-| 4 | `carrier_monthly.csv` | airline × service × month | airline operating stats |
+| Table | Grain | Scope |
+|---|---|---|
+| `airport_monthly.csv` | airport × month | domestic — the canonical core |
+| `airport_international_quarterly.csv` | airport × quarter | international |
+| `carrier_monthly.csv` | airline × service × month | airline operating stats |
+| `airport_yearly.csv` | airport × year | **derived** from the monthly + quarterly tables |
 
 Each airport is **one entity** (`passengers == departures + arrivals`, integer),
 each file has **one time grain** — so you can `groupby` any way and never get a
@@ -54,14 +54,14 @@ the non-trivial cleanup decisions.
 
 ## Charts
 
-Generated from the published layers, no editorial overlays.
+Generated from the published tables, no editorial overlays.
 
 **Passenger Race** — top airports by trailing 12-month domestic passengers.
 
 ![India airport passenger race](charts/airport_passenger_race.gif)
 
 **Who's Rising** — newcomer airports (Navi Mumbai, Mopa, Ayodhya…). Sourced from
-the deduplicated Layer 1, so it shows real new airports, never source-renames. Any
+the deduplicated domestic-monthly table, so it shows real new airports, never source-renames. Any
 new airport appears automatically once DGCA publishes its first month — none is
 special-cased.
 
@@ -77,7 +77,7 @@ fetch → normalize → clean → validate → chart
 ```bash
 uv sync
 uv run python scripts/fetch.py     # download DGCA raw + fingerprint manifest
-uv run python scripts/clean.py     # build the canonical layers
+uv run python scripts/clean.py     # build the canonical tables
 PYTHONPATH=scripts uv run python -m validate --assumptions --revisions
 uv run python scripts/chart.py     # (--skip-gifs for fast static)
 uv run pytest

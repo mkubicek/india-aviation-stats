@@ -1,8 +1,8 @@
 # Data dictionary
 
-Every published file is a **single-cadence layer**: one airport (or airline) is
+Every published file is a **single-grain table**: one airport (or airline) is
 one entity, and one file has one time grain. Schema versions live in
-`data/processed/metadata.json` (`layers.<name>.schema_version`); a breaking
+`data/processed/metadata.json` (`tables.<name>.schema_version`); a breaking
 change bumps the version and is recorded in the `schema_changelog`.
 
 `passengers == departures + arrivals` on every airport row, and all passenger
@@ -11,7 +11,7 @@ when one exists, else a stable `name:<slug>` — never a raw source label.
 
 ---
 
-## Layer 1 — `airport_monthly.csv` (canonical core)
+## `airport_monthly.csv` — domestic monthly (canonical core)
 
 Domestic, monthly. The crown-jewel series. **Schema v2.0.**
 
@@ -27,7 +27,7 @@ Domestic, monthly. The crown-jewel series. **Schema v2.0.**
 Key: exactly one row per `(airport, year, month)`. Source: DGCA domestic
 city-pair workbooks.
 
-## Layer 2 — `airport_international_quarterly.csv`
+## `airport_international_quarterly.csv` — international quarterly
 
 International, quarterly — the real cadence, no midpoint-month hack. **v1.0.**
 
@@ -43,9 +43,9 @@ International, quarterly — the real cadence, no midpoint-month hack. **v1.0.**
 Key: one row per `(airport, year, quarter)`. Foreign counterpart cities are
 dropped. Source: DGCA international city-pair workbooks.
 
-## Layer 3 — `airport_yearly.csv` (derived convenience view)
+## `airport_yearly.csv` — yearly (derived convenience view)
 
-Whole-calendar-year totals, **derived** from Layers 1+2 (domestic years need all
+Whole-calendar-year totals, **derived** from the monthly + quarterly tables (domestic years need all
 12 months; international years all 4 quarters). **v2.0.**
 
 | column | type | unit | key | notes |
@@ -55,7 +55,7 @@ Whole-calendar-year totals, **derived** from Layers 1+2 (domestic years need all
 | `category` | string | `domestic`/`international` | ✓ | |
 | `passengers` | int | persons | | |
 
-## Layer 4 — `carrier_monthly.csv` (airline operating stats)
+## `carrier_monthly.csv` — carrier monthly (airline operating stats)
 
 Airline-level monthly stats. Airlines **link, not collapse** — a merged brand
 keeps its own series (`succeeded_by` in `mappings.yaml`). **v1.0.**
@@ -87,4 +87,4 @@ dropped. Source: DGCA domestic carrier workbooks.
 - **`tier`** — not published. The metro/tier bands are a presentation aid (chart
   colours only), not an official classification; see METHODOLOGY. They appear in
   no published CSV.
-- **`category` on Layer 1** — constant (`domestic`) once the cadence is split.
+- **`category` on airport_monthly** — constant (`domestic`) once the cadence is split.

@@ -8,19 +8,19 @@
       "check": "cadence.layer1_unique",
       "status": "pass",
       "severity": "BLOCKING",
-      "message": "Layer 1: one row per (airport, year, month)"
+      "message": "domestic monthly: one row per (airport, year, month)"
     },
     {
       "check": "cadence.layer2_unique",
       "status": "pass",
       "severity": "BLOCKING",
-      "message": "Layer 2: one row per (airport, year, quarter)"
+      "message": "international quarterly: one row per (airport, year, quarter)"
     },
     {
       "check": "cadence.layer2_quarter_domain",
       "status": "pass",
       "severity": "BLOCKING",
-      "message": "Layer 2: quarter in 1..4"
+      "message": "international quarterly: quarter in 1..4"
     },
     {
       "check": "definitional.sum.airport_monthly",
@@ -86,7 +86,7 @@
       "check": "carrier.unique",
       "status": "pass",
       "severity": "BLOCKING",
-      "message": "Layer 4: one row per (airline, service_type, year, month)"
+      "message": "carrier monthly: one row per (airline, service_type, year, month)"
     },
     {
       "check": "carrier.load_factor.weight_load_factor",

@@ -7,7 +7,7 @@ from . import run
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the canonical aviation layers.")
+    parser = argparse.ArgumentParser(description="Validate the canonical aviation tables.")
     parser.add_argument("--assumptions", action="store_true",
                         help="also re-test the assumptions ledger + reverse gate")
     parser.add_argument("--revisions", action="store_true",

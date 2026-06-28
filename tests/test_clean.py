@@ -28,7 +28,7 @@ def test_resolve_airport_is_period_aware_for_goa():
 
 
 def test_resolve_airport_returns_none_for_foreign_city():
-    # Foreign counterpart cities are unmapped and dropped by Layer 2.
+    # Foreign counterpart cities are unmapped and dropped by the quarterly table.
     assert resolve_airport("DUBAI", 2024, 6) is None
 
 
@@ -90,7 +90,7 @@ def test_build_yearly_keeps_only_complete_years():
     assert "tier" not in yearly.columns
 
 
-# ── Regressions against the real published Layer 1 ──
+# ── Regressions against the real published domestic-monthly table ──
 
 def _layer1():
     return pd.read_csv(ROOT / "data" / "processed" / "airport_monthly.csv")

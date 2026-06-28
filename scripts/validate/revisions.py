@@ -2,7 +2,7 @@
 
 Git *is* the snapshot store — the processed CSVs are committed, so we diff the
 freshly-regenerated working-tree CSV against the version in the last commit
-(``git show HEAD:<path>``) keyed on the layer's natural key. A restated past value
+(``git show HEAD:<path>``) keyed on the table's natural key. A restated past value
 then reads as a disclosed restatement in ``REVISIONS.md``, not a silent edit.
 
 Run this BEFORE committing the new data (regenerate → validate → revisions →
@@ -111,7 +111,7 @@ def run_revisions(write: bool = True) -> dict:
 
     if write:
         REVISIONS_PATH.write_text("\n".join(lines) + "\n")
-    print(f"  {total_changes} changed value(s) across {len(results)} layer(s)")
+    print(f"  {total_changes} changed value(s) across {len(results)} table(s)")
     return {"total_changes": total_changes, "layers": results}
 
 

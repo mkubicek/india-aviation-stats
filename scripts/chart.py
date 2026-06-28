@@ -1,9 +1,9 @@
-"""Chart generation for the published canonical layers.
+"""Chart generation for the published canonical tables.
 
-Charts (both sourced from Layer 1, domestic monthly):
+Charts (both sourced from the domestic-monthly table):
   1. Airport Passenger Race (animated GIF bar race) — the hero.
   2. Who's Rising (airport_risers.png) — monthly ramp curves of genuine newcomer
-     airports; depends on the dedup layer so it shows real new airports, never
+     airports; depends on the dedup step so it shows real new airports, never
      source-renames. Any newcomer auto-surfaces once it has rows — none special-cased.
 
 All charts use the dark theme defined in AGENTS.md.
@@ -198,9 +198,9 @@ def find_risers(monthly: pd.DataFrame) -> list[str]:
 
 
 def chart_airport_risers() -> None:
-    """Who's rising: monthly ramp curves of genuine newcomer airports (Layer 1).
+    """Who's rising: monthly ramp curves of genuine newcomer airports (domestic-monthly table).
 
-    Depends on the dedup layer: it shows physical newcomers (Mopa, Navi Mumbai,
+    Depends on the dedup step: it shows physical newcomers (Mopa, Navi Mumbai,
     Ayodhya...), never source-renames (PRAYAGRAJ is Allahabad, MUMBAI MUMBAI is
     BOM — both carry old history under their canonical, so they are not new).
     Any new airport surfaces automatically the moment DGCA publishes its first
@@ -243,7 +243,7 @@ def chart_airport_risers() -> None:
         ax,
         "Who's Rising: India's Newcomer Airports",
         subtitle="Monthly domestic passengers since each airport's first DGCA data "
-                 "(genuine new airports, not source-renames) | Source: Layer 1",
+                 "(genuine new airports, not source-renames) | Source: DGCA domestic monthly",
         ylabel="Passengers per month (thousands)",
     )
     ax.set_xlabel("")
@@ -263,7 +263,7 @@ def _domestic_trailing_airport_passengers(
 ) -> pd.DataFrame:
     """Return complete rolling domestic passenger totals by airport-month.
 
-    Layer 1 is domestic-only, so every row counts (no category filter).
+    The domestic-monthly table is domestic-only, so every row counts (no category filter).
     """
     domestic = monthly.copy()
     if domestic.empty:

@@ -61,7 +61,7 @@ def _layer1() -> pd.DataFrame:
 
 
 def _carrier_airlines() -> set[str]:
-    """Distinct airline entities present in Layer 4 (carrier_monthly)."""
+    """Distinct airline entities present in carrier_monthly (the carrier table)."""
     path = PROCESSED_DIR / "carrier_monthly.csv"
     if not path.exists():
         return set()
@@ -85,7 +85,7 @@ def _t_size_ordering(params, ctx) -> tuple[str, str]:
     totals = ctx["totals"]
     big, small = params["bigger"], params["smaller"]
     if big not in totals or small not in totals:
-        return "TRIGGERED", f"{big} or {small} absent from Layer 1 (possible erase/merge)"
+        return "TRIGGERED", f"{big} or {small} absent from the domestic-monthly table (possible erase/merge)"
     if totals[big] >= totals[small]:
         return "HOLDS", f"{big} ({totals[big]:,}) >= {small} ({totals[small]:,})"
     return "TRIGGERED", f"size ordering broke: {small} ({totals[small]:,}) > {big} ({totals[big]:,})"
@@ -95,7 +95,7 @@ def _t_distinct(params, ctx) -> tuple[str, str]:
     totals = ctx["totals"]
     missing = [a for a in params["airports"] if a not in totals]
     if missing:
-        return "TRIGGERED", f"airports merged/erased: {missing} absent from Layer 1"
+        return "TRIGGERED", f"airports merged/erased: {missing} absent from the domestic-monthly table"
     return "HOLDS", f"{params['airports']} all present and distinct"
 
 

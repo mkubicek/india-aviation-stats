@@ -11,7 +11,7 @@ fetch.py → normalize.py → clean.py → validate/ → chart.py
 
 1. **fetch.py** — Download DGCA workbooks + refresh `sources_manifest.csv`
 2. **normalize.py** — Parse Excel → aggregated CSVs (PASSENEGER fix, month/airline map)
-3. **clean.py** — Entity dedup + cadence split → published layers in `data/processed/`
+3. **clean.py** — Entity dedup + cadence split → published tables in `data/processed/`
 4. **validate/** — `python -m validate [--assumptions --revisions]`: blocking gate
    (overlap, cadence, schema, definitional) + assumptions ledger + reverse gate +
    revision log → `validation_report.json`, `DATA_QUALITY.md`, `REVISIONS.md`
@@ -34,7 +34,7 @@ Each step is idempotent and re-runnable. Run validate with `PYTHONPATH=scripts`.
 
 Charts serve the data — keep them purist:
 
-- **No editorial overlays.** A chart shows only what is in the published layers;
+- **No editorial overlays.** A chart shows only what is in the published tables;
   every mark/label must be verifiable against the dataset. Do **not** caption or
   annotate data that isn't there yet (e.g. an "airport X awaited" note for an
   airport with zero rows). The data-driven path already covers "watch this airport
@@ -46,7 +46,7 @@ Charts serve the data — keep them purist:
   Chart surfaces stay clean: title, axes, legend, and the attribution line —
   nothing else.
 
-**Both charts source Layer 1** (domestic monthly) so they never mix cadences.
+**Both charts source the domestic-monthly table** so they never mix cadences.
 
 **Dark theme:** background `#0d1117`, text white, subtle `#94a3b8`, grid `#334155`
 dashed alpha 0.2. **Attribution line** (bottom-right, `ax.transAxes` so

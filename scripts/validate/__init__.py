@@ -1,10 +1,10 @@
-"""Validation engine for the canonical aviation layers.
+"""Validation engine for the canonical aviation tables.
 
-``run()`` loads the published layers + entity tables, runs the mechanical checks
+``run()`` loads the published tables + entity tables, runs the mechanical checks
 and the overlap-classification gate, writes a machine-readable
 ``validation_report.json`` and a human-readable ``warnings.log``, and returns a
 process exit code (non-zero iff a BLOCKING check failed). The assumptions ledger
-(``--assumptions``) and revision log are layered on in their own modules.
+(``--assumptions``) and revision log are added in their own modules.
 """
 
 from __future__ import annotations

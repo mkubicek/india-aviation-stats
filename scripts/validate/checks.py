@@ -1,4 +1,4 @@
-"""Mechanical validation checks over the published canonical layers.
+"""Mechanical validation checks over the published canonical tables.
 
 Each check returns a list of :class:`Finding`. Severity:
   - ``BLOCKING``  — a structural invariant; a failure should red CI.
@@ -17,7 +17,7 @@ from dataclasses import dataclass, asdict
 
 import pandas as pd
 
-# Documented per-layer schemas (column -> dtype kind). Backs the data dictionary.
+# Documented per-table schemas (column -> dtype kind). Backs the data dictionary.
 EXPECTED_SCHEMAS = {
     "airport_monthly": {
         "year": "int", "month": "int", "airport": "str",
@@ -64,29 +64,29 @@ def check_cadence(monthly: pd.DataFrame, quarterly: pd.DataFrame | None) -> list
     dup = int(monthly.duplicated(["year", "month", "airport"]).sum())
     if dup:
         out.append(_fail("cadence.layer1_unique", "BLOCKING",
-                         f"{dup} duplicate (airport, year, month) row(s) in Layer 1"))
+                         f"{dup} duplicate (airport, year, month) row(s) in domestic monthly"))
     else:
         out.append(_ok("cadence.layer1_unique", "BLOCKING",
-                       "Layer 1: one row per (airport, year, month)"))
+                       "domestic monthly: one row per (airport, year, month)"))
     if "quarter" in monthly.columns:
         out.append(_fail("cadence.layer1_no_quarter", "BLOCKING",
-                         "Layer 1 must not carry a quarter column"))
+                         "the domestic-monthly table must not carry a quarter column"))
 
     if quarterly is not None and not quarterly.empty:
         dupq = int(quarterly.duplicated(["year", "quarter", "airport"]).sum())
         if dupq:
             out.append(_fail("cadence.layer2_unique", "BLOCKING",
-                             f"{dupq} duplicate (airport, year, quarter) row(s) in Layer 2"))
+                             f"{dupq} duplicate (airport, year, quarter) row(s) in international quarterly"))
         else:
             out.append(_ok("cadence.layer2_unique", "BLOCKING",
-                           "Layer 2: one row per (airport, year, quarter)"))
+                           "international quarterly: one row per (airport, year, quarter)"))
         bad_q = sorted(set(quarterly["quarter"]) - {1, 2, 3, 4})
         if bad_q:
             out.append(_fail("cadence.layer2_quarter_domain", "BLOCKING",
-                             f"Layer 2 quarter out of 1..4: {bad_q}"))
+                             f"quarterly table quarter out of 1..4: {bad_q}"))
         else:
             out.append(_ok("cadence.layer2_quarter_domain", "BLOCKING",
-                           "Layer 2: quarter in 1..4"))
+                           "international quarterly: quarter in 1..4"))
     return out
 
 
@@ -135,11 +135,11 @@ def _dtype_kind(series: pd.Series) -> str:
 
 def check_schema(layers: dict[str, pd.DataFrame], metadata: dict) -> list[Finding]:
     out = []
-    meta_layers = metadata.get("layers", {})
+    meta_tables = metadata.get("tables", {})
     for name, expected in EXPECTED_SCHEMAS.items():
         df = layers.get(name)
         if df is None:
-            out.append(_fail(f"schema.{name}.present", "BLOCKING", f"missing layer {name}"))
+            out.append(_fail(f"schema.{name}.present", "BLOCKING", f"missing table {name}"))
             continue
         if list(df.columns) != list(expected):
             out.append(_fail(f"schema.{name}.columns", "BLOCKING",
@@ -149,12 +149,12 @@ def check_schema(layers: dict[str, pd.DataFrame], metadata: dict) -> list[Findin
         if mism:
             out.append(_fail(f"schema.{name}.dtypes", "BLOCKING",
                              f"{name} dtype mismatch on {mism}"))
-        elif name not in meta_layers or "schema_version" not in meta_layers.get(name, {}):
+        elif name not in meta_tables or "schema_version" not in meta_tables.get(name, {}):
             out.append(_fail(f"schema.{name}.version", "BLOCKING",
                              f"{name} missing schema_version in metadata.json"))
         else:
             out.append(_ok(f"schema.{name}", "BLOCKING",
-                           f"{name}: schema v{meta_layers[name]['schema_version']} conforms"))
+                           f"{name}: schema v{meta_tables[name]['schema_version']} conforms"))
     return out
 
 
@@ -175,7 +175,7 @@ def check_conservation_tripwire(monthly: pd.DataFrame) -> list[Finding]:
                "(true by construction; tripwire only)")]
 
 
-# ── Layer 4 carrier: own contract ────────────────────────────
+# ── carrier monthly: own contract ────────────────────────────
 
 
 CARRIER_KEY = ["airline", "service_type", "year", "month"]
@@ -191,7 +191,7 @@ def check_carrier(carrier: pd.DataFrame) -> list[Finding]:
                          f"{dup} duplicate (airline, service_type, year, month) row(s)"))
     else:
         out.append(_ok("carrier.unique", "BLOCKING",
-                       "Layer 4: one row per (airline, service_type, year, month)"))
+                       "carrier monthly: one row per (airline, service_type, year, month)"))
 
     for lf in ("passenger_load_factor", "weight_load_factor"):
         if lf in carrier.columns:

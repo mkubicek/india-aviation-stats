@@ -1,7 +1,7 @@
 {
   "data_date": "2026-06-28",
   "processed_date": "2026-06-28",
-  "layers": {
+  "tables": {
     "airport_monthly": {
       "schema_version": "2.0",
       "rows": 13223,
@@ -60,11 +60,11 @@
   "schema_changelog": [
     {
       "version": "2.0",
-      "layers": [
+      "tables": [
         "airport_monthly",
         "airport_yearly"
       ],
-      "change": "Cadence split: airport_monthly is domestic-only (international moved to airport_international_quarterly with a real quarter column). Dropped 'category' from airport_monthly and 'tier' from all layers. Passenger columns are integers."
+      "change": "Cadence split: airport_monthly is domestic-only (international moved to airport_international_quarterly with a real quarter column). Dropped 'category' from airport_monthly and 'tier' from all tables. Passenger columns are integers."
     }
   ]
 }
