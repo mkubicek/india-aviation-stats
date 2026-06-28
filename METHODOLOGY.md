@@ -1,8 +1,7 @@
 # Methodology
 
-This document describes the current `main` branch methodology: official-source
-aviation data ingestion, normalization, validation, and observed passenger
-charts. Projection work is intentionally out of scope for now.
+How DGCA's public workbooks become the canonical dataset: ingestion,
+normalization, entity resolution, and validation.
 
 ## Disclaimer
 
@@ -29,14 +28,6 @@ charts. Projection work is intentionally out of scope for now.
 - **Known quirk:** DGCA portal links are sometimes not the exact S3 object key.
   The downloader retries common filename variants such as uppercase month names
   and an extra space after commas.
-
-### MoCA Daily Summaries
-
-- **Provider:** Ministry of Civil Aviation, India
-- **URL:** <https://www.civilaviation.gov.in/>
-- **Format:** HTML snapshots parsed into `daily.csv`
-- **Access:** Public HTML; historical snapshots via Internet Archive CDX API
-- **Status:** Optional. Enable with `INCLUDE_MCA_DAILY=1`.
 
 ---
 
@@ -95,7 +86,7 @@ series with a `succeeded_by` link, so standalone series survive.
 
 The metro/tier bands are a project-defined editorial opinion, **not data**. They
 do not appear in any published CSV — they live only in chart-coloring config
-(`mappings.yaml: airport_colors`). They are not official DGCA/AAI/MoCA or
+(`mappings.yaml: airport_colors`). They are not official DGCA/AAI or
 industry-standard classifications.
 
 ---
@@ -152,8 +143,6 @@ disclosed in `data/processed/REVISIONS.md` (diffed against the last data commit)
 3. Domestic passenger race is passenger flow, not aircraft movement count.
 4. Airport/airline mapping is only as complete as the reviewed entity tables in
    `mappings.yaml`; an unmapped high-volume label is surfaced as advisory.
-5. GDP correlation, projections, and milestone estimates are intentionally not
-   included on `main` right now.
 
 ---
 

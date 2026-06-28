@@ -1,12 +1,23 @@
 # Changelog
 
-## 0.1.0 - 2026-06-27
+## 0.1.0
 
-Initial public release focused on observed official-source aviation traffic data.
+Initial public release — a clean, canonical dataset of Indian aviation passenger
+traffic from DGCA's public workbooks.
 
-- Fetches and aggregates DGCA public aviation workbooks.
-- Publishes processed airport and carrier CSVs under `data/processed/`.
-- Generates the airport rankings PNG and domestic passenger race GIF.
-- Documents methodology, source coverage, known limitations, and disclaimers.
-- Runs tests, validation, data refresh, and chart regeneration through GitHub
-  Actions.
+- **Four single-cadence layers** in `data/processed/`: domestic monthly,
+  international quarterly, derived yearly, and carrier monthly. One airport = one
+  entity; integer passengers; `schema_version` per layer.
+- **Table-driven entity resolution** with validity windows — resolves source
+  labels whose meaning changes over time (the `GOA` label is Dabolim through 2018,
+  Mopa from 2023). All 107 previously-unmapped domestic labels mapped and audited.
+- **Traceable, falsifiable cleanup.** Every non-trivial decision is an Open
+  Knowledge Format file in `assumptions/`, re-tested against current data by the
+  `validate-assumptions` skill; an overlap-classification gate refuses to silently
+  merge two concurrent labels; a reverse gate blocks undocumented quirks.
+- **Source-change detection** via committed `sources_manifest.csv`; restated
+  values disclosed in `REVISIONS.md`.
+- **Two charts** from the published layers: the domestic passenger race and the
+  "Who's Rising" newcomer-airports chart.
+- Validation runs as a partial CI gate; a blocking failure keeps last-good data
+  and opens an issue.
