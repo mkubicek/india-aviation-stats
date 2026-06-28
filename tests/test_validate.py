@@ -7,6 +7,7 @@ import yaml
 
 from validate.checks import (
     check_cadence,
+    check_carrier,
     check_conservation_tripwire,
     check_definitional,
     check_schema,
@@ -90,6 +91,34 @@ def test_overlap_gate_blocks_undeclared_concurrent_merge():
 
 def test_no_high_volume_unmapped_domestic_labels():
     assert not _failed(check_unmapped_names(MAPPINGS, RAW_DOMESTIC))
+
+
+# ── Layer 4 carrier ──
+
+def test_carrier_flags_load_factor_out_of_range():
+    df = pd.DataFrame([
+        {"airline": "IndiGo", "service_type": "scheduled_domestic", "year": 2024, "month": 1,
+         "passenger_load_factor": 150.0, "weight_load_factor": 80.0},
+    ])
+    warns = [f for f in check_carrier(df) if f.status == "warn"]
+    assert any("load_factor" in f.check for f in warns)
+
+
+def test_carrier_flags_duplicate_key():
+    df = pd.DataFrame([
+        {"airline": "IndiGo", "service_type": "scheduled_domestic", "year": 2024, "month": 1,
+         "passenger_load_factor": 80.0, "weight_load_factor": 70.0},
+    ] * 2)
+    assert any(f.check == "carrier.unique" for f in check_carrier(df) if f.status == "fail")
+
+
+def test_published_carrier_is_tidy_and_links_not_collapses():
+    df = pd.read_csv(ROOT / "data" / "processed" / "carrier_monthly.csv")
+    assert list(df.columns)[:4] == ["airline", "service_type", "year", "month"]
+    assert not df["airline"].isin(["Total Domestic", "Total International"]).any()
+    assert "Airheritage" not in set(df["airline"])     # spelling canonicalized
+    assert "Vistara" in set(df["airline"])             # merger linked, not collapsed
+    assert int(df.duplicated(["airline", "service_type", "year", "month"]).sum()) == 0
 
 
 # ── schema conformance against the real published layers ──

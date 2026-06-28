@@ -24,7 +24,7 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
-from entities import build_airport_resolver
+from entities import build_airport_resolver, build_airline_resolver
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
@@ -41,6 +41,30 @@ AIRPORT_RESOLVER = build_airport_resolver(
     MAPPINGS, extra_aliases=MAPPINGS.get("airport_aliases")
 )
 KNOWN_IATA = set(MAPPINGS.get("airports", {}).keys())
+AIRLINE_RESOLVER = build_airline_resolver(MAPPINGS)
+
+# DGCA carrier "Type" -> tidy service_type.
+SERVICE_TYPE = {
+    "ScheduledDomestic": "scheduled_domestic",
+    "NonScheduledDomestic": "nonscheduled_domestic",
+    "ScheduledInternational": "scheduled_international",
+    "NonScheduledInternational": "nonscheduled_international",
+}
+# Raw carrier column -> tidy column (documented, units in the data dictionary).
+CARRIER_COLUMNS = {
+    "Aircraft Kilometres": "aircraft_km",
+    "Passenger Number": "passengers",
+    "Passenger Kilometers": "passenger_km",      # RPK
+    "Seat Kilometers": "seat_km",                # ASK
+    "Passenger Load Factor": "passenger_load_factor",
+    "Freight": "freight_tonnes",
+    "Mail": "mail_tonnes",
+    "Total Tonne Kilometer": "total_tonne_km",
+    "Available Tonne Kilometer": "available_tonne_km",
+    "Weight Load Factor": "weight_load_factor",
+}
+# Aggregate rows in the source that are not airlines.
+CARRIER_TOTAL_ROWS = {"Total Domestic", "Total International"}
 
 # Per-layer schema versions (consumers detect breaking changes via metadata.json).
 SCHEMA_VERSIONS = {
@@ -258,16 +282,48 @@ def process_airport_data() -> dict[str, pd.DataFrame]:
 
 
 def process_carrier_data() -> pd.DataFrame | None:
+    """Layer 4: tidy airline-monthly operating stats.
+
+    One row per (airline, service_type, year, month). Airline names are
+    canonicalized for spelling only (Airheritage -> Air Heritage); brand/legal
+    mergers are NOT collapsed (Vistara keeps its own series; the merger is
+    recorded via succeeded_by in mappings.yaml). Aggregate "Total" rows dropped.
+    """
     path = source_csv("domestic/carrier.csv")
     if not path.exists():
         print("  WARNING: domestic/carrier.csv not found, skipping", flush=True)
         return None
     print(f"  Processing {path.relative_to(ROOT)} -> Layer 4 (carrier monthly)...", flush=True)
     df = pd.read_csv(path)
+
+    df = df[~df["Airline"].isin(CARRIER_TOTAL_ROWS)].copy()
+    df["airline"] = df["Airline"].apply(
+        lambda a: AIRLINE_RESOLVER.resolve(a, 2000, 1) or str(a).strip()
+    )
+    df["service_type"] = df["Type"].map(SERVICE_TYPE)
+    df = df[df["service_type"].notna()]
+    df = df.rename(columns={"Year": "year", "Month": "month", **CARRIER_COLUMNS})
+
+    keep = ["airline", "service_type", "year", "month"] + list(CARRIER_COLUMNS.values())
+    tidy = df[keep].copy()
+    for col in CARRIER_COLUMNS.values():
+        tidy[col] = pd.to_numeric(tidy[col], errors="coerce")
+    tidy["passengers"] = tidy["passengers"].round().astype("Int64")
+    # One row per (airline, service_type, year, month): sum spelling-merged duplicates.
+    metrics = [c for c in CARRIER_COLUMNS.values() if c not in ("passenger_load_factor", "weight_load_factor")]
+    agg = {c: "sum" for c in metrics}
+    agg.update({"passenger_load_factor": "mean", "weight_load_factor": "mean"})
+    tidy = (
+        tidy.groupby(["airline", "service_type", "year", "month"], as_index=False).agg(agg)
+        .sort_values(["year", "month", "service_type", "airline"])
+        .reset_index(drop=True)
+    )
+
     out = PROCESSED_DIR / "carrier_monthly.csv"
-    df.to_csv(out, index=False)
-    print(f"  Saved: {out.name} ({len(df):,} rows)")
-    return df
+    tidy.to_csv(out, index=False)
+    print(f"  Saved: {out.name} ({len(tidy):,} rows, {tidy['airline'].nunique()} airlines, "
+          f"{tidy['service_type'].nunique()} service types)")
+    return tidy
 
 
 def write_metadata(written: dict[str, pd.DataFrame]) -> None:

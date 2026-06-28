@@ -18,6 +18,7 @@ import yaml
 from .checks import (
     Finding,
     check_cadence,
+    check_carrier,
     check_conservation_tripwire,
     check_coverage,
     check_definitional,
@@ -34,7 +35,7 @@ REPORT_PATH = PROCESSED_DIR / "validation_report.json"
 __all__ = [
     "Finding", "run", "collect_findings",
     "check_cadence", "check_definitional", "check_schema",
-    "check_conservation_tripwire", "check_coverage",
+    "check_conservation_tripwire", "check_coverage", "check_carrier",
     "overlap_gate", "check_unmapped_names",
 ]
 
@@ -77,6 +78,9 @@ def collect_findings() -> list[Finding]:
         findings += check_definitional(quarterly, "airport_international_quarterly")
     findings += check_schema(layers, metadata)
     findings += check_conservation_tripwire(monthly)
+    carrier = _load_layer("carrier_monthly")
+    if carrier is not None:
+        findings += check_carrier(carrier)
     if RAW_DOMESTIC.exists():
         findings += overlap_gate(mappings, RAW_DOMESTIC)
         findings += check_unmapped_names(mappings, RAW_DOMESTIC)

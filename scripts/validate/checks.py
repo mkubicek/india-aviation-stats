@@ -175,6 +175,40 @@ def check_conservation_tripwire(monthly: pd.DataFrame) -> list[Finding]:
                "(true by construction; tripwire only)")]
 
 
+# ── Layer 4 carrier: own contract ────────────────────────────
+
+
+CARRIER_KEY = ["airline", "service_type", "year", "month"]
+CARRIER_METRICS = ["aircraft_km", "passengers", "passenger_km", "seat_km",
+                   "freight_tonnes", "mail_tonnes", "total_tonne_km", "available_tonne_km"]
+
+
+def check_carrier(carrier: pd.DataFrame) -> list[Finding]:
+    out = []
+    dup = int(carrier.duplicated(CARRIER_KEY).sum())
+    if dup:
+        out.append(_fail("carrier.unique", "BLOCKING",
+                         f"{dup} duplicate (airline, service_type, year, month) row(s)"))
+    else:
+        out.append(_ok("carrier.unique", "BLOCKING",
+                       "Layer 4: one row per (airline, service_type, year, month)"))
+
+    for lf in ("passenger_load_factor", "weight_load_factor"):
+        if lf in carrier.columns:
+            bad = carrier[(carrier[lf] < 0) | (carrier[lf] > 100)]
+            if len(bad):
+                out.append(_warn(f"carrier.load_factor.{lf}",
+                                 f"{len(bad)} row(s) with {lf} outside 0-100"))
+    neg_cols = [c for c in CARRIER_METRICS if c in carrier.columns and (carrier[c] < 0).any()]
+    if neg_cols:
+        out.append(_warn("carrier.negative_metrics",
+                         f"negative values in carrier metrics: {neg_cols}"))
+    if len([f for f in out if f.status != "pass"]) == 0:
+        out.append(_ok("carrier.value_domain", "ADVISORY",
+                       "load factors in 0-100, metrics non-negative"))
+    return out
+
+
 # ── ADVISORY: coverage continuity ────────────────────────────
 
 

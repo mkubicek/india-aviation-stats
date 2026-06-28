@@ -1215,3 +1215,70 @@ concurrent_labels:
       rows in 2015-2016. Disjoint route subsets, correct to sum (KOCHI ~50M vs COCHIN
       ~157k residual).
     source: https://en.wikipedia.org/wiki/Cochin_International_Airport
+
+# Airline entity table. Airlines LINK, they do not collapse: a merged brand keeps
+# its own entry and series; succeeded_by records the merger (Vistara -> Air India)
+# without erasing Vistara. Only pure spelling variants are canonicalized.
+airlines:
+  Air Carnival:
+    name: Air Carnival
+  Air Costa:
+    name: Air Costa
+  Air Deccan:
+    name: Air Deccan
+  Air Heritage:
+    name: Air Heritage
+    variants:
+      - label: Air Heritage
+      - label: Airheritage
+  Air India:
+    name: Air India
+  Air India Express:
+    name: Air India Express
+  Air Odisha:
+    name: Air Odisha
+  Air Pegasus:
+    name: Air Pegasus
+  Air Taxi:
+    name: Air Taxi
+  AirAsia India:
+    name: AirAsia India
+    succeeded_by: AIX Connect
+  AIX Connect:
+    name: AIX Connect
+    succeeded_by: Air India Express
+  Akasa Air:
+    name: Akasa Air
+  Alliance Air:
+    name: Alliance Air
+  Blue Dart Aviation:
+    name: Blue Dart Aviation
+  Fly91:
+    name: Fly91
+  Flybig:
+    name: Flybig
+  Go First:
+    name: Go First
+  IndiGo:
+    name: IndiGo
+  India One Air:
+    name: India One Air
+  Jet Airways:
+    name: Jet Airways
+  JetLite:
+    name: JetLite
+  Pawan Hans:
+    name: Pawan Hans
+  QuikJet Cargo:
+    name: QuikJet Cargo
+  SpiceJet:
+    name: SpiceJet
+  Star Air:
+    name: Star Air
+  TruJet:
+    name: TruJet
+  Vistara:
+    name: Vistara
+    succeeded_by: Air India
+  Zoom Air:
+    name: Zoom Air

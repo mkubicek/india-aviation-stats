@@ -1,8 +1,8 @@
 {
   "blocking_failures": 0,
   "tripwire_failures": 0,
-  "advisories": 0,
-  "passed": 15,
+  "advisories": 1,
+  "passed": 16,
   "findings": [
     {
       "check": "cadence.layer1_unique",
@@ -81,6 +81,18 @@
       "status": "pass",
       "severity": "TRIPWIRE",
       "message": "per month sum(departures) == sum(arrivals) (true by construction; tripwire only)"
+    },
+    {
+      "check": "carrier.unique",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "Layer 4: one row per (airline, service_type, year, month)"
+    },
+    {
+      "check": "carrier.load_factor.weight_load_factor",
+      "status": "warn",
+      "severity": "ADVISORY",
+      "message": "2 row(s) with weight_load_factor outside 0-100"
     },
     {
       "check": "overlap.concurrent.COK",
