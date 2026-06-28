@@ -121,22 +121,29 @@ Below chart title, gray text (`#94a3b8`), explains scope/methodology:
 ## Pipeline
 
 ```
-download.py → process.py → validate.py → chart.py
+fetch.py → normalize.py → clean.py → validate/ → chart.py
 ```
 
-1. **download.py** — Fetch DGCA/MoCA source data
-2. **process.py** — Parse, merge, aggregate → `data/processed/`
-3. **validate.py** — Source/data checks → `warnings.log`
-4. **chart.py** — Generate passenger ranking/race charts → `charts/`
+1. **fetch.py** — Download DGCA/MoCA source data + refresh `sources_manifest.csv`
+2. **normalize.py** — Parse Excel → aggregated CSVs (PASSENEGER fix, month/airline map)
+3. **clean.py** — Entity dedup + cadence split → published layers in `data/processed/`
+4. **validate/** — `python -m validate [--assumptions --revisions]`: BLOCKING gate
+   (overlap, cadence, schema, definitional) + assumptions ledger + reverse gate +
+   revision log → `validation_report.json`, `DATA_QUALITY.md`, `REVISIONS.md`
+5. **chart.py** — Passenger race + "Who's Rising" newcomers chart → `charts/`
 
-Each step is idempotent and can be re-run independently.
+Each step is idempotent and can be re-run independently. Run validate with
+`PYTHONPATH=scripts`.
 
 ---
 
 ## Conventions
 
 - `mappings.yaml` drives all classification — edit mappings, not code
-- Unknown airport/city values stay visible as uppercase source names
+- Resolution is 100% table-driven (entity tables + validity windows +
+  `airport_aliases`); a high-volume unmapped domestic label is surfaced as an
+  advisory, never silently kept as a raw code
+- Every non-trivial cleanup decision is a falsifiable `assumptions/<id>.md` file
 - `warnings.log` contains advisory validation warnings
 - Raw data not committed (gitignored), only processed CSVs and charts
 - Charts regenerated on every pipeline run via GitHub Actions

@@ -19,7 +19,9 @@ charts. Projection work is intentionally out of scope for now.
 - **Provider:** Directorate General of Civil Aviation, India
 - **URL:** <https://www.dgca.gov.in/digigov-portal/>
 - **Format:** Public Excel files discovered through the DGCA portal and S3
-  source URLs, normalized locally by `scripts/ingest_sources.py`
+  source URLs, normalized locally by `scripts/normalize.py`. A committed
+  fingerprint manifest (`data/sources_manifest.csv`) detects when a workbook is
+  re-published.
 - **Coverage:** Domestic monthly city-pair and carrier data; international
   quarterly city-pair, country, carrier, and carrier-month tables
 - **Current local coverage:** 2015 through latest available DGCA workbook
@@ -45,9 +47,11 @@ charts. Projection work is intentionally out of scope for now.
 - **Domestic airport rows:** Monthly city-pair passenger flows aggregated to
   airport arrivals, departures, and total passengers.
 - **International airport rows:** Quarterly city-pair passenger flows filtered
-  to known Indian airports. In `airport_monthly.csv`, each quarterly row is
-  assigned to the quarter midpoint month (Q1=Feb, Q2=May, Q3=Aug, Q4=Nov).
-- **Unit:** Passengers. The passenger race is not a flight/movement count.
+  to known Indian airports, published with a **real `quarter` column** in
+  `airport_international_quarterly.csv` (no midpoint-month hack — domestic and
+  international never share a cadence).
+- **Unit:** Passengers (whole-person integers). The passenger race is not a
+  flight/movement count.
 
 ---
 
@@ -61,84 +65,93 @@ Source rows contain `City1`, `City2`, `PaxToCity2`, and `PaxFromCity2`.
 - For `City2`: arrivals = `PaxToCity2`, departures = `PaxFromCity2`
 - Airport total = arrivals + departures across all routes
 
-City names are mapped to IATA codes through `mappings.yaml` plus explicit
-aliases in `scripts/process.py`. Unknown city names remain as uppercase source
-names so they are visible in processed data rather than silently discarded.
+### Entity resolution (the cleanup model)
+
+All source labels are mapped to canonical airports through a single **reviewed
+entity table** in `mappings.yaml` — never fuzzy matching. A label may carry a
+**validity window** (`valid_from`/`valid_to`) because a label's meaning can
+change over time: the bare `GOA` label is Dabolim (`GOI`) through 2018 and Mopa
+(`GOX`) from 2023. The resolver refuses to build if a label maps to two airports
+with overlapping windows. Alternate spellings (BOMBAY→BOM) live in a flat
+`airport_aliases` map; every airport label that previously needed code-side
+aliases is now in the table (see `docs/airport-mapping-audit.md`). Resolution is
+100% table-driven — there is no hardcoded fallback.
 
 ### International City-Pair Data
 
-Source rows are quarterly. Foreign city rows are discarded by filtering the
-mapped city value against known Indian airport IATA codes in `mappings.yaml`.
+Source rows are quarterly. Foreign counterpart cities resolve to nothing and are
+dropped; only Indian airports are kept, on a real `quarter` grain.
 
 ### Carrier Data
 
-Domestic carrier workbooks are normalized into `carrier_monthly.csv` with the
-source workbook columns preserved.
+Domestic carrier workbooks are cleaned into a documented tidy schema (one row per
+airline × service_type × month; named metric columns; aggregate "Total" rows
+dropped). Airlines **link, not collapse**: a merged brand (Vistara) keeps its own
+series with a `succeeded_by` link, so standalone series survive.
 
 ---
 
-## Project Airport Tiers
+## Airport tiers are presentation-only
 
-Airport tiers are project-defined convenience bands used for chart coloring,
-filtering, and validation. They are not official DGCA, AAI, MoCA, regulatory, or
-industry-standard airport classifications. Tier assignments are defined in
-`mappings.yaml`.
-
-| Annual Passengers | Project Tier |
-|-------------------|--------------|
-| > 20M             | Metro |
-| 5M-20M            | Tier 1 |
-| 1M-5M             | Tier 2 |
-| < 1M              | Tier 3 |
-| Not yet open      | Greenfield |
-
-The current pipeline does not project tiers. Validation only flags obvious tier
-mismatches in the latest complete observed DGCA year.
+The metro/tier bands are a project-defined editorial opinion, **not data**. They
+do not appear in any published CSV — they live only in chart-coloring config
+(`mappings.yaml: airport_colors`). They are not official DGCA/AAI/MoCA or
+industry-standard classifications.
 
 ---
 
 ## Charts
 
-### Airport Rankings
-
-`airport_rankings.png` ranks the top 10 airports in the latest complete source
-year by annual passengers. It uses domestic + international totals and only
-includes years with complete domestic months and complete international quarters.
-The static ranking is annual rather than monthly because the international
-source data is quarterly, and annual complete-year ranking avoids misleading
-month-to-month movement from mixed source cadences. Monthly movement is covered
-separately by `airport_passenger_race.gif`, using domestic data only.
+Both charts source the published Layer 1 (domestic monthly) so they never mix
+cadences.
 
 ### Airport Passenger Race
 
-`airport_passenger_race.gif` uses domestic monthly airport rows only. Each frame
-is a trailing 12-month sum ending in that month. The chart intentionally avoids
-international rows because those are quarterly source values and would create
-artificial month-to-month jumps in a monthly race.
+`airport_passenger_race.gif` — each frame is a trailing 12-month sum ending in
+that month. Domestic only, so there are no artificial jumps from quarterly data.
+
+### Who's Rising
+
+`airport_risers.png` — monthly ramp curves of genuine newcomer airports
+(canonical entities whose first month of data is recent). It depends on the
+deduplication layer: a source-rename (PRAYAGRAJ = Allahabad, MUMBAI MUMBAI = BOM)
+carries its full history under its canonical key, so it is never mistaken for a
+new airport. Noida International (NIA) is highlighted and surfaces automatically
+once DGCA publishes it.
 
 ---
 
-## Validation Checks
+## Validation
 
-Validation is advisory and writes `warnings.log`.
+Validation is a partial CI gate, not just advisory. `python -m validate`
+emits `validation_report.json` (machine) and `warnings.log` (human).
 
-| Check | Purpose |
-|-------|---------|
-| Required files | Ensure processed CSV outputs exist |
-| Domestic month coverage | Detect missing monthly domestic source periods |
-| International quarter coverage | Detect missing quarterly international source periods |
-| Negative passengers | Catch impossible passenger values |
-| Tier consistency | Flag airport tier definitions that no longer match observed volume |
+| Check | Severity | Purpose |
+|-------|----------|---------|
+| Overlap-classification gate | BLOCKING | refuse to sum two concurrent source labels into one airport unless declared in `concurrent_labels` |
+| Cadence integrity | BLOCKING | one row per key; Layer 2 `quarter ∈ 1..4`; no cross-layer contamination |
+| Definitional | BLOCKING | `passengers == departures + arrivals`; non-negative integers |
+| Schema conformance | BLOCKING | columns/dtypes match the data dictionary; `schema_version` present |
+| Conservation | TRIPWIRE | per month `sum(departures) == sum(arrivals)` — true by construction; catches a future refactor only |
+| Carrier value-domain | BLOCKING / ADVISORY | one row per key; load factors 0–100 and metrics ≥ 0 |
+| Assumptions ledger | BLOCKING | re-test each `assumptions/<id>.md` falsification → HOLDS/TRIGGERED/STALE/ORPHANED |
+| Reverse gate | BLOCKING | any anomaly with no covering assumption file is an undocumented quirk |
+| High-volume unmapped name | ADVISORY | a real airport we failed to map is silent loss |
+| Coverage continuity | ADVISORY | missing months/quarters |
+
+The cleanup knowledge base lives in `assumptions/` (Open Knowledge Format) and is
+re-tested by the `validate-assumptions` skill. Restated published values are
+disclosed in `data/processed/REVISIONS.md` (diffed against the last data commit).
 
 ---
 
 ## Known Limitations
 
 1. DGCA source publication timing and workbook layouts may change.
-2. International data is quarterly, not monthly.
+2. International data is quarterly, not monthly (published as its own layer).
 3. Domestic passenger race is passenger flow, not aircraft movement count.
-4. Airport code mapping is only as complete as `mappings.yaml` and the alias
-   table in `scripts/process.py`.
+4. Airport/airline mapping is only as complete as the reviewed entity tables in
+   `mappings.yaml`; an unmapped high-volume label is surfaced as advisory.
 5. GDP correlation, projections, and milestone estimates are intentionally not
    included on `main` right now.
 
@@ -148,4 +161,4 @@ Validation is advisory and writes `warnings.log`.
 
 | Date | Version | Change |
 |------|---------|--------|
-| 2026-06 | 0.1.0 | Initial observed-data release methodology |
+| 2026-06 | 0.1.0 | Canonical layered dataset: cadence split, table-driven entity resolution with validity windows, falsifiable assumptions ledger + overlap gate, carrier link-not-collapse, tiers moved to presentation-only |
