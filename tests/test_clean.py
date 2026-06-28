@@ -1,5 +1,7 @@
 """Tests for the clean stage (table-driven resolution + cadence-split helpers)."""
 
+from pathlib import Path
+
 import pandas as pd
 
 from clean import (
@@ -8,6 +10,8 @@ from clean import (
     resolve_airport,
     source_csv,
 )
+
+ROOT = Path(__file__).resolve().parent.parent
 
 
 def test_resolve_airport_uses_table_and_aliases():
@@ -68,3 +72,35 @@ def test_build_yearly_keeps_only_complete_years():
     assert yearly.iloc[0]["passengers"] == 1200
     assert yearly.iloc[0]["category"] == "domestic"
     assert "tier" not in yearly.columns
+
+
+# ── Regressions against the real published Layer 1 ──
+
+def _layer1():
+    return pd.read_csv(ROOT / "data" / "processed" / "airport_monthly.csv")
+
+
+def test_goa_splits_into_two_distinct_airports_in_published_data():
+    m = _layer1()
+    goi = m[m.airport == "GOI"]
+    gox = m[m.airport == "GOX"]
+    assert len(goi) and len(gox)
+    assert int(gox.year.min()) >= 2023            # Mopa opened 2023
+    # GOI (Dabolim) is the larger airport overall.
+    assert goi.passengers.sum() > gox.passengers.sum()
+
+
+def test_2026_rename_wave_folds_into_existing_airports():
+    m = _layer1()
+    # MUMBAI MUMBAI (2026 long-form) must fold into BOM, not fragment it.
+    bom_2026 = m[(m.airport == "BOM") & (m.year == 2026)]
+    assert len(bom_2026) > 0
+    # No raw long-form label leaks as an airport code.
+    leaked = {a for a in m.airport.unique() if " " in str(a)}
+    assert not leaked, f"raw labels leaked as airport codes: {leaked}"
+
+
+def test_no_category_or_tier_in_layer1():
+    m = _layer1()
+    assert "category" not in m.columns and "tier" not in m.columns
+    assert m.passengers.dtype == "int64"
