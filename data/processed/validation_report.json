@@ -109,6 +109,15 @@
   ],
   "assumptions": [
     {
+      "id": "AIRLINE-001",
+      "title": "Airline mergers are linked, not collapsed \u2014 each brand keeps its own series",
+      "category": "airline-identity",
+      "test": "airlines-linked-not-collapsed",
+      "verdict": "HOLDS",
+      "detail": "['Vistara', 'Air India', 'AirAsia India', 'AIX Connect', 'Air India Express'] all present as distinct airlines",
+      "covers": []
+    },
+    {
       "id": "COK-001",
       "title": "COCHIN and KOCHI are one airport (COK) \u2014 a declared concurrent same-airport merge",
       "category": "deduplication",

@@ -6,6 +6,7 @@ they are not written back into these files.
 
 | id | title | category | → file |
 | --- | --- | --- | --- |
+| AIRLINE-001 | Airline mergers are linked, not collapsed — each brand keeps its own series | airline-identity | [AIRLINE-001.md](AIRLINE-001.md) |
 | COK-001 | COCHIN and KOCHI are one airport (COK) — a declared concurrent same-airport merge | deduplication | [COK-001.md](COK-001.md) |
 | GOA-001 | Goa is two airports — Dabolim (GOI) and Mopa (GOX) — and the DGCA "GOI" label is Mopa from 2023 | deduplication | [GOA-001.md](GOA-001.md) |
 | IXD-001 | Allahabad and Prayagraj are one airport (IXD) — a clean disjoint rename | rename | [IXD-001.md](IXD-001.md) |

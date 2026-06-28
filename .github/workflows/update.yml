@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   update:
@@ -34,9 +35,6 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-      - name: Run tests
-        run: uv run pytest -q
-
       - name: Restore raw data cache
         id: raw-cache
         uses: actions/cache/restore@v6
@@ -55,6 +53,11 @@ jobs:
           echo "Cached raw files:"
           find data/raw -type f | wc -l
           du -sh data/raw || true
+
+      # Tests run after raw is restored so raw-dependent integration tests
+      # execute on warm-cache runs; they skip cleanly when raw is absent.
+      - name: Run tests
+        run: uv run pytest -q
 
       - name: Fetch data
         id: download

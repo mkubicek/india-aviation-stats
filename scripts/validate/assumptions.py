@@ -60,6 +60,14 @@ def _layer1() -> pd.DataFrame:
     return pd.read_csv(path) if path.exists() else pd.DataFrame()
 
 
+def _carrier_airlines() -> set[str]:
+    """Distinct airline entities present in Layer 4 (carrier_monthly)."""
+    path = PROCESSED_DIR / "carrier_monthly.csv"
+    if not path.exists():
+        return set()
+    return set(pd.read_csv(path)["airline"].astype(str).unique())
+
+
 def _label_months() -> dict[str, set]:
     """raw domestic source label (upper) -> set of (year, month) it appears in."""
     out: dict[str, set] = defaultdict(set)
@@ -125,11 +133,23 @@ def _t_concurrent_declared(params, ctx) -> tuple[str, str]:
     return "TRIGGERED", f"{labels} co-occur for {params['airport']} but are not declared"
 
 
+def _t_airlines_distinct(params, ctx) -> tuple[str, str]:
+    present = ctx["airlines"]
+    names = [str(x) for x in params["airlines"]]
+    if not present:
+        return "ORPHANED", "carrier_monthly absent — cannot check airline identity"
+    missing = [a for a in names if a not in present]
+    if missing:
+        return "TRIGGERED", f"airline(s) collapsed/erased: {missing} absent from carrier_monthly"
+    return "HOLDS", f"{names} all present as distinct airlines"
+
+
 TESTS = {
     "size-ordering-holds": _t_size_ordering,
     "distinct-airports-not-merged": _t_distinct,
     "month-disjoint-rename": _t_month_disjoint,
     "concurrent-merge-declared": _t_concurrent_declared,
+    "airlines-linked-not-collapsed": _t_airlines_distinct,
 }
 
 
@@ -145,6 +165,7 @@ def _context(mappings: dict) -> dict:
         "totals": totals,
         "label_months": _label_months(),
         "declared_concurrent": declared,
+        "airlines": _carrier_airlines(),
     }
 
 

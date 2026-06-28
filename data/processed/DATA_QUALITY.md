@@ -5,6 +5,7 @@ assumption is re-tested against the current data on every refresh.
 
 | id | verdict | title | detail |
 | --- | --- | --- | --- |
+| AIRLINE-001 | ✅ HOLDS | Airline mergers are linked, not collapsed — each brand keeps its own series | ['Vistara', 'Air India', 'AirAsia India', 'AIX Connect', 'Air India Express'] all present as distinct airlines |
 | COK-001 | ✅ HOLDS | COCHIN and KOCHI are one airport (COK) — a declared concurrent same-airport merge | ['COCHIN', 'KOCHI'] declared as one airport (COK) |
 | GOA-001 | ✅ HOLDS | Goa is two airports — Dabolim (GOI) and Mopa (GOX) — and the DGCA "GOI" label is Mopa from 2023 | GOI (69,062,871) >= GOX (15,065,993) |
 | IXD-001 | ✅ HOLDS | Allahabad and Prayagraj are one airport (IXD) — a clean disjoint rename | ['ALLAHABAD', 'PRAYAGRAJ', 'ALLAHABAD PRAYAGRAJ'] are month-disjoint |

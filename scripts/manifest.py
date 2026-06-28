@@ -79,7 +79,7 @@ def write_manifest_if_changed(rows: list[dict], path: Path = MANIFEST_PATH) -> b
         return False
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="") as fh:
-        writer = csv.DictWriter(fh, fieldnames=FIELDS)
+        writer = csv.DictWriter(fh, fieldnames=FIELDS, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     return True

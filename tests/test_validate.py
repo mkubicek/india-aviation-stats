@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pandas as pd
+import pytest
 import yaml
 
 from validate.checks import (
@@ -17,6 +18,13 @@ from validate.overlap import check_unmapped_names, overlap_gate
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DOMESTIC = ROOT / "data" / "raw" / "aviation" / "aggregated" / "domestic" / "city.csv"
 MAPPINGS = yaml.safe_load((ROOT / "mappings.yaml").read_text())
+
+# Raw DGCA data is gitignored (restored from cache in CI). Tests that read it
+# skip cleanly when it is absent; the committed-data tests below always run.
+requires_raw = pytest.mark.skipif(
+    not RAW_DOMESTIC.exists(),
+    reason="raw DGCA data not present (gitignored; restored from cache in CI)",
+)
 
 
 def _failed(findings):
@@ -75,10 +83,12 @@ def test_conservation_tripwire_holds_by_construction():
 
 # ── overlap gate (the load-bearing check) ──
 
+@requires_raw
 def test_overlap_gate_passes_with_declared_merge():
     assert not _failed(overlap_gate(MAPPINGS, RAW_DOMESTIC))
 
 
+@requires_raw
 def test_overlap_gate_blocks_undeclared_concurrent_merge():
     stripped = dict(MAPPINGS)
     stripped["concurrent_labels"] = []
@@ -89,6 +99,7 @@ def test_overlap_gate_blocks_undeclared_concurrent_merge():
 
 # ── advisory: high-volume unmapped names ──
 
+@requires_raw
 def test_no_high_volume_unmapped_domestic_labels():
     assert not _failed(check_unmapped_names(MAPPINGS, RAW_DOMESTIC))
 

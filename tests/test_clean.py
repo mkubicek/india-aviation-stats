@@ -6,6 +6,7 @@ import pandas as pd
 
 from clean import (
     _finalize,
+    _split_endpoints,
     build_yearly,
     resolve_airport,
     source_csv,
@@ -50,6 +51,21 @@ def test_finalize_dedups_and_keeps_integer_conservation():
     assert row["passengers"] == 30                       # recomputed as dep + arr
     assert result["passengers"].dtype == "int64"
     assert (result["passengers"] == result["departures"] + result["arrivals"]).all()
+
+
+def test_blank_one_direction_pax_cells_are_treated_as_zero():
+    # DGCA reports some routes in one direction only, leaving the reverse cell
+    # blank. We treat blanks as zero and keep the row (rather than dropping it,
+    # which would understate one-direction airport totals). Documented policy.
+    raw = pd.DataFrame(
+        [{"Year": 2025, "Month": 1, "City1": "DEL", "City2": "BOM",
+          "PaxToCity2": 100, "PaxFromCity2": ""}]
+    )
+    ep = _split_endpoints(raw, ["Year", "Month"])
+    delhi = ep[ep["city"] == "DEL"].iloc[0]
+    mumbai = ep[ep["city"] == "BOM"].iloc[0]
+    assert delhi["departures"] == 100 and delhi["arrivals"] == 0
+    assert mumbai["arrivals"] == 100 and mumbai["departures"] == 0
 
 
 def test_build_yearly_keeps_only_complete_years():

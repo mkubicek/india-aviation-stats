@@ -55,6 +55,10 @@ Source rows contain `City1`, `City2`, `PaxToCity2`, and `PaxFromCity2`.
 - For `City1`: departures = `PaxToCity2`, arrivals = `PaxFromCity2`
 - For `City2`: arrivals = `PaxToCity2`, departures = `PaxFromCity2`
 - Airport total = arrivals + departures across all routes
+- **Blank one-direction cells are treated as zero, not dropped.** DGCA reports
+  some routes in one direction only, leaving the reverse passenger cell blank;
+  counting it as zero (rather than dropping the row) keeps one-direction airport
+  totals correct. Locked by a test in `tests/test_clean.py`.
 
 ### Entity resolution (the cleanup model)
 
