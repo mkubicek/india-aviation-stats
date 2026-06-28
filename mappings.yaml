@@ -1104,6 +1104,16 @@ airports:
     city: Barmer, Rajasthan
     variants:
       - label: UTTARLAI
+  IXL:
+    name: Kushok Bakula Rimpochee Airport
+    city: Leh
+    state: Ladakh
+    opened_year: 1979
+  DIU:
+    name: Diu Airport
+    city: Diu
+    state: Daman and Diu
+    opened_year: 1985
 airline_groups:
   IndiGo:
     - IndiGo
@@ -1172,3 +1182,24 @@ airline_colors:
   Vistara: "#a78bfa"
   Go First: "#22c55e"
   Alliance Air: "#14b8a6"
+
+# Alternate source spellings whose label differs from the airport entry city.
+# Flat (not per-entry variants) because they are pure period-invariant spellings.
+
+# Alternate source spellings whose label differs from the airport entry city.
+# Flat (not per-entry variants) because they are pure period-invariant spellings.
+airport_aliases:
+  BAGDOGRA: IXB
+  BANGALORE: BLR
+  BARODA: BDQ
+  BOMBAY: BOM
+  CALCUTTA: CCU
+  CALICUT: CCJ
+  COCHIN: COK
+  MADRAS: MAA
+  MANGALORE: IXE
+  MORMUGAO: GOI
+  NEW DELHI: DEL
+  TRICHY: TRZ
+  TRIVANDRUM: TRV
+  VIZAG: VTZ
