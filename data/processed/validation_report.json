@@ -1,0 +1,98 @@
+{
+  "blocking_failures": 0,
+  "tripwire_failures": 0,
+  "advisories": 0,
+  "passed": 15,
+  "findings": [
+    {
+      "check": "cadence.layer1_unique",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "Layer 1: one row per (airport, year, month)"
+    },
+    {
+      "check": "cadence.layer2_unique",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "Layer 2: one row per (airport, year, quarter)"
+    },
+    {
+      "check": "cadence.layer2_quarter_domain",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "Layer 2: quarter in 1..4"
+    },
+    {
+      "check": "definitional.sum.airport_monthly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_monthly: passengers == departures + arrivals"
+    },
+    {
+      "check": "definitional.nonneg.airport_monthly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_monthly: all passenger values non-negative"
+    },
+    {
+      "check": "definitional.int.airport_monthly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_monthly: passenger columns are integers"
+    },
+    {
+      "check": "definitional.sum.airport_international_quarterly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_international_quarterly: passengers == departures + arrivals"
+    },
+    {
+      "check": "definitional.nonneg.airport_international_quarterly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_international_quarterly: all passenger values non-negative"
+    },
+    {
+      "check": "definitional.int.airport_international_quarterly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_international_quarterly: passenger columns are integers"
+    },
+    {
+      "check": "schema.airport_monthly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_monthly: schema v2.0 conforms"
+    },
+    {
+      "check": "schema.airport_international_quarterly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_international_quarterly: schema v1.0 conforms"
+    },
+    {
+      "check": "schema.airport_yearly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_yearly: schema v2.0 conforms"
+    },
+    {
+      "check": "conservation.tripwire",
+      "status": "pass",
+      "severity": "TRIPWIRE",
+      "message": "per month sum(departures) == sum(arrivals) (true by construction; tripwire only)"
+    },
+    {
+      "check": "overlap.concurrent.COK",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "COK: concurrent labels ['COCHIN', 'KOCHI'] declared as one airport"
+    },
+    {
+      "check": "unmapped.high_volume",
+      "status": "pass",
+      "severity": "ADVISORY",
+      "message": "no high-volume unmapped domestic labels"
+    }
+  ]
+}

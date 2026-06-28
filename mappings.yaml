@@ -1203,3 +1203,15 @@ airport_aliases:
   TRICHY: TRZ
   TRIVANDRUM: TRV
   VIZAG: VTZ
+
+# Declared concurrent same-airport merges: >1 source label feeding one canonical
+# in the same month. The overlap gate BLOCKS any concurrent merge not listed here.
+concurrent_labels:
+  - airport: COK
+    labels:
+      - COCHIN
+      - KOCHI
+    reason: Same airport (Kochi/Cochin); DGCA used both spellings on different route
+      rows in 2015-2016. Disjoint route subsets, correct to sum (KOCHI ~50M vs COCHIN
+      ~157k residual).
+    source: https://en.wikipedia.org/wiki/Cochin_International_Airport
