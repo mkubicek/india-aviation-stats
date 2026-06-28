@@ -13,6 +13,7 @@ import os
 import time
 from pathlib import Path
 
+from manifest import update_manifest
 from normalize import ingest_aviation_sources, was_timed_out
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -68,11 +69,25 @@ def cleanup_tmp_files() -> None:
         tmp.unlink()
 
 
+def refresh_sources_manifest() -> None:
+    """Update the committed fingerprint manifest (commit-on-change)."""
+    report = update_manifest()
+    note = "changed" if report["written"] else "unchanged"
+    print(f"  sources_manifest: {report['sources']} source(s), manifest {note} "
+          f"(added={len(report['added'])}, changed={len(report['changed'])}, "
+          f"removed={len(report['removed'])})", flush=True)
+    for s in report["changed"]:
+        print(f"    CHANGED: {s}", flush=True)
+    for s in report["added"]:
+        print(f"    NEW: {s}", flush=True)
+
+
 def main() -> None:
     print("=== Downloading Official Aviation Data ===\n", flush=True)
     cleanup_tmp_files()
     try:
         download_aviation_sources()
+        refresh_sources_manifest()
     finally:
         write_github_output()
     print("\nDone.", flush=True)
