@@ -66,11 +66,6 @@ MONTH_NAMES = {
     12: "Dec",
 }
 
-DISCLAIMER = (
-    "This is a personal open-source project. Views and analysis are my own "
-    "and do not represent Flughafen Zürich AG, Noida International Airport, "
-    "or any affiliated entity."
-)
 
 
 def get_repo_url() -> str:
@@ -109,7 +104,7 @@ def get_attribution() -> str:
     parts = []
     if short:
         parts.append(short)
-    data_str = "Data: DGCA, MoCA"
+    data_str = "Data: DGCA"
     if "data_date" in meta:
         data_str += f" (as of {meta['data_date']})"
     parts.append(data_str)
@@ -168,19 +163,6 @@ def add_attribution(ax, fontsize: int = 8) -> None:
         alpha=0.7,
     )
 
-
-def add_disclaimer(ax, fontsize: int = 7) -> None:
-    ax.text(
-        1.0,
-        -0.16,
-        DISCLAIMER,
-        transform=ax.transAxes,
-        ha="right",
-        va="top",
-        fontsize=fontsize,
-        color=SUBTLE,
-        alpha=0.5,
-    )
 
 
 RISER_FIRST_PERIOD = pd.Period("2022-01", freq="M")  # "new" = first appeared 2022+
@@ -259,12 +241,6 @@ def chart_airport_risers() -> None:
         ax.annotate(f"  {airport_label(airport)}", (last_x, last_y),
                     fontsize=9, fontweight="bold", color=color, va="center", clip_on=False)
 
-    if "NIA" not in set(risers):
-        ax.text(0.5, 0.95, "Noida International (NIA): awaited — appears here automatically "
-                "once DGCA publishes its first month",
-                transform=ax.transAxes, ha="center", va="top", fontsize=8,
-                color=ACCENT_GOLD, alpha=0.85)
-
     style_chart(
         ax,
         "Who's Rising: India's Newcomer Airports",
@@ -275,7 +251,6 @@ def chart_airport_risers() -> None:
     ax.set_xlabel("")
     ax.grid(axis="y", alpha=0.2, color=GRID_COLOR, linestyle="--")
     add_attribution(ax)
-    add_disclaimer(ax)
 
     fig.tight_layout()
     out = CHARTS_DIR / "airport_risers.png"
@@ -471,17 +446,6 @@ def chart_airport_passenger_race() -> None:
             fontsize=11,
             color=SUBTLE,
             alpha=0.7,
-        )
-        ax.text(
-            1.0,
-            -0.215,
-            DISCLAIMER,
-            transform=ax.transAxes,
-            ha="right",
-            va="top",
-            fontsize=9,
-            color=SUBTLE,
-            alpha=0.5,
         )
 
         fig.subplots_adjust(left=0.14, right=0.92, top=0.78, bottom=0.18)

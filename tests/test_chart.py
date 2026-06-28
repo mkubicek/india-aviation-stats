@@ -3,18 +3,9 @@
 import pandas as pd
 
 from chart import (
-    DISCLAIMER,
     _domestic_trailing_airport_passengers,
     find_risers,
 )
-
-
-def test_disclaimer_matches_project_required_text():
-    assert DISCLAIMER == (
-        "This is a personal open-source project. Views and analysis are my own "
-        "and do not represent Flughafen Zürich AG, Noida International Airport, "
-        "or any affiliated entity."
-    )
 
 
 def test_domestic_trailing_airport_passengers_requires_complete_windows():
