@@ -925,6 +925,7 @@ def chart_share_movers(
     chart_id: str,
     title: str,
     subtitle: str,
+    pax_change_header: str,
     latest_pax_header: str,
     coverage: str,
     fingerprint: str,
@@ -988,7 +989,7 @@ def chart_share_movers(
                 clip_on=False,
             )
         header_y = len(movers) + 0.15
-        for x_pos, header in ((1.13, "Pax change"), (1.31, latest_pax_header)):
+        for x_pos, header in ((1.13, pax_change_header), (1.31, latest_pax_header)):
             ax.text(
                 x_pos,
                 header_y,
@@ -1035,7 +1036,8 @@ def chart_domestic_market_share_gainers(
         chart_id="domestic_market_share_gainers",
         title="Domestic Market Share Movers",
         subtitle="Airport share change: latest trailing 12 months vs previous trailing 12 months",
-        latest_pax_header="Latest 12M pax",
+        pax_change_header="Dom pax change",
+        latest_pax_header="Latest dom 12M pax",
         coverage=coverage,
         fingerprint=fingerprint,
     )
@@ -1062,7 +1064,8 @@ def chart_international_gateway_share_gainers(
             "Indian airport international share change: latest 4 quarters vs "
             "previous 4 quarters"
         ),
-        latest_pax_header="Latest 4Q pax",
+        pax_change_header="Intl pax change",
+        latest_pax_header="Latest intl 4Q pax",
         coverage=coverage,
         fingerprint=fingerprint,
     )
