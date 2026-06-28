@@ -84,7 +84,7 @@ dropped. Source: DGCA domestic carrier workbooks.
 
 ## Not in the data (by design)
 
-- **`tier`** — the metro/tier labels are an editorial opinion, not data. They
-  live only in chart config (`mappings.yaml: airport_colors` / METHODOLOGY),
-  never in a published CSV.
+- **`tier`** — not published. The metro/tier bands are a presentation aid (chart
+  colours only), not an official classification; see METHODOLOGY. They appear in
+  no published CSV.
 - **`category` on Layer 1** — constant (`domestic`) once the cadence is split.

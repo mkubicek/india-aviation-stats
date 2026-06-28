@@ -69,8 +69,8 @@ change over time: the bare `GOA` label is Dabolim (`GOI`) through 2018 and Mopa
 (`GOX`) from 2023. The resolver refuses to build if a label maps to two airports
 with overlapping windows. Alternate spellings (BOMBAY→BOM) live in a flat
 `airport_aliases` map; every airport label that previously needed code-side
-aliases is now in the table (see `docs/airport-mapping-audit.md`). Resolution is
-100% table-driven — there is no hardcoded fallback.
+aliases is now in the table. Resolution is 100% table-driven — there is no
+hardcoded fallback.
 
 ### International City-Pair Data
 

@@ -48,9 +48,9 @@ would silently corrupt the data:
   each against current data → HOLDS/TRIGGERED/STALE/ORPHANED in
   [`DATA_QUALITY.md`](data/processed/DATA_QUALITY.md).
 
-See [METHODOLOGY.md](METHODOLOGY.md) for the validation table and
-[`docs/airport-mapping-audit.md`](docs/airport-mapping-audit.md) for how every
-airport label was resolved.
+See [METHODOLOGY.md](METHODOLOGY.md) for the validation table. `mappings.yaml` is
+the canonical entity table (every source label → airport); `assumptions/` records
+the non-trivial cleanup decisions.
 
 ## Charts
 

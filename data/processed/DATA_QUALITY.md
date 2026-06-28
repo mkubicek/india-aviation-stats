@@ -11,6 +11,7 @@ assumption is re-tested against the current data on every refresh.
 | IXD-001 | ✅ HOLDS | Allahabad and Prayagraj are one airport (IXD) — a clean disjoint rename | ['ALLAHABAD', 'PRAYAGRAJ', 'ALLAHABAD PRAYAGRAJ'] are month-disjoint |
 | KLH-001 | ✅ HOLDS | Kalaburagi is GBI, not KLH — KLH is Kolhapur (the source/table mixed the IATA codes) | ['GBI', 'KLH'] all present and distinct |
 | LUH-001 | ✅ HOLDS | The "LUDHIANA" label is two airports — Sahnewal (LUH) through 2025, Halwara (HWR) from 2026 | ['LUDHIANA'] are month-disjoint |
+| PXN-001 | ✅ HOLDS | PURNEA and PURNIA AIRPORT are one airport (PXN) — a disjoint spelling change | ['PURNEA', 'PURNIA AIRPORT'] are month-disjoint |
 
 ## Reverse gate
 
