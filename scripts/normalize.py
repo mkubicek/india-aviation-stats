@@ -1,16 +1,9 @@
-"""Direct-source ingestion for Indian aviation traffic data.
+"""Fetch DGCA source files and normalize them into aggregated CSVs.
 
-The historical pipeline consumed pre-aggregated CSVs from
-Vonter/india-aviation-traffic. This module replaces that dependency with
-source-owned ingestion:
-
-* DGCA portal/S3 Excel workbooks for domestic monthly and international
-  quarterly traffic.
-* Optional MoCA daily HTML snapshots from the Internet Archive CDX API.
-
-The normalized CSVs intentionally keep the former aggregate schemas so the
-downstream processing code can remain focused on analytics, not source
-format churn.
+Downloads DGCA portal/S3 workbooks (domestic monthly + international quarterly
+traffic), with a temporary PDF fallback for inaccessible international Table 4
+Excel sources, and writes tidy aggregate CSVs under data/raw/aviation/aggregated/
+for the clean stage.
 """
 
 from __future__ import annotations
@@ -31,13 +24,12 @@ from urllib.parse import quote, unquote, urlparse
 
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
 AVIATION_RAW_DIR = RAW_DIR / "aviation"
 DGCA_RAW_DIR = AVIATION_RAW_DIR / "dgca"
-MCA_RAW_DIR = AVIATION_RAW_DIR / "mca"
 AGGREGATED_DIR = AVIATION_RAW_DIR / "aggregated"
 _TIMED_OUT = False
 _TIMEOUT_STARTED_AT: float | None = None
@@ -159,22 +151,53 @@ DOMESTIC_CARRIER_COLUMNS = [
     "Weight Load Factor",
 ]
 
-DAILY_PREFERRED_COLUMNS = [
-    "Date",
-    "Domestic (Aircraft Movements)",
-    "Domestic (Airport Footfalls)",
-    "Domestic (Arrival Flights)",
-    "Domestic (Arriving Pax)",
-    "Domestic (Departing Pax)",
-    "Domestic (Departure Flights)",
-    "International (Aircraft Movements)",
-    "International (Airport Footfalls)",
-    "International (Arrival Flights)",
-    "International (Arriving Pax)",
-    "International (Departing Pax)",
-    "International (Departure Flights)",
-]
-
+INTERNATIONAL_COLUMNS = {
+    "1": [
+        "Year",
+        "Quarter",
+        "Airline",
+        "PaxToIndia",
+        "PaxFromIndia",
+        "FreightToIndia",
+        "FreightFromIndia",
+    ],
+    "2": [
+        "Year",
+        "Quarter",
+        "Airline",
+        "PaxToIndiaM1",
+        "PaxFromIndiaM1",
+        "FreightToIndiaM1",
+        "FreightFromIndiaM1",
+        "PaxToIndiaM2",
+        "PaxFromIndiaM2",
+        "FreightToIndiaM2",
+        "FreightFromIndiaM2",
+        "PaxToIndiaM3",
+        "PaxFromIndiaM3",
+        "FreightToIndiaM3",
+        "FreightFromIndiaM3",
+    ],
+    "3": [
+        "Year",
+        "Quarter",
+        "Country",
+        "PaxToIndia",
+        "PaxFromIndia",
+        "FreightToIndia",
+        "FreightFromIndia",
+    ],
+    "4": [
+        "Year",
+        "Quarter",
+        "City1",
+        "City2",
+        "PaxToCity2",
+        "PaxFromCity2",
+        "FreightToCity2",
+        "FreightFromCity2",
+    ],
+}
 
 @dataclass(frozen=True)
 class DownloadStats:
@@ -269,6 +292,11 @@ def _to_number(value: object) -> float | int | None:
         return None
 
 
+def _to_source_number(value: object) -> float:
+    number = _to_number(value)
+    return 0 if number is None else float(number)
+
+
 def _month_number(value: object) -> str | None:
     key = _clean_key(value).replace("*", "")
     return MONTH_MAP.get(key)
@@ -310,6 +338,19 @@ def _read_excel_sheets(path: Path) -> list[pd.DataFrame]:
         warnings.simplefilter("ignore")
         sheets = pd.read_excel(path, header=None, sheet_name=None)
     return list(sheets.values())
+
+
+def _airport_source_labels() -> list[str]:
+    mappings = yaml.safe_load((ROOT / "mappings.yaml").read_text())
+    labels: set[str] = set()
+    for code, airport in (mappings.get("airports") or {}).items():
+        labels.add(_clean_key(code))
+        labels.add(_clean_key(airport.get("city", "")))
+        for variant in airport.get("variants", []) or []:
+            label = variant.get("label", "") if isinstance(variant, dict) else variant
+            labels.add(_clean_key(label))
+    labels.update(_clean_key(label) for label in (mappings.get("airport_aliases") or {}))
+    return sorted((label for label in labels if label), key=len, reverse=True)
 
 
 def _find_header_row(df: pd.DataFrame, required_terms: list[str]) -> int | None:
@@ -503,6 +544,75 @@ def generate_dgca_international_urls(start_year: int = 2015, end_year: int | Non
     return urls
 
 
+def _international_table_stem(path: Path) -> tuple[str, str] | None:
+    match = re.match(r"(\d{2}Q[1-4])_([1-4])$", path.stem, flags=re.IGNORECASE)
+    if not match:
+        return None
+    return match.group(1).upper(), match.group(2)
+
+
+def missing_international_table4_pdf_urls(source_dir: Path) -> list[str]:
+    """PDF fallbacks for international Table 4 periods whose Excel file is absent.
+
+    DGCA occasionally lists the Table 4 Excel link but leaves the S3 object
+    inaccessible while the matching PDF is public. Limit probing to periods where
+    the sibling international tables are already present locally.
+    """
+    available: dict[str, set[str]] = {}
+    for path in _excel_files(source_dir):
+        parsed = _international_table_stem(path)
+        if parsed is None:
+            continue
+        period, table = parsed
+        available.setdefault(period, set()).add(table)
+
+    urls = []
+    for period, tables in sorted(available.items()):
+        if "4" in tables or not (tables & {"1", "2", "3"}):
+            continue
+        urls.append(f"{DGCA_S3_BASE}/{DGCA_INTERNATIONAL_PATH}/{period}_4.pdf")
+    return urls
+
+
+def cleanup_obsolete_international_pdf_fallbacks(source_dir: Path) -> int:
+    """Remove Table 4 PDF fallbacks once the matching Excel source exists."""
+    excel_periods = {
+        parsed[0]
+        for path in _excel_files(source_dir)
+        if (parsed := _international_table_stem(path)) and parsed[1] == "4"
+    }
+    removed = 0
+    for path in _pdf_files(source_dir):
+        parsed = _international_table_stem(path)
+        if parsed and parsed[1] == "4" and parsed[0] in excel_periods:
+            path.unlink()
+            removed += 1
+    if removed:
+        print(f"  Removed obsolete DGCA international PDF fallback(s): {removed}", flush=True)
+    return removed
+
+
+def download_international_pdf_fallbacks(
+    source_dir: Path,
+    *,
+    force: bool = False,
+) -> DownloadStats:
+    cleanup_obsolete_international_pdf_fallbacks(source_dir)
+    urls = missing_international_table4_pdf_urls(source_dir)
+    if not urls:
+        return DownloadStats()
+    print(f"  Downloading DGCA international PDF fallbacks: {len(urls):,}", flush=True)
+    stats = download_urls(
+        urls,
+        source_dir,
+        force=force,
+        quiet_missing=True,
+        missing_statuses={403, 404},
+    )
+    print(f"    {stats}", flush=True)
+    return stats
+
+
 def _filename_for_url(url: str) -> str:
     return unquote(Path(urlparse(url).path).name)
 
@@ -553,10 +663,12 @@ def download_file(
     started: float,
     force: bool = False,
     quiet_missing: bool = False,
+    missing_statuses: set[int] | None = None,
 ) -> str:
     if not _time_remaining(started):
         return "failed"
 
+    missing_statuses = missing_statuses or {404}
     headers: dict[str, str] = {}
     if dest.exists() and not force:
         headers["If-Modified-Since"] = formatdate(dest.stat().st_mtime, usegmt=True)
@@ -585,7 +697,7 @@ def download_file(
 
     if resp.status_code == 304:
         return "cached"
-    if resp.status_code == 404:
+    if resp.status_code in missing_statuses:
         if not quiet_missing:
             print(f"    Missing at source: {dest.name}", flush=True)
         return "missing"
@@ -620,6 +732,7 @@ def download_urls(
     *,
     force: bool = False,
     quiet_missing: bool = False,
+    missing_statuses: set[int] | None = None,
 ) -> DownloadStats:
     session = _session()
     started = time.monotonic()
@@ -636,6 +749,7 @@ def download_urls(
             started=started,
             force=force,
             quiet_missing=quiet_missing,
+            missing_statuses=missing_statuses,
         )
         stats = stats.add(status)
     return stats
@@ -646,6 +760,14 @@ def _excel_files(path: Path) -> list[Path]:
         file
         for file in path.glob("*")
         if file.suffix.lower() in {".xls", ".xlsx"} and not file.name.endswith(".tmp")
+    )
+
+
+def _pdf_files(path: Path) -> list[Path]:
+    return sorted(
+        file
+        for file in path.glob("*")
+        if file.suffix.lower() == ".pdf" and not file.name.endswith(".tmp")
     )
 
 
@@ -846,10 +968,136 @@ def _international_meta(path: Path) -> tuple[int, int, str] | None:
     return int(match.group(1)), int(match.group(2)), match.group(3)
 
 
+def _split_combined_pdf_city(text: str) -> tuple[str, str]:
+    """Split a collapsed ``City1City2`` PDF token using known Indian endpoints."""
+    city = _clean_key(text)
+    compact = city.replace(" ", "")
+    for label in _airport_source_labels():
+        label_compact = label.replace(" ", "")
+        if len(label_compact) < 3:
+            continue
+        if not compact.endswith(label_compact) or len(compact) <= len(label_compact):
+            continue
+
+        left_len = len(compact) - len(label_compact)
+        kept: list[str] = []
+        seen = 0
+        for char in city:
+            if char != " ":
+                seen += 1
+            if seen <= left_len:
+                kept.append(char)
+        city1 = _clean_key("".join(kept))
+        if city1:
+            return city1, label
+    return city, ""
+
+
+def _iter_pdf_text_lines(path: Path):
+    """Yield positioned text lines from a text-based DGCA PDF."""
+    from pdfminer.high_level import extract_pages
+    from pdfminer.layout import LAParams, LTTextLineHorizontal
+
+    def visit(obj):
+        if isinstance(obj, LTTextLineHorizontal):
+            text = _clean_text(obj.get_text())
+            if text:
+                yield obj.bbox, text
+            return
+        if hasattr(obj, "__iter__"):
+            for child in obj:
+                yield from visit(child)
+
+    laparams = LAParams(char_margin=1.0, word_margin=0.1, line_margin=0.2, boxes_flow=None)
+    for page_number, page in enumerate(extract_pages(path, laparams=laparams), start=1):
+        for bbox, text in visit(page):
+            x0, y0, x1, _ = bbox
+            yield page_number, round(float(y0), 1), float(x0), float(x1), text
+
+
+def _parse_international_table4_pdf(path: Path) -> pd.DataFrame:
+    meta = _international_meta(path)
+    if not meta or meta[2] != "4":
+        return pd.DataFrame(columns=INTERNATIONAL_COLUMNS["4"])
+    year, quarter, _ = meta
+
+    records = []
+    by_page: dict[int, list[tuple[float, float, float, str]]] = {}
+    for page_number, y0, x0, x1, text in _iter_pdf_text_lines(path):
+        by_page.setdefault(page_number, []).append((y0, x0, x1, text))
+
+    rows: list[list[tuple[float, float, str]]] = []
+    for _, lines in sorted(by_page.items()):
+        for y0, x0, x1, text in sorted(lines, key=lambda item: -item[0]):
+            if rows and abs(rows[-1][0][0] - y0) <= 1.2:
+                rows[-1].append((y0, x0, x1, text))
+            else:
+                rows.append([(y0, x0, x1, text)])
+
+    for row in rows:
+        row_tokens = [(x0, x1, text) for _, x0, x1, text in row]
+        tokens = sorted(row_tokens, key=lambda item: item[0])
+        first = next(
+            (
+                token
+                for token in tokens
+                if token[0] < 140 and re.match(r"^\d{1,4}\s+", token[2])
+            ),
+            None,
+        )
+        if first is None:
+            continue
+
+        match = re.match(r"^(\d{1,4})\s+(.+)$", first[2])
+        if not match:
+            continue
+
+        city1 = _clean_key(match.group(2))
+        city2_parts: list[str] = []
+        values = [0.0, 0.0, 0.0, 0.0]
+        for x0, x1, text in tokens:
+            if (x0, x1, text) == first:
+                continue
+            if re.fullmatch(r"-|[\d,]+(?:\.\d+)?", text):
+                center = (x0 + x1) / 2
+                if center < 300:
+                    value_idx = 0
+                elif center < 360:
+                    value_idx = 1
+                elif center < 410:
+                    value_idx = 2
+                else:
+                    value_idx = 3
+                values[value_idx] = _to_source_number(text)
+            elif 125 <= x0 < 245:
+                city2_parts.append(text)
+
+        city2 = _clean_key(" ".join(city2_parts))
+        if not city2:
+            city1, city2 = _split_combined_pdf_city(city1)
+        if not city1 or not city2:
+            continue
+
+        records.append(
+            {
+                "Year": year,
+                "Quarter": quarter,
+                "City1": city1,
+                "City2": city2,
+                "PaxToCity2": values[0],
+                "PaxFromCity2": values[1],
+                "FreightToCity2": values[2],
+                "FreightFromCity2": values[3],
+            }
+        )
+
+    return pd.DataFrame.from_records(records, columns=INTERNATIONAL_COLUMNS["4"])
+
+
 def _parse_international_table(path: Path, table: str) -> pd.DataFrame:
     meta = _international_meta(path)
     if not meta:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=INTERNATIONAL_COLUMNS[table])
     year, quarter, _ = meta
     df = _read_excel(path)
 
@@ -929,7 +1177,7 @@ def _parse_international_table(path: Path, table: str) -> pd.DataFrame:
                     "FreightFromCity2": _to_number(row.iloc[6]),
                 }
             )
-    return pd.DataFrame.from_records(records)
+    return pd.DataFrame.from_records(records, columns=INTERNATIONAL_COLUMNS[table])
 
 
 def aggregate_international(source_dir: Path, output_dir: Path) -> dict[str, pd.DataFrame]:
@@ -940,14 +1188,33 @@ def aggregate_international(source_dir: Path, output_dir: Path) -> dict[str, pd.
         "4": ("city", ["City1", "City2", "Year", "Quarter"]),
     }
     result: dict[str, pd.DataFrame] = {}
+    excel_table4_periods = {
+        parsed[0]
+        for path in _excel_files(source_dir)
+        if (parsed := _international_table_stem(path)) and parsed[1] == "4"
+    }
     for table, (filename, sort_cols) in outputs.items():
         frames = [
             _parse_international_table(path, table)
             for path in _excel_files(source_dir)
             if path.stem.upper().endswith(f"_{table}")
         ]
+        if table == "4":
+            frames.extend(
+                _parse_international_table4_pdf(path)
+                for path in _pdf_files(source_dir)
+                if (
+                    (parsed := _international_table_stem(path))
+                    and parsed[1] == "4"
+                    and parsed[0] not in excel_table4_periods
+                )
+            )
         frames = [frame for frame in frames if not frame.empty]
-        combined = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+        combined = (
+            pd.concat(frames, ignore_index=True)
+            if frames
+            else pd.DataFrame(columns=INTERNATIONAL_COLUMNS[table])
+        )
         if not combined.empty:
             combined = combined.sort_values(sort_cols)
 
@@ -959,160 +1226,17 @@ def aggregate_international(source_dir: Path, output_dir: Path) -> dict[str, pd.
     return result
 
 
-def _parse_mca_html(content: str) -> dict[str, object]:
-    soup = BeautifulSoup(content, "html.parser")
-    daily: dict[str, object] = {}
-
-    date_text = ""
-    date_widget = soup.find("span", class_="date-widget")
-    if date_widget:
-        date_text = date_widget.get_text(" ", strip=True)
-    if not date_text:
-        for col in soup.find_all("div", class_="airport-col"):
-            spans = col.find_all("span")
-            if spans:
-                date_text = spans[-1].get_text(" ", strip=True)
-                break
-    if date_text:
-        parsed = pd.to_datetime(date_text, errors="coerce")
-        if not pd.isna(parsed):
-            daily["Date"] = str(parsed.date())
-
-    for col in soup.find_all("div", class_="airport-col"):
-        heading = col.find("h2")
-        if not heading:
-            continue
-        for span in heading.find_all("span"):
-            span.decompose()
-        category = heading.get_text(" ", strip=True)
-        for item in col.find_all("li"):
-            spans = item.find_all("span")
-            if len(spans) < 2:
-                continue
-            label = spans[0].get_text(" ", strip=True).title()
-            value = spans[1].get_text(" ", strip=True)
-            if category and label:
-                daily[f"{category} ({label})"] = value
-
-    for paragraph in soup.find_all("div", class_="paragraph"):
-        title = paragraph.find_previous("span", class_="eng-title")
-        category = title.get_text(" ", strip=True) if title else ""
-        values = [
-            div.get_text(" ", strip=True)
-            for div in paragraph.find_all("div")
-            if "field--name-field-hintdi-text" not in div.get("class", [])
-        ]
-        if category and len(values) >= 2:
-            daily[f"{category} ({values[0].title()})"] = values[1]
-
-    return daily if "Date" in daily and len(daily) > 2 else {}
-
-
-def _normalize_daily_frame(df: pd.DataFrame) -> pd.DataFrame:
-    if df.empty:
-        return df
-    df = df.rename(
-        columns=lambda c: str(c)
-        .replace("Air Sewa Grievances (by entity)", "Grievances")
-        .replace("Air Sewa Grievances (by type)", "Grievances")
-        .replace("Air Sewa Grievances (by volume)", "Grievances")
-        .replace("Domestic Flight", "Domestic")
-        .replace("Domestic traffic", "Domestic")
-        .replace("International Flight", "International")
-        .replace("International traffic", "International")
-        .replace("Pax Load Factor", "Passenger Load Factor")
-    )
-    df = df.loc[:, ~df.columns.duplicated(keep="last")]
-    df = df.drop_duplicates(subset=["Date"], keep="last")
-    for col in df.columns:
-        if col == "Date":
-            continue
-        cleaned = df[col].astype(str).str.replace(",", "", regex=False).str.strip()
-        df[col] = pd.to_numeric(cleaned, errors="ignore")
-
-    ordered = [col for col in DAILY_PREFERRED_COLUMNS if col in df.columns]
-    ordered.extend(col for col in df.columns if col not in ordered)
-    return df[ordered].sort_values("Date")
-
-
-def discover_mca_snapshots(limit: int | None = None) -> list[dict[str, str]]:
-    params: list[tuple[str, str]] = [
-        ("url", "www.civilaviation.gov.in"),
-        ("from", "20200601"),
-        ("output", "json"),
-        ("filter", "statuscode:200"),
-        ("filter", "mimetype:text/html"),
-        ("collapse", "digest"),
-        ("fl", "timestamp,original,digest"),
-    ]
-    if limit:
-        params.append(("limit", str(limit)))
-    resp = _session().get("https://web.archive.org/cdx", params=params, timeout=60)
-    resp.raise_for_status()
-    rows = resp.json()
-    if not rows:
-        return []
-    return [
-        {"timestamp": row[0], "original": row[1], "digest": row[2]}
-        for row in rows[1:]
-        if len(row) >= 3
-    ]
-
-
-def download_mca_snapshots(limit: int | None = None, force: bool = False) -> None:
-    snapshots = discover_mca_snapshots(limit=limit)
-    html_dir = MCA_RAW_DIR / "html"
-    html_dir.mkdir(parents=True, exist_ok=True)
-    session = _session()
-    started = time.monotonic()
-    print(f"  MoCA snapshots: {len(snapshots):,} CDX records", flush=True)
-    for snapshot in snapshots:
-        if not _time_remaining(started):
-            print("  Soft timeout reached; stopping MoCA snapshot downloads", flush=True)
-            break
-        dest = html_dir / f"{snapshot['timestamp']}.html"
-        if dest.exists() and not force:
-            continue
-        url = (
-            "https://web.archive.org/web/"
-            f"{snapshot['timestamp']}id_/{quote(snapshot['original'], safe=':/')}"
-        )
-        status = download_file(url, dest, session, started, force=force, quiet_missing=True)
-        if status == "downloaded" and _sleep_seconds() > 0:
-            time.sleep(_sleep_seconds())
-
-
-def aggregate_mca_daily(output_dir: Path) -> pd.DataFrame:
-    rows = []
-    for path in sorted((MCA_RAW_DIR / "html").glob("*.html")):
-        try:
-            parsed = _parse_mca_html(path.read_text(errors="ignore"))
-        except OSError:
-            continue
-        if parsed:
-            rows.append(parsed)
-    combined = _normalize_daily_frame(pd.DataFrame(rows)) if rows else pd.DataFrame()
-    output = output_dir / "daily.csv"
-    output.parent.mkdir(parents=True, exist_ok=True)
-    combined.to_csv(output, index=False)
-    print(f"  Saved: {_display_path(output)} ({len(combined):,} rows)", flush=True)
-    return combined
-
-
 def aggregate_all() -> None:
     print("\n── Aggregating official source files ──", flush=True)
     aggregate_domestic_city(DGCA_RAW_DIR / "xlsx" / "domestic", AGGREGATED_DIR)
     aggregate_domestic_carrier(DGCA_RAW_DIR / "xlsx" / "domestic", AGGREGATED_DIR)
     aggregate_international(DGCA_RAW_DIR / "xlsx" / "international", AGGREGATED_DIR)
-    if (MCA_RAW_DIR / "html").exists():
-        aggregate_mca_daily(AGGREGATED_DIR)
 
 
 def ingest_aviation_sources(
     *,
     force: bool = False,
     refresh_urls: bool = True,
-    include_daily: bool = False,
     aggregate: bool = True,
     timeout_started_at: float | None = None,
 ) -> None:
@@ -1139,12 +1263,10 @@ def ingest_aviation_sources(
         quiet_missing=True,
     )
     print(f"    {international_stats}", flush=True)
-
-    if include_daily:
-        limit_value = os.environ.get("MCA_DAILY_CDX_LIMIT")
-        limit = int(limit_value) if limit_value else None
-        print("  Downloading MoCA daily snapshots from Internet Archive", flush=True)
-        download_mca_snapshots(limit=limit, force=force)
+    download_international_pdf_fallbacks(
+        DGCA_RAW_DIR / "xlsx" / "international",
+        force=force,
+    )
 
     if aggregate:
         aggregate_all()
@@ -1157,11 +1279,6 @@ def main() -> None:
         "--use-cached-urls",
         action="store_true",
         help="reuse cached DGCA domestic URL manifest instead of rediscovering",
-    )
-    parser.add_argument(
-        "--include-daily",
-        action="store_true",
-        help="also fetch MoCA daily HTML snapshots from Internet Archive",
     )
     parser.add_argument(
         "--aggregate-only",
@@ -1177,7 +1294,6 @@ def main() -> None:
     ingest_aviation_sources(
         force=args.force,
         refresh_urls=not args.use_cached_urls,
-        include_daily=args.include_daily,
     )
 
 

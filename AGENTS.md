@@ -1,163 +1,92 @@
-# Agents — Chart Styleguide & Conventions
+# Agents — Conventions & Chart Styleguide
 
-All chart generation, data classification, and pipeline behaviour follows
-the rules in this file. For data definitions, see [METHODOLOGY.md](METHODOLOGY.md).
-
-## Disclaimer
-
-Every chart must include the following disclaimer in the attribution line:
-
-> This is a personal open-source project. Views and analysis are my own and do
-> not represent Flughafen Zürich AG, Noida International Airport, or any
-> affiliated entity.
-
----
-
-## Chart Colors
-
-### Tier Palette
-
-| Tier       | Color   | Hex       |
-|------------|---------|-----------|
-| Metro      | Blue    | `#3b82f6` |
-| Tier 1     | Teal    | `#14b8a6` |
-| Tier 2     | Green   | `#22c55e` |
-| Tier 3     | Slate   | `#94a3b8` |
-| Greenfield | Gold    | `#fbbf24` |
-
-### Highlighted Airport Colors
-
-| Airport | Color   | Hex       |
-|---------|---------|-----------|
-| DEL     | Pink    | `#f72585` |
-| BOM     | Cyan    | `#4cc9f0` |
-| NIA     | Gold    | `#fbbf24` |
-| BLR     | Green   | `#4ade80` |
-| HYD     | Purple  | `#a78bfa` |
-| MAA     | Orange  | `#fb923c` |
-| CCU     | Red     | `#f87171` |
-
-### Airline Colors
-
-| Airline          | Hex       |
-|------------------|-----------|
-| IndiGo           | `#3b82f6` |
-| Air India Group  | `#f72585` |
-| SpiceJet         | `#fbbf24` |
-| Akasa Air        | `#fb923c` |
-| Vistara          | `#a78bfa` |
-| Go First         | `#22c55e` |
-| Alliance Air     | `#14b8a6` |
-
----
-
-## Typography
-
-- **Font:** System sans-serif (matplotlib default)
-- **Airport codes:** Always IATA uppercase (DEL, BOM, BLR)
-- **Airport names:** Title case (Indira Gandhi International, not INDIRA GANDHI)
-- **Airline names:** As branded (IndiGo, not INDIGO; Air India, not AIR INDIA)
-- **Indian terms:** Always annotate with English equivalent
-  - Example: "Lakh (100,000)" or "Crore (10,000,000)"
-
----
-
-## Layout
-
-### Dark Theme
-
-- Background: `#0d1117`
-- Text: white (`#ffffff`)
-- Subtle text: `#94a3b8`
-- Grid: `#334155`, dashed, alpha 0.2
-
-### Attribution Line
-
-Single line at bottom-right of every chart:
-
-```
-{repo_url} | Data: {sources} (as of {data_date}) | Generated {today}
-```
-
-- `data_date` from `data/processed/metadata.json`
-- `repo_url` from `GITHUB_REPOSITORY` env var or `git remote`
-- **Static charts:** fontsize 8
-- **GIF frames:** fontsize 11
-- Use `ax.transAxes` coordinates (not `fig.text`) for `bbox_inches="tight"`
-
-### Disclaimer Attribution
-
-On charts where space permits, add a second attribution line:
-
-```
-Personal project — views are my own, not those of any employer or affiliate
-```
-
-### Definition Line
-
-Below chart title, gray text (`#94a3b8`), explains scope/methodology:
-- Example: "Scheduled domestic passenger flows by airport | Trailing 12-month total"
-
-### General Rules
-
-- No overlapping elements — clear spacing between axes, labels, legends
-- Legends: outside chart area (`bbox_to_anchor`) or inline labels
-- Year axes: always show every year with explicit `xticks`
-- Partial years: exclude incomplete years from annual charts
-- Chart filenames: descriptive names (e.g., `airport_passenger_race.gif`)
-
----
-
-## Animated Charts (GIFs)
-
-- Date label: consistent position, monospace font
-- Frame rate: 300 ms per frame, last frame 3000 ms pause
-- Fixed axes: lock x/y limits across all frames
-- National total counter: top-right corner, formatted with commas
-- Bar labels must stay inside or just outside the plot without clipping.
-
----
+Pipeline behaviour, data classification, and chart generation follow the rules
+here. For data definitions see [METHODOLOGY.md](METHODOLOGY.md).
 
 ## Pipeline
 
 ```
-download.py → process.py → validate.py → chart.py
+fetch.py → normalize.py → clean.py → validate/ → chart.py
 ```
 
-1. **download.py** — Fetch DGCA/MoCA source data
-2. **process.py** — Parse, merge, aggregate → `data/processed/`
-3. **validate.py** — Source/data checks → `warnings.log`
-4. **chart.py** — Generate passenger ranking/race charts → `charts/`
+1. **fetch.py** — Download DGCA workbooks + refresh `sources_manifest.csv`
+2. **normalize.py** — Parse Excel → aggregated CSVs (PASSENEGER fix, month/airline map)
+3. **clean.py** — Entity dedup + cadence split → published tables in `data/processed/`
+4. **validate/** — `python -m validate [--assumptions --revisions]`: blocking gate
+   (overlap, cadence, schema, definitional) + assumptions ledger + reverse gate +
+   revision log → `validation_report.json`, `DATA_QUALITY.md`, `REVISIONS.md`
+5. **chart.py** — Static dashboard charts + summary/manifest JSON → `charts/`
 
-Each step is idempotent and can be re-run independently.
-
----
+Each step is idempotent and re-runnable. Run validate with `PYTHONPATH=scripts`.
 
 ## Conventions
 
 - `mappings.yaml` drives all classification — edit mappings, not code
-- Unknown airport/city values stay visible as uppercase source names
-- `warnings.log` contains advisory validation warnings
-- Raw data not committed (gitignored), only processed CSVs and charts
-- Charts regenerated on every pipeline run via GitHub Actions
-- Financial year labelling: "FY2024-25" format for Indian data
+- Resolution is 100% table-driven (entity tables + validity windows +
+  `airport_aliases`); a high-volume unmapped domestic label is surfaced as an
+  advisory, never silently kept as a raw code
+- Every non-trivial cleanup decision is a falsifiable `assumptions/<id>.md` file
+- Raw data is gitignored; only processed CSVs and charts are committed
+- IATA codes uppercase (DEL, BOM); airport names title case; airline names as
+  branded (IndiGo, not INDIGO); financial years as "FY2024-25"
 
----
+## Charts
+
+Charts serve the data — keep them purist:
+
+- **No editorial overlays.** A chart shows only what is in the published tables;
+  every mark/label must be verifiable against the dataset. Do **not** caption or
+  annotate data that isn't there yet (e.g. an "airport X awaited" note for an
+  airport with zero rows). Newcomers surface through data-derived eligibility in
+  `newcomer_airport_ramps()` once they have qualifying rows. **No airport is
+  special-cased or gilded** (not even a future flagship) — every line uses the
+  shared palette.
+- **No employer/legal disclaimer on charts.** It lives in the **README only**.
+  Chart surfaces stay clean: title, axes, legend, and the attribution line —
+  nothing else.
+
+Default chart generation creates the six static dashboard charts:
+
+- `india_domestic_demand_pulse.png`
+- `top_airport_traffic_trends.png`
+- `newcomer_airport_rampup_24m.png`
+- `domestic_market_share_gainers.png`
+- `international_gateway_share_gainers.png`
+- `airport_seasonality_fingerprint.png`
+
+The optional `airport_passenger_race.gif` is generated only with
+`uv run python scripts/chart.py --include-gifs`.
+
+Domestic charts source `airport_monthly.csv`; the international gateway chart
+sources `airport_international_quarterly.csv`. Do not mix monthly and quarterly
+cadences in one chart.
+
+**Dark theme:** background `#0d1117`, text `#e6edf3`, subtle `#94a3b8`, grid
+`#334155` dashed alpha 0.2. **Attribution line** (bottom-right on the figure):
+
+```
+{repo_url} | Data: DGCA (as of {data_date}) | Generated {today} | Coverage: {coverage}
+```
+
+Do not include a data fingerprint inside chart images. Fingerprints belong in
+`charts/manifest.json` and `data/processed/dashboard_summary.json`. `data_date`
+comes from `data/processed/metadata.json`; `today` is the chart generation date;
+`repo_url` comes from `GITHUB_REPOSITORY` or `git remote`.
+
+**Highlight colours** (`mappings.yaml: airport_colors` / `airline_colors`):
+DEL `#f72585` · BOM `#4cc9f0` · BLR `#4ade80` · HYD `#a78bfa`
+· MAA `#fb923c` · CCU `#f87171`; IndiGo `#3b82f6` · Air India `#f72585` · SpiceJet
+`#fbbf24` · Akasa `#fb923c` · Vistara `#a78bfa`. Tier bands (presentation only):
+Metro `#3b82f6`, Tier 1 `#14b8a6`, Tier 2 `#22c55e`, Tier 3 `#94a3b8`, Greenfield
+`#fbbf24`.
+
+**GIF frames:** 300 ms/frame (last 3000 ms), fixed x/y limits across frames, bar
+labels never clipped.
 
 ## CI / GitHub Actions
 
-- **Schedule:** Monthly (5th of each month at 08:00 UTC)
-- **Cache:** Raw data cached as `data/raw.tar.zst`, restored before download and
-  refreshed by `cache-keepalive.yml`
-- **Incremental downloads:** source files are cached locally and freshness is
-  preserved by the raw-data archive
-- **Soft timeout:** `DOWNLOAD_TIMEOUT=600` (10 min) stops new downloads before
-  job timeout
-- **GIF generation:** Only on 5th of month or manual dispatch (`--skip-gifs`
-  flag on other runs)
-
-### Story cadence != CI cadence
-
-The monthly CI schedule is infrastructure: it keeps the pipeline fresh, catches
-data-source breakage early, and regenerates charts so the README never goes
-stale. The current story is observed passenger traffic only.
+- **Schedule:** monthly (5th, 08:00 UTC); GIFs only on manual dispatch when requested
+- **Cache:** raw data as `data/raw.tar.zst`, refreshed by `cache-keepalive.yml`
+- **Soft timeout:** `DOWNLOAD_TIMEOUT=600` stops new downloads before job timeout
+- **Stale-data governance:** a blocking validation failure keeps the last-good
+  published data and opens a `data-quality` issue rather than shipping a bad merge

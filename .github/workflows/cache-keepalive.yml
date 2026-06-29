@@ -17,19 +17,19 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Restore raw data cache
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: data/raw.tar.zst
-          key: raw-data-v4-${{ hashFiles('scripts/download.py', 'scripts/ingest_sources.py', 'pyproject.toml', 'uv.lock') }}-${{ runner.os }}
+          key: raw-data-v4-${{ hashFiles('scripts/fetch.py', 'scripts/normalize.py', 'pyproject.toml', 'uv.lock') }}-${{ runner.os }}
           restore-keys: |
             raw-data-v4-
 
       - name: Re-save raw data cache
         if: hashFiles('data/raw.tar.zst') != ''
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: data/raw.tar.zst
           key: raw-data-v4-keepalive-${{ github.run_id }}

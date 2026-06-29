@@ -2,9 +2,12 @@
 
 import pandas as pd
 
-from ingest_sources import (
+from normalize import (
     _dgca_source_url_variants,
+    _split_combined_pdf_city,
     aggregate_international,
+    cleanup_obsolete_international_pdf_fallbacks,
+    missing_international_table4_pdf_urls,
     parse_domestic_carrier_file,
     parse_domestic_city_file,
 )
@@ -26,6 +29,45 @@ def test_dgca_source_url_variants_try_uppercase_month_and_extra_space():
     decoded = [variant.replace("%20", " ") for variant in variants]
     assert any("DOM CITYPAIR DATA, MAY 2021.xlsx" in variant for variant in decoded)
     assert any("DOM CITYPAIR DATA,  MAY 2021.xlsx" in variant for variant in decoded)
+
+
+def test_international_table4_pdf_fallback_only_when_excel_is_absent(tmp_path):
+    source = tmp_path / "source"
+    source.mkdir()
+    for table in [1, 2, 3]:
+        (source / f"26Q1_{table}.xlsx").write_bytes(b"x")
+    for table in [1, 2, 3, 4]:
+        (source / f"25Q4_{table}.xlsx").write_bytes(b"x")
+
+    urls = missing_international_table4_pdf_urls(source)
+
+    assert urls == [
+        "https://public-prd-dgca.s3.ap-south-1.amazonaws.com/"
+        "InventoryList/dataReports/aviationDataStatistics/airTransport/"
+        "international/quaterly/26Q1_4.pdf"
+    ]
+
+
+def test_obsolete_international_table4_pdf_fallback_is_removed(tmp_path):
+    source = tmp_path / "source"
+    source.mkdir()
+    pdf = source / "26Q1_4.pdf"
+    pdf.write_bytes(b"pdf")
+    (source / "26Q1_4.xlsx").write_bytes(b"xlsx")
+
+    assert cleanup_obsolete_international_pdf_fallbacks(source) == 1
+    assert not pdf.exists()
+
+
+def test_pdf_combined_city_split_uses_known_airport_source_labels():
+    assert _split_combined_pdf_city("BANDAR SERI BEGAWANCHENNAI") == (
+        "BANDAR SERI BEGAWAN",
+        "CHENNAI",
+    )
+    assert _split_combined_pdf_city("HAA DHAALU ATOLLTRIVANDRUM") == (
+        "HAA DHAALU ATOLL",
+        "TRIVANDRUM",
+    )
 
 
 def test_parse_domestic_city_file(tmp_path):

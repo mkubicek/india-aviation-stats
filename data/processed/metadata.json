@@ -1,4 +1,70 @@
 {
-  "data_date": "2026-06-05",
-  "processed_date": "2026-06-05"
+  "data_date": "2026-06-28",
+  "processed_date": "2026-06-28",
+  "tables": {
+    "airport_monthly": {
+      "schema_version": "2.0",
+      "rows": 13223,
+      "columns": [
+        "year",
+        "month",
+        "airport",
+        "passengers",
+        "departures",
+        "arrivals"
+      ]
+    },
+    "airport_international_quarterly": {
+      "schema_version": "1.0",
+      "rows": 1218,
+      "columns": [
+        "year",
+        "quarter",
+        "airport",
+        "passengers",
+        "departures",
+        "arrivals"
+      ]
+    },
+    "airport_yearly": {
+      "schema_version": "2.0",
+      "rows": 1388,
+      "columns": [
+        "year",
+        "airport",
+        "category",
+        "passengers"
+      ]
+    },
+    "carrier_monthly": {
+      "schema_version": "1.0",
+      "rows": 3399,
+      "columns": [
+        "airline",
+        "service_type",
+        "year",
+        "month",
+        "aircraft_km",
+        "passengers",
+        "passenger_km",
+        "seat_km",
+        "freight_tonnes",
+        "mail_tonnes",
+        "total_tonne_km",
+        "available_tonne_km",
+        "passenger_load_factor",
+        "weight_load_factor"
+      ]
+    }
+  },
+  "schema_changelog": [
+    {
+      "version": "2.0",
+      "tables": [
+        "airport_monthly",
+        "airport_yearly"
+      ],
+      "change": "Cadence split: airport_monthly is domestic-only (international moved to airport_international_quarterly with a real quarter column). Dropped 'category' from airport_monthly and 'tier' from all tables. Passenger columns are integers."
+    }
+  ]
 }

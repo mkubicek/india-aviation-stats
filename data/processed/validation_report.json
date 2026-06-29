@@ -1,0 +1,198 @@
+{
+  "blocking_failures": 0,
+  "tripwire_failures": 0,
+  "advisories": 1,
+  "passed": 16,
+  "findings": [
+    {
+      "check": "cadence.layer1_unique",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "domestic monthly: one row per (airport, year, month)"
+    },
+    {
+      "check": "cadence.layer2_unique",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "international quarterly: one row per (airport, year, quarter)"
+    },
+    {
+      "check": "cadence.layer2_quarter_domain",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "international quarterly: quarter in 1..4"
+    },
+    {
+      "check": "definitional.sum.airport_monthly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_monthly: passengers == departures + arrivals"
+    },
+    {
+      "check": "definitional.nonneg.airport_monthly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_monthly: all passenger values non-negative"
+    },
+    {
+      "check": "definitional.int.airport_monthly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_monthly: passenger columns are integers"
+    },
+    {
+      "check": "definitional.sum.airport_international_quarterly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_international_quarterly: passengers == departures + arrivals"
+    },
+    {
+      "check": "definitional.nonneg.airport_international_quarterly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_international_quarterly: all passenger values non-negative"
+    },
+    {
+      "check": "definitional.int.airport_international_quarterly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_international_quarterly: passenger columns are integers"
+    },
+    {
+      "check": "schema.airport_monthly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_monthly: schema v2.0 conforms"
+    },
+    {
+      "check": "schema.airport_international_quarterly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_international_quarterly: schema v1.0 conforms"
+    },
+    {
+      "check": "schema.airport_yearly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "airport_yearly: schema v2.0 conforms"
+    },
+    {
+      "check": "conservation.tripwire",
+      "status": "pass",
+      "severity": "TRIPWIRE",
+      "message": "per month sum(departures) == sum(arrivals) (true by construction; tripwire only)"
+    },
+    {
+      "check": "carrier.unique",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "carrier monthly: one row per (airline, service_type, year, month)"
+    },
+    {
+      "check": "carrier.load_factor.weight_load_factor",
+      "status": "warn",
+      "severity": "ADVISORY",
+      "message": "2 row(s) with weight_load_factor outside 0-100"
+    },
+    {
+      "check": "overlap.concurrent.COK",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "COK: concurrent labels ['COCHIN', 'KOCHI'] declared as one airport"
+    },
+    {
+      "check": "unmapped.high_volume",
+      "status": "pass",
+      "severity": "ADVISORY",
+      "message": "no high-volume unmapped domestic labels"
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "AIRLINE-001",
+      "title": "Airline mergers are linked, not collapsed \u2014 each brand keeps its own series",
+      "category": "airline-identity",
+      "test": "airlines-linked-not-collapsed",
+      "verdict": "HOLDS",
+      "detail": "['Vistara', 'Air India', 'AirAsia India', 'AIX Connect', 'Air India Express'] all present as distinct airlines",
+      "covers": []
+    },
+    {
+      "id": "COK-001",
+      "title": "COCHIN and KOCHI are one airport (COK) \u2014 a declared concurrent same-airport merge",
+      "category": "deduplication",
+      "test": "concurrent-merge-declared",
+      "verdict": "HOLDS",
+      "detail": "['COCHIN', 'KOCHI'] declared as one airport (COK)",
+      "covers": [
+        "COK"
+      ]
+    },
+    {
+      "id": "GOA-001",
+      "title": "Goa is two airports \u2014 Dabolim (GOI) and Mopa (GOX) \u2014 and the DGCA \"GOI\" label is Mopa from 2023",
+      "category": "deduplication",
+      "test": "size-ordering-holds",
+      "verdict": "HOLDS",
+      "detail": "GOI (69,062,871) >= GOX (15,065,993)",
+      "covers": [
+        "GOI",
+        "GOX"
+      ]
+    },
+    {
+      "id": "IXD-001",
+      "title": "Allahabad and Prayagraj are one airport (IXD) \u2014 a clean disjoint rename",
+      "category": "rename",
+      "test": "month-disjoint-rename",
+      "verdict": "HOLDS",
+      "detail": "['ALLAHABAD', 'PRAYAGRAJ', 'ALLAHABAD PRAYAGRAJ'] are month-disjoint",
+      "covers": [
+        "IXD"
+      ]
+    },
+    {
+      "id": "KLH-001",
+      "title": "Kalaburagi is GBI, not KLH \u2014 KLH is Kolhapur (the source/table mixed the IATA codes)",
+      "category": "deduplication",
+      "test": "distinct-airports-not-merged",
+      "verdict": "HOLDS",
+      "detail": "['GBI', 'KLH'] all present and distinct",
+      "covers": [
+        "GBI",
+        "KLH"
+      ]
+    },
+    {
+      "id": "LUH-001",
+      "title": "The \"LUDHIANA\" label is two airports \u2014 Sahnewal (LUH) through 2025, Halwara (HWR) from 2026",
+      "category": "deduplication",
+      "test": "month-disjoint-rename",
+      "verdict": "HOLDS",
+      "detail": "['LUDHIANA'] are month-disjoint",
+      "covers": [
+        "LUH",
+        "HWR"
+      ]
+    },
+    {
+      "id": "PXN-001",
+      "title": "PURNEA and PURNIA AIRPORT are one airport (PXN) \u2014 a disjoint spelling change",
+      "category": "rename",
+      "test": "month-disjoint-rename",
+      "verdict": "HOLDS",
+      "detail": "['PURNEA', 'PURNIA AIRPORT'] are month-disjoint",
+      "covers": [
+        "PXN"
+      ]
+    }
+  ],
+  "reverse_gate": [
+    {
+      "check": "reverse_gate",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "every concurrent merge has a covering assumption file"
+    }
+  ]
+}

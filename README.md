@@ -1,132 +1,122 @@
 # India Aviation Stats
 
-Open-source tooling for fetching official Indian aviation traffic workbooks,
-normalizing them into tidy CSVs, and generating current passenger charts.
+A clean, continuous, openly-licensed dataset of Indian aviation passenger
+traffic — DGCA's messy public workbooks turned into tidy CSVs you can `curl` and
+trust, **with the proof that the cleaning is correct shipped alongside the data.**
+
+**Live dashboard:** <https://mkubicek.github.io/india-aviation-stats/>
 
 > **Disclaimer:** This is a personal open-source project. Views and analysis
 > are my own and do not represent Flughafen Zürich AG, Noida International
 > Airport, or any affiliated entity.
 
----
+## The data
 
-## Current Scope
+Four single-grain tables (three source + one derived) in [`data/processed/`](data/processed/) — full schema
+in the **[data dictionary](docs/data-dictionary.md)**:
 
-This branch is intentionally focused on observed source data:
+| Table | Grain | Scope |
+|---|---|---|
+| `airport_monthly.csv` | airport × month | domestic — the canonical core |
+| `airport_international_quarterly.csv` | airport × quarter | international |
+| `carrier_monthly.csv` | airline × service × month | airline operating stats |
+| `airport_yearly.csv` | airport × year | **derived** from the monthly + quarterly tables |
 
-- discover and download DGCA public Excel workbooks directly from source
-- normalize domestic monthly and international quarterly traffic tables
-- publish processed airport/carrier CSVs
-- generate passenger-ranking and trailing domestic passenger-race charts
+Each airport is **one entity** (`passengers == departures + arrivals`, integer),
+each file has **one time grain** — so you can `groupby` any way and never get a
+silently-wrong number. Stable per-file URLs to `curl` or cite:
 
-GDP correlation, passenger projections, milestones, and reports are not part of
-`main` right now. The earlier exploratory work remains in `feature/bootstrap`.
+```
+https://raw.githubusercontent.com/mkubicek/india-aviation-stats/main/data/processed/airport_monthly.csv
+```
 
----
+## How the cleanup is validated
+
+DGCA's workbooks are genuinely messy (a `PASSENEGER` header typo, shifting S3
+keys, 2-digit years, the same airport under several spellings). Every cleanup
+decision is **checkable and re-run on every refresh**, because a naive heuristic
+would silently corrupt the data:
+
+- **Goa is two airports.** Dabolim (`GOI`) and Mopa (`GOX`, opened 2023) — and
+  DGCA files Mopa's traffic under *Dabolim's* IATA code. Merging them erases an
+  airport; trusting the code mislabels one. Resolved by cited research, encoded
+  with validity windows.
+- **The overlap gate** refuses to sum two concurrent source labels into one
+  airport unless a human has declared it — a new DGCA label landing on an
+  existing airport reds CI until classified, never silently merges.
+- **A falsifiable ledger.** Every non-trivial decision is a static Markdown file
+  in [`assumptions/`](assumptions/) (Open Knowledge Format) with evidence,
+  citations, and a named falsification test. `validate --assumptions` re-tests
+  each against current data → HOLDS/TRIGGERED/STALE/ORPHANED in
+  [`DATA_QUALITY.md`](data/processed/DATA_QUALITY.md).
+
+See [METHODOLOGY.md](METHODOLOGY.md) for the validation table. `mappings.yaml` is
+the canonical entity table (every source label → airport); `assumptions/` records
+the non-trivial cleanup decisions.
+
+## Dashboard
+
+**Live dashboard:** <https://mkubicek.github.io/india-aviation-stats/>
 
 ## Charts
 
-### Passenger Race
+Generated from the published tables, no editorial overlays.
 
-Animated bar race of the top airports by scheduled domestic passengers on a
-trailing 12-month basis. The current source coverage supports continuous
-monthly frames from Mar 2016 through Mar 2026.
+### India Domestic Demand Pulse
 
-![India airport passenger race](charts/airport_passenger_race.gif)
+![India Domestic Demand Pulse](charts/india_domestic_demand_pulse.png)
 
-### Airport Rankings
+### Top Airport Traffic Trends
 
-Static bump chart of the current top 10 airports across complete DGCA source
-years. Ranking uses domestic + international passenger totals, while incomplete
-annual years are left as visible gaps.
+![Top Airport Traffic Trends](charts/top_airport_traffic_trends.png)
 
-![India's top airport rankings over time](charts/airport_rankings.png)
+### Newcomer Airport Ramp-up
 
----
+![Newcomer Airport Ramp-up](charts/newcomer_airport_rampup_24m.png)
 
-## Data Sources
+### Market Share Movers
 
-| Source | What | Access |
-|--------|------|--------|
-| [DGCA](https://www.dgca.gov.in/) | Domestic city-pair/carrier workbooks; international city/country/carrier workbooks | Public Excel |
-| [MoCA](https://www.civilaviation.gov.in/) | Optional daily summaries | Public HTML / Internet Archive |
+![Domestic Market Share Movers](charts/domestic_market_share_gainers.png)
 
-`scripts/download.py` discovers DGCA workbook URLs, downloads raw source files
-under `data/raw/aviation/dgca/`, and writes normalized aggregate CSVs under
-`data/raw/aviation/aggregated/`. Optional MoCA daily snapshot ingestion is
-enabled with `INCLUDE_MCA_DAILY=1`.
+![International Gateway Share Movers](charts/international_gateway_share_gainers.png)
 
----
+### Airport Seasonality Fingerprint
+
+![Airport Seasonality Fingerprint](charts/airport_seasonality_fingerprint.png)
+
+### Bonus animation
+
+The passenger race GIF can be regenerated with `uv run python scripts/chart.py --include-gifs`.
+
+![Airport Passenger Race](charts/airport_passenger_race.gif)
 
 ## Pipeline
 
 ```
-download.py -> process.py -> validate.py -> chart.py
+fetch → normalize → clean → validate → chart
+ (1) fetch DGCA raw   (2) dedup + trace   (3) standardized set   (4) charts
 ```
 
-Each step is idempotent and can be re-run independently.
-
 ```bash
-# Setup
 uv sync
-
-# Full local refresh
-uv run python scripts/download.py
-uv run python scripts/process.py
-uv run python scripts/validate.py
-uv run python scripts/chart.py
-
-# Faster static-chart run
-uv run python scripts/chart.py --skip-gifs
-
-# Tests
+uv run python scripts/fetch.py     # download DGCA raw + fingerprint manifest
+uv run python scripts/clean.py     # build the canonical tables
+PYTHONPATH=scripts uv run python -m validate --assumptions --revisions
+uv run python scripts/chart.py     # static dashboard charts + JSON summary
 uv run pytest
 ```
 
-Monthly CI keeps the source cache fresh and regenerates processed data/charts.
-Raw downloads are gitignored and cached in GitHub Actions as a compressed
-`data/raw.tar.zst` archive.
+Monthly GitHub Actions refreshes the data behind the validation gate: a blocking
+failure keeps the last-good data and opens an issue instead of shipping a
+now-wrong merge. Source changes are detected via a committed fingerprint manifest
+(`data/sources_manifest.csv`); restated values are disclosed in
+[`REVISIONS.md`](data/processed/REVISIONS.md).
 
----
+## How to cite
 
-## Processed Data
-
-| File | Description |
-|------|-------------|
-| `data/processed/airport_monthly.csv` | Airport passenger rows. Domestic rows are monthly; international rows are quarterly source values mapped to the quarter midpoint month. |
-| `data/processed/airport_yearly.csv` | Calendar-year airport passenger totals by category and tier. |
-| `data/processed/carrier_monthly.csv` | Domestic carrier source rows normalized from DGCA workbooks. |
-| `data/processed/metadata.json` | Processing metadata and data date. |
-
----
-
-## Project Structure
-
-```
-india-aviation-stats/
-├── AGENTS.md
-├── METHODOLOGY.md
-├── README.md
-├── LICENSE
-├── mappings.yaml
-├── scripts/
-│   ├── download.py       # Fetch DGCA/MoCA source data
-│   ├── ingest_sources.py # Discover, download, and normalize sources
-│   ├── process.py        # Build processed CSVs
-│   ├── validate.py       # Advisory source/data checks
-│   └── chart.py          # Generate charts
-├── data/
-│   ├── raw/              # Downloaded source files (gitignored)
-│   └── processed/        # Published CSVs
-├── tests/
-├── charts/
-├── .github/workflows/
-│   ├── update.yml
-│   └── cache-keepalive.yml
-└── pyproject.toml
-```
-
----
+> Kubicek, M. (2026). *India Aviation Stats: a cleaned DGCA passenger-traffic
+> dataset.* GitHub. https://github.com/mkubicek/india-aviation-stats
 
 ## License
 
-MIT - see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE). Data sourced from DGCA (public).

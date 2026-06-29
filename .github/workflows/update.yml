@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   update:
@@ -21,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -29,20 +30,17 @@ jobs:
           python-version: "3.12"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@v8.2.0
 
       - name: Install dependencies
         run: uv sync --frozen
 
-      - name: Run tests
-        run: uv run pytest -q
-
       - name: Restore raw data cache
         id: raw-cache
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: data/raw.tar.zst
-          key: raw-data-v4-${{ hashFiles('scripts/download.py', 'scripts/ingest_sources.py', 'pyproject.toml', 'uv.lock') }}-${{ runner.os }}
+          key: raw-data-v4-${{ hashFiles('scripts/fetch.py', 'scripts/normalize.py', 'pyproject.toml', 'uv.lock') }}-${{ runner.os }}
           restore-keys: |
             raw-data-v4-
 
@@ -56,9 +54,14 @@ jobs:
           find data/raw -type f | wc -l
           du -sh data/raw || true
 
-      - name: Download data
+      # Tests run after raw is restored so raw-dependent integration tests
+      # execute on warm-cache runs; they skip cleanly when raw is absent.
+      - name: Run tests
+        run: uv run pytest -q
+
+      - name: Fetch data
         id: download
-        run: uv run python scripts/download.py
+        run: uv run python scripts/fetch.py
         env:
           DOWNLOAD_TIMEOUT: "600"
 
@@ -72,34 +75,60 @@ jobs:
 
       - name: Save raw data cache
         if: always() && hashFiles('data/raw.tar.zst') != ''
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: data/raw.tar.zst
-          key: raw-data-v4-${{ hashFiles('scripts/download.py', 'scripts/ingest_sources.py', 'pyproject.toml', 'uv.lock') }}-${{ github.run_id }}
+          key: raw-data-v4-${{ hashFiles('scripts/fetch.py', 'scripts/normalize.py', 'pyproject.toml', 'uv.lock') }}-${{ github.run_id }}
 
-      - name: Process data
+      - name: Clean data into canonical CSV datasets
         if: steps.download.outputs.timed_out != 'true'
-        run: uv run python scripts/process.py
+        run: uv run python scripts/clean.py
 
-      - name: Validate data
+      - name: Validate (BLOCKING gate + assumptions ledger + revision log)
+        id: validate
         if: steps.download.outputs.timed_out != 'true'
-        run: uv run python scripts/validate.py
+        continue-on-error: true
+        run: PYTHONPATH=scripts uv run python -m validate --assumptions --revisions
 
-      - name: Generate charts
-        if: steps.download.outputs.timed_out != 'true'
+      # Stale-data governance: a BLOCKING gate failure (e.g. an unclassified
+      # overlap from a new DGCA label, or a TRIGGERED assumption) keeps the
+      # last-good published data and opens an issue — it never silently ships a
+      # now-wrong merge. Clean newcomers stay advisory and still publish.
+      - name: Open issue on validation failure
+        if: steps.validate.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `Data validation gate failed on ${new Date().toISOString().slice(0,10)}`;
+            const body = [
+              'The monthly refresh hit a BLOCKING validation failure, so the published',
+              'data was **not** updated (last-good kept). Most likely a new DGCA label',
+              'overlaps an existing airport and needs classifying in `mappings.yaml`,',
+              'or an assumption TRIGGERED.',
+              '',
+              'See the failed run and `data/processed/validation_report.json`.',
+            ].join('\n');
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              title, body, labels: ['data-quality'],
+            });
+
+      - name: Generate charts and dashboard summary
+        if: steps.download.outputs.timed_out != 'true' && steps.validate.outcome == 'success'
         run: |
-          if [[ "${{ github.event_name }}" == "schedule" || "${{ inputs.generate_gifs }}" == "true" ]]; then
-            uv run python scripts/chart.py
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.generate_gifs }}" == "true" ]]; then
+            uv run python scripts/chart.py --include-gifs
           else
-            uv run python scripts/chart.py --skip-gifs
+            uv run python scripts/chart.py
           fi
 
       - name: Commit and push
-        if: steps.download.outputs.timed_out != 'true'
+        if: steps.download.outputs.timed_out != 'true' && steps.validate.outcome == 'success'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/processed/ charts/
+          git add data/processed/ charts/ index.html .nojekyll assumptions/index.md
+          [ -f data/sources_manifest.csv ] && git add data/sources_manifest.csv || true
           if [ -s warnings.log ]; then
             git add -f warnings.log
           fi

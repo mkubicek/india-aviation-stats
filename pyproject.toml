@@ -1,7 +1,7 @@
 [project]
 name = "india-aviation-stats"
 version = "0.1.0"
-description = "Official-source Indian aviation traffic ingestion and passenger charts"
+description = "A clean, canonical dataset of Indian aviation passenger traffic from DGCA, with charts"
 requires-python = ">=3.11"
 license = "MIT"
 dependencies = [
@@ -12,8 +12,8 @@ dependencies = [
     "openpyxl>=3.1",
     "numpy>=1.24",
     "Pillow>=10.0",
-    "beautifulsoup4>=4.12",
     "xlrd>=2.0",
+    "pdfminer.six>=20240706",
 ]
 
 [dependency-groups]
