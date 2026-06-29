@@ -515,6 +515,40 @@ def market_share_movers(
     )
 
 
+def format_month_period(period: pd.Period) -> str:
+    return f"{MONTH_ABBR[int(period.month)]} {int(period.year)}"
+
+
+def format_quarter_period(period: pd.Period) -> str:
+    return f"{period.year}Q{period.quarter}"
+
+
+def active_entity_count(pivot: pd.DataFrame, periods: Sequence[pd.Period]) -> int:
+    """Airports/gateways carrying any traffic across the comparison windows."""
+    window = pivot.loc[list(periods)]
+    return int((window.sum(axis=0) > 0).sum())
+
+
+def share_movers_subtitle(
+    movers: pd.DataFrame,
+    *,
+    latest_periods: Sequence[pd.Period],
+    previous_periods: Sequence[pd.Period],
+    active: int,
+    noun: str,
+    fmt,
+) -> str:
+    """Disclose the top-N-of-total selection and name the explicit windows."""
+    n_gainers = int((movers["delta_pp"] > 0).sum())
+    n_losers = int((movers["delta_pp"] < 0).sum())
+    latest_label = f"{fmt(latest_periods[0])}–{fmt(latest_periods[-1])}"
+    previous_label = f"{fmt(previous_periods[0])}–{fmt(previous_periods[-1])}"
+    return (
+        f"Top {n_gainers} gainers & {n_losers} decliners of {active} {noun}  ·  "
+        f"{latest_label} vs {previous_label}"
+    )
+
+
 def newcomer_airport_ramps(
     monthly: pd.DataFrame,
     *,
@@ -1025,17 +1059,29 @@ def chart_domestic_market_share_gainers(
     fingerprint: str,
 ) -> Path:
     pivot = domestic_airport_month_matrix(monthly)
+    latest_periods, previous_periods = complete_share_window_periods(
+        pivot.index,
+        window=DOMESTIC_SHARE_WINDOW_MONTHS,
+    )
     movers = market_share_movers(
         pivot,
         window=DOMESTIC_SHARE_WINDOW_MONTHS,
         min_traffic=DOMESTIC_SHARE_MIN_TRAFFIC,
         top_n=DOMESTIC_SHARE_TOP_N,
     )
+    subtitle = share_movers_subtitle(
+        movers,
+        latest_periods=latest_periods,
+        previous_periods=previous_periods,
+        active=active_entity_count(pivot, latest_periods + previous_periods),
+        noun="airports",
+        fmt=format_month_period,
+    )
     return chart_share_movers(
         movers,
         chart_id="domestic_market_share_gainers",
         title="Domestic Market Share Movers",
-        subtitle="Airport share change: latest trailing 12 months vs previous trailing 12 months",
+        subtitle=subtitle,
         pax_change_header="Dom pax change",
         latest_pax_header="Latest dom 12M pax",
         coverage=coverage,
@@ -1050,20 +1096,29 @@ def chart_international_gateway_share_gainers(
     fingerprint: str,
 ) -> Path:
     pivot = international_airport_quarter_matrix(quarterly)
+    latest_periods, previous_periods = complete_share_window_periods(
+        pivot.index,
+        window=INTERNATIONAL_SHARE_WINDOW_QUARTERS,
+    )
     movers = market_share_movers(
         pivot,
         window=INTERNATIONAL_SHARE_WINDOW_QUARTERS,
         min_traffic=INTERNATIONAL_SHARE_MIN_TRAFFIC,
         top_n=INTERNATIONAL_SHARE_TOP_N,
     )
+    subtitle = share_movers_subtitle(
+        movers,
+        latest_periods=latest_periods,
+        previous_periods=previous_periods,
+        active=active_entity_count(pivot, latest_periods + previous_periods),
+        noun="gateways",
+        fmt=format_quarter_period,
+    )
     return chart_share_movers(
         movers,
         chart_id="international_gateway_share_gainers",
         title="International Gateway Share Movers",
-        subtitle=(
-            "Indian airport international share change: latest 4 quarters vs "
-            "previous 4 quarters"
-        ),
+        subtitle=subtitle,
         pax_change_header="Intl pax change",
         latest_pax_header="Latest intl 4Q pax",
         coverage=coverage,

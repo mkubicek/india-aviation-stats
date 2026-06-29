@@ -23,3 +23,7 @@ traffic from DGCA's public workbooks.
   race GIF is now opt-in.
 - Validation runs as a partial CI gate; a blocking failure keeps last-good data
   and opens an issue.
+- **Share Movers charts disclose their scope.** Both share-mover subtitles now
+  state the top-N-of-total selection and name the explicit comparison windows on
+  the chart, so the ~20-bar view is not mistaken for the full airport field or
+  read as ending in the current (unpublished) period.
