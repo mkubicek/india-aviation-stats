@@ -32,6 +32,7 @@ from metrics import (
     domestic_airline_passengers_carried,
     domestic_airport_matrix,
     domestic_airport_throughput,
+    domestic_demand_series,
     international_gateway_matrix,
     international_gateway_throughput,
 )
@@ -305,13 +306,13 @@ def fmt_axis_pp(x, pos=None) -> str:
 
 
 def fmt_optional_pct(value: float | None) -> str:
-    if value is None or pd.isna(value):
+    if value is None or pd.isna(value) or not np.isfinite(value):
         return "n/a"
     return f"{value:+.1f}%"
 
 
 def fmt_optional_millions(value: float | None) -> str:
-    if value is None or pd.isna(value):
+    if value is None or pd.isna(value) or not np.isfinite(value):
         return "n/a"
     return f"{value / 1_000_000:.1f}M"
 
@@ -680,10 +681,7 @@ def chart_india_domestic_demand_pulse(
     # National domestic demand is passengers carried (counted once per journey),
     # sourced from the carrier table — NOT a national sum of airport endpoint
     # throughput, which double-counts every domestic journey. See metrics.py.
-    national = domestic_airline_passengers_carried(carrier)
-    t12 = national.rolling(12, min_periods=12).sum()
-    monthly_yoy = national / national.shift(12) - 1
-    t12_yoy = t12 / t12.shift(12) - 1
+    national, t12, monthly_yoy, t12_yoy = domestic_demand_series(carrier)
 
     latest_period = national.index.max()
     latest_month_carried = float(national.loc[latest_period])
@@ -1203,26 +1201,37 @@ def generate_dashboard_summary(
     # Domestic headline = passengers carried (carrier table, counted once per
     # journey). Airport endpoint throughput is also reported, under an explicit
     # key, for airport-level context — it is ~2× passengers carried nationally.
-    national = domestic_airline_passengers_carried(carrier)
-    t12 = national.rolling(12, min_periods=12).sum()
-    monthly_yoy = national / national.shift(12) - 1
-    t12_yoy = t12 / t12.shift(12) - 1
+    national, t12, monthly_yoy, t12_yoy = domestic_demand_series(carrier)
     latest_month = national.index.max()
 
     m = add_month_period(monthly)
     throughput = domestic_airport_throughput(monthly)
+    # Airport context is keyed to the carrier headline month. The two layers are
+    # published independently, so if the carrier extends a month beyond the
+    # airport layer, report null rather than silently quoting a different month.
+    airport_month_present = latest_month in throughput.index
 
-    q = add_quarter_period(quarterly)
-    international = q.groupby("period")["passengers"].sum().sort_index()
+    # International uses positional rolling(4)/shift(4). Unlike the carrier series
+    # it is NOT gap-filled: a missing quarter here means "not yet published", not
+    # "zero traffic" (filling 0 would understate the 4Q total). The quarterly
+    # table is contiguous, and check_coverage warns if a quarter ever goes missing.
+    international = international_gateway_throughput(quarterly)
     latest_4q = international.rolling(4, min_periods=4).sum()
     latest_4q_yoy = latest_4q / latest_4q.shift(4) - 1
     latest_quarter = international.index.max()
+    q = add_quarter_period(quarterly)
 
     def nullable_int(value: float) -> int | None:
-        return None if pd.isna(value) else int(round(float(value)))
+        if pd.isna(value) or not np.isfinite(value):
+            return None
+        return int(round(float(value)))
 
     def nullable_pct(value: float) -> float | None:
-        return None if pd.isna(value) else round(float(value) * 100, 1)
+        # Non-finite (e.g. YoY against a zero base) serializes as a non-standard
+        # `Infinity` JSON token that browsers reject — emit null instead.
+        if pd.isna(value) or not np.isfinite(value):
+            return None
+        return round(float(value) * 100, 1)
 
     summary = {
         "data_date": load_metadata().get("data_date"),
@@ -1240,10 +1249,12 @@ def generate_dashboard_summary(
             "passengers_metric": "scheduled_domestic_passengers_carried",
             "airports_latest_month": int(
                 m.loc[m["period"] == latest_month, "airport"].nunique()
-            ),
-            "airport_throughput_latest_month": nullable_int(
-                throughput.get(latest_month, throughput.iloc[-1])
-            ),
+            )
+            if airport_month_present
+            else None,
+            "airport_throughput_latest_month": nullable_int(throughput.loc[latest_month])
+            if airport_month_present
+            else None,
         },
         "international": {
             "latest_quarter": str(latest_quarter),

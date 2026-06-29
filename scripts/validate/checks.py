@@ -17,6 +17,8 @@ from dataclasses import dataclass, asdict
 
 import pandas as pd
 
+from metrics import CONSERVATION_RATIO_BAND, SCHEDULED_DOMESTIC
+
 # Documented per-table schemas (column -> dtype kind). Backs the data dictionary.
 EXPECTED_SCHEMAS = {
     "airport_monthly": {
@@ -219,37 +221,50 @@ def check_metric_semantics(
 
     Each domestic journey is one carrier passenger and two airport endpoints
     (a departure + an arrival), so summing the airport layer nationally
-    double-counts journeys. This advisory makes that conservation relationship
-    visible and guards against ever reusing airport endpoint throughput as a
-    national "passengers carried" figure. The DGCA city-pair and carrier
-    workbooks are independent, so a few historic months (notably 2017) diverge a
-    few percent; the check asserts a ±5% band, not exact equality.
+    double-counts journeys. This advisory surfaces that conservation relationship
+    and guards against ever reusing airport endpoint throughput as a national
+    "passengers carried" figure. It is intentionally advisory, not blocking: the
+    DGCA city-pair and carrier workbooks are independent, so a few historic months
+    (notably 2017) diverge a few percent — a ±10% band tolerates that without
+    redding CI on a benign data revision, while still flagging a real layer break.
     """
     check = "semantics.domestic_airport_throughput_vs_carrier"
     if carrier is None or "service_type" not in carrier.columns:
         return []
 
     throughput = monthly.groupby(["year", "month"])["passengers"].sum()
-    sched = carrier[carrier["service_type"] == "scheduled_domestic"]
+    sched = carrier[carrier["service_type"] == SCHEDULED_DOMESTIC]
     carried = sched.groupby(["year", "month"])["passengers"].sum()
-    common = [k for k in throughput.index.intersection(carried.index) if carried.loc[k] > 0]
-    if not common:
+    common = throughput.index.intersection(carried.index)
+    if len(common) == 0:
         return [_warn(check, "no overlapping months between airport and carrier layers")]
 
-    ratio = (throughput.loc[common] / carried.loc[common]).sort_index()
-    out_of_band = ratio[(ratio < 1.9) | (ratio > 2.1)]
+    t = throughput.loc[common]
+    c = carried.loc[common]
+    # carried == 0 with material throughput is itself a conservation break (no
+    # domestic passengers carried, yet airport endpoints report movement); flag
+    # it rather than dropping it. Only carried > 0 months get a finite ratio.
+    zero_carried = sorted(k for k in common if c.loc[k] == 0 and t.loc[k] > 0)
+    nonzero = [k for k in common if c.loc[k] > 0]
+    if not nonzero:
+        return [_warn(check, "no overlapping months with non-zero carrier passengers")]
+
+    low, high = CONSERVATION_RATIO_BAND
+    ratio = (t[nonzero] / c[nonzero]).sort_index()
+    out_of_band = ratio[(ratio < low) | (ratio > high)]
     worst = float((ratio - 2).abs().max())
-    if out_of_band.empty:
+    breaks = sorted(out_of_band.index.tolist()) + zero_carried
+    if not breaks:
         return [_ok(check, "ADVISORY",
                     f"domestic airport throughput == ~2x scheduled-domestic passengers "
-                    f"carried for all {len(common)} overlapping month(s) "
+                    f"carried for all {len(nonzero)} overlapping month(s) "
                     f"(max deviation {worst:.3f}); endpoint throughput is not "
                     "national passengers carried")]
-    sample = ", ".join(f"{int(y)}-{int(m):02d}" for (y, m) in out_of_band.index[:6])
+    sample = ", ".join(f"{int(y)}-{int(m):02d}" for (y, m) in breaks[:6])
     return [_warn(check,
-                  f"{len(out_of_band)} overlapping month(s) where airport throughput is "
-                  f"not within 5% of 2x scheduled-domestic passengers carried: {sample}"
-                  + ("..." if len(out_of_band) > 6 else ""))]
+                  f"{len(breaks)} overlapping month(s) where airport throughput is not "
+                  f"~2x scheduled-domestic passengers carried: {sample}"
+                  + ("..." if len(breaks) > 6 else ""))]
 
 
 # ── ADVISORY: coverage continuity ────────────────────────────

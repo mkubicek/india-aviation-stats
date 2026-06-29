@@ -9,6 +9,7 @@ the airport table is *endpoint throughput* (arrivals + departures), which is
 import inspect
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -78,6 +79,43 @@ def test_domestic_airport_matrix_is_airport_by_month():
     assert matrix.loc[pd.Period("2026-06", freq="M"), "BOM"] == 0  # filled, not NaN
 
 
+def test_domestic_demand_series_fills_calendar_gaps_with_zero():
+    """Positional rolling()/shift() are only calendar-correct on a gap-free index.
+
+    Carrier scheduled-domestic is missing 2020-04 (COVID lockdown); the series
+    must reindex it to 0, not skip it (which would slide the trailing window).
+    """
+    rows = [
+        {"airline": "X", "service_type": "scheduled_domestic",
+         "year": p.year, "month": p.month, "passengers": 1000}
+        for p in pd.period_range("2020-01", "2021-12", freq="M")
+        if p != pd.Period("2020-04", freq="M")  # the gap
+    ]
+    demand = metrics.domestic_demand_series(pd.DataFrame(rows))
+    full = pd.period_range("2020-01", "2021-12", freq="M")
+    assert list(demand.national.index) == list(full)  # contiguous, gap filled
+    assert demand.national.loc[pd.Period("2020-04", freq="M")] == 0
+    # First complete T12 lands at 2020-12: 11 months × 1000 + the zero gap = 11000.
+    assert demand.trailing_12m.loc[pd.Period("2020-12", freq="M")] == 11000
+    # YoY at 2021-05 compares to 2020-05 (same value) → 0.0, proving alignment.
+    assert demand.monthly_yoy.loc[pd.Period("2021-05", freq="M")] == 0.0
+    # YoY against the zero-filled month (2021-04 vs 2020-04 == 0) is undefined →
+    # NaN, never inf (an inf would serialize as an invalid `Infinity` JSON token).
+    yoy_2021_04 = demand.monthly_yoy.loc[pd.Period("2021-04", freq="M")]
+    assert pd.isna(yoy_2021_04)
+    assert not np.isinf(yoy_2021_04)
+
+
+def test_domestic_demand_series_rejects_empty_carrier():
+    """No scheduled-domestic rows is a broken pipeline → fail clearly, not NaT."""
+    empty = pd.DataFrame(
+        [{"airline": "X", "service_type": "scheduled_international",
+          "year": 2026, "month": 5, "passengers": 100}]
+    )
+    with pytest.raises(ValueError, match="scheduled_domestic"):
+        metrics.domestic_demand_series(empty)
+
+
 # ── cross-layer conservation (real data) ─────────────────────
 
 
@@ -106,9 +144,10 @@ def test_domestic_airport_throughput_tracks_twice_carrier_passengers():
     common = throughput.index.intersection(carried.index)
     assert len(common) >= 100  # the two layers really do overlap
 
+    low, high = metrics.CONSERVATION_RATIO_BAND
     ratio = throughput.loc[common] / carried.loc[common]
-    # Every overlapping month is within ~5% of the 2× conservation identity.
-    assert ratio.between(1.9, 2.1).all(), ratio[~ratio.between(1.9, 2.1)]
+    # Every overlapping month is within the conservation band around 2×.
+    assert ratio.between(low, high).all(), ratio[~ratio.between(low, high)]
 
 
 # ── dashboard summary uses the carrier layer ─────────────────
@@ -149,17 +188,48 @@ def test_dashboard_summary_domestic_uses_carrier_passengers_carried():
     assert dom["passengers_metric"] == "scheduled_domestic_passengers_carried"
 
 
+def test_dashboard_summary_nulls_airport_context_when_layers_misalign():
+    """Carrier can publish a month ahead of the airport layer; don't fabricate.
+
+    The headline month follows the carrier layer. If the airport layer hasn't
+    caught up, the airport-context fields must be null, not a silently-quoted
+    different month (or a misleading 0 airports).
+    """
+    monthly = pd.DataFrame(
+        [{"year": 2026, "month": 5, "airport": "DEL", "passengers": 1000}]
+    )  # airport layer stops at 2026-05
+    carrier = pd.DataFrame(
+        [{"airline": "X", "service_type": "scheduled_domestic",
+          "year": 2026, "month": 6, "passengers": 700}]
+    )  # carrier is one month ahead
+    quarterly = pd.DataFrame(
+        [{"year": 2026, "quarter": 1, "airport": "DEL", "passengers": 50}]
+    )
+
+    dom = chart.generate_dashboard_summary(
+        monthly, quarterly, carrier, fingerprint="sha256:test"
+    )["domestic"]
+    assert dom["latest_month"] == "2026-06"
+    assert dom["latest_month_passengers_carried"] == 700
+    assert dom["airport_throughput_latest_month"] is None
+    assert dom["airports_latest_month"] is None
+
+
 # ── static guards on chart label/source semantics ────────────
 
 
 def test_demand_pulse_is_built_from_carrier_not_airport_layer():
     """The national headline must come from the carrier helper, never an airport sum."""
     src = inspect.getsource(chart.chart_india_domestic_demand_pulse)
-    assert "domestic_airline_passengers_carried" in src
+    # domestic_demand_series wraps the carrier passengers-carried helper.
+    assert "domestic_demand_series" in src
     assert "passengers carried" in src
     # And the dashboard summary builds the domestic headline the same way.
     summary_src = inspect.getsource(chart.generate_dashboard_summary)
-    assert "domestic_airline_passengers_carried" in summary_src
+    assert "domestic_demand_series" in summary_src
+    # domestic_demand_series is itself carrier-sourced, with the gap-fill fix.
+    helper_src = inspect.getsource(metrics.domestic_demand_series)
+    assert "domestic_airline_passengers_carried" in helper_src
 
 
 @pytest.mark.parametrize(

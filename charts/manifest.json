@@ -42,7 +42,7 @@
         "moving_average_months": 12
       },
       "primary_source_table": "carrier_monthly",
-      "sha256": "2f08ccb11ad9064f7bb4e19151c6bf88963a706e31ea1f4588fe5caa51862b01"
+      "sha256": "ee96ad7cbc4e71f90a9ca41e2b011971b63c4eae72557372bb6dc7e846c83e01"
     },
     "international_gateway_share_gainers": {
       "file": "charts/international_gateway_share_gainers.png",

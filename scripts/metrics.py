@@ -24,9 +24,21 @@ See ``METHODOLOGY.md`` → "Passenger metric semantics" and ``docs/data-dictiona
 
 from __future__ import annotations
 
+from typing import NamedTuple
+
 import pandas as pd
 
 SCHEDULED_DOMESTIC = "scheduled_domestic"
+
+# Conservation tolerance: national airport throughput should be ~2× scheduled-
+# domestic passengers carried. The DGCA city-pair and carrier workbooks are
+# compiled independently, so a few historic months diverge a few percent (most
+# visibly 2017, ~4.6% → ratio ~2.09; real-data range is ~[1.99, 2.09]). This
+# ±10% band around 2× leaves headroom over that divergence — so a benign monthly
+# DGCA revision can't red CI — while still decisively catching the layer-confusion
+# class of bug (reusing throughput as carried ≈ 1.0× ratio; halving ≈ 0.5×).
+# Shared by the validation check and the regression tests so they can't drift.
+CONSERVATION_RATIO_BAND = (1.8, 2.2)
 
 
 def add_month_period(df: pd.DataFrame) -> pd.DataFrame:
@@ -63,6 +75,54 @@ def domestic_airline_passengers_carried(carrier: pd.DataFrame) -> pd.Series:
     c = add_month_period(carrier)
     scheduled_domestic = c[c["service_type"] == SCHEDULED_DOMESTIC]
     return scheduled_domestic.groupby("period")["passengers"].sum().sort_index()
+
+
+class DomesticDemand(NamedTuple):
+    """National scheduled-domestic passengers carried plus derived series."""
+
+    national: pd.Series          # monthly passengers carried (gap-free index)
+    trailing_12m: pd.Series      # trailing-12-month total
+    monthly_yoy: pd.Series       # month vs same month last year (fraction)
+    trailing_12m_yoy: pd.Series  # T12 vs prior T12 (fraction)
+
+
+def _yoy(series: pd.Series, periods: int) -> pd.Series:
+    """Year-over-year change as a fraction; a zero prior base yields NaN.
+
+    Growth against a zero base is undefined, not infinite — and the gap-fill
+    below creates a real zero month (2020-04). Mapping the zero denominator to
+    NaN keeps a stray ``inf`` out of the series (an ``inf`` would serialize as a
+    non-standard ``Infinity`` JSON token that browsers reject).
+    """
+    prior = series.shift(periods)
+    return series / prior.where(prior != 0) - 1
+
+
+def domestic_demand_series(carrier: pd.DataFrame) -> DomesticDemand:
+    """National domestic demand (passengers carried) and its trailing/YoY series.
+
+    The trailing-12 and YoY series use positional ``rolling(12)``/``shift(12)``,
+    which are only calendar-correct on a gap-free monthly index. Carrier
+    scheduled-domestic is missing 2020-04 (India's COVID lockdown grounded
+    scheduled domestic flights), which ``airport_monthly`` already carries as 0.
+    Reindexing onto a contiguous ``PeriodIndex`` with ``fill_value=0`` keeps the
+    two layers consistent and the trailing windows calendar-aligned, instead of
+    silently sliding the 2020–2021 window by one month.
+
+    Raises ``ValueError`` on an empty/all-filtered carrier frame rather than
+    emitting a ``NaT`` latest month and a downstream ``KeyError``: an absent
+    scheduled-domestic series means the upstream pipeline is broken, and the
+    chart/summary callers all require a populated headline.
+    """
+    national = domestic_airline_passengers_carried(carrier)
+    if national.empty:
+        raise ValueError(
+            "no scheduled_domestic carrier rows — cannot build domestic demand series"
+        )
+    full = pd.period_range(national.index.min(), national.index.max(), freq="M")
+    national = national.reindex(full, fill_value=0)
+    t12 = national.rolling(12, min_periods=12).sum()
+    return DomesticDemand(national, t12, _yoy(national, 12), _yoy(t12, 12))
 
 
 def domestic_airport_matrix(monthly: pd.DataFrame) -> pd.DataFrame:

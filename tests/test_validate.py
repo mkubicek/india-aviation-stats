@@ -165,6 +165,48 @@ def test_metric_semantics_warns_when_layers_diverge():
     assert findings[0].status == "warn"
 
 
+def test_metric_semantics_returns_nothing_without_carrier():
+    monthly = pd.DataFrame([
+        {"year": 2026, "month": 5, "airport": "DEL", "passengers": 1000},
+    ])
+    assert check_metric_semantics(monthly, None) == []
+    # A carrier frame missing the service_type column can't be classified.
+    carrier_no_svc = pd.DataFrame([{"year": 2026, "month": 5, "passengers": 500}])
+    assert check_metric_semantics(monthly, carrier_no_svc) == []
+
+
+def test_metric_semantics_warns_when_no_overlapping_months():
+    monthly = pd.DataFrame([
+        {"year": 2026, "month": 5, "airport": "DEL", "passengers": 1000},
+    ])
+    carrier = pd.DataFrame([
+        {"airline": "X", "service_type": "scheduled_domestic",
+         "year": 2025, "month": 1, "passengers": 500},  # different month → no overlap
+    ])
+    findings = check_metric_semantics(monthly, carrier)
+    assert findings[0].status == "warn"
+    assert "no overlapping months" in findings[0].message
+
+
+def test_metric_semantics_flags_zero_carried_with_throughput():
+    # 2026-05 reports airport throughput but zero carried — a conservation break
+    # that must be flagged, not silently dropped (no inf ratio either). 2026-06
+    # holds the clean 2× identity.
+    monthly = pd.DataFrame([
+        {"year": 2026, "month": 5, "airport": "DEL", "passengers": 1000},
+        {"year": 2026, "month": 6, "airport": "DEL", "passengers": 2000},
+    ])
+    carrier = pd.DataFrame([
+        {"airline": "X", "service_type": "scheduled_domestic",
+         "year": 2026, "month": 5, "passengers": 0},
+        {"airline": "X", "service_type": "scheduled_domestic",
+         "year": 2026, "month": 6, "passengers": 1000},
+    ])
+    findings = check_metric_semantics(monthly, carrier)
+    assert findings[0].status == "warn"
+    assert "2026-05" in findings[0].message
+
+
 def test_published_layers_satisfy_metric_semantics():
     proc = ROOT / "data" / "processed"
     monthly = pd.read_csv(proc / "airport_monthly.csv")
