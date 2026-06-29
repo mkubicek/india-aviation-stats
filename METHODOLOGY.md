@@ -131,11 +131,17 @@ a 20,000-passenger peak month.
 
 `domestic_market_share_gainers.png` — domestic airport share change between the
 latest trailing 12 months and the previous trailing 12 months, requiring at
-least 100,000 passengers in either window.
+least 100,000 passengers in either window. The chart shows the top 10 share
+gainers and top 10 decliners; the subtitle states the selection (how many of the
+total airports) and the explicit comparison windows so the subset is never read
+as the full field.
 
 `international_gateway_share_gainers.png` — international airport share change
 between the latest 4 quarters and the previous 4 quarters, requiring at least
-50,000 passengers in either window.
+50,000 passengers in either window. The chart shows the top 8 gainers and top 8
+decliners, with the same on-chart disclosure of selection and windows. The
+latest 4 quarters end at the latest **published** quarter, which can trail the
+current calendar quarter.
 
 ### Airport Seasonality Fingerprint
 
@@ -194,8 +200,17 @@ confirmed, cited assumption ever reaches `mappings.yaml`.
 
 ---
 
+## Methodology Evolution
+
+The methodology is expected to evolve as reviews find better correction rules. A correction becomes part of the methodology when it is reusable, source-grounded, and improves future reviews rather than only explaining one chart.
+
+Methodology changes should preserve review integrity: evaluate a chart or projection against the current methodology first, then update the methodology explicitly for future rounds. Each material change should record what failure or new evidence caused the update.
+
+---
+
 ## Methodology Changelog
 
 | Date | Version | Change |
 |------|---------|--------|
 | 2026-06 | 0.1.0 | Canonical multi-table dataset: cadence split, table-driven entity resolution with validity windows, falsifiable assumptions ledger + overlap gate, carrier link-not-collapse, tiers moved to presentation-only, six-chart dashboard surface |
+| 2026-06 | 0.1.0 | Review correction (release QC): Share Movers charts now disclose their top-N-of-total selection and name the explicit comparison windows on the chart. Evidence — a reviewer read the ~20-bar chart as the full airport field and could only infer the comparison period (latest published quarter ≠ current quarter) from the footer. |

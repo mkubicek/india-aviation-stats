@@ -134,6 +134,49 @@ def test_domestic_market_share_windows_are_disjoint_and_complete():
     assert previous[-1] == pd.Period("2024-12", freq="M")
 
 
+def test_share_movers_subtitle_discloses_selection_and_windows():
+    movers = pd.DataFrame(
+        {
+            "airport": ["AAA", "BBB", "CCC", "DDD"],
+            "delta_pp": [1.5, 0.3, -0.2, -1.1],
+        }
+    )
+    latest = list(pd.period_range("2025-06", "2026-05", freq="M"))
+    previous = list(pd.period_range("2024-06", "2025-05", freq="M"))
+    subtitle = chart.share_movers_subtitle(
+        movers,
+        latest_periods=latest,
+        previous_periods=previous,
+        active=138,
+        noun="airports",
+        fmt=chart.format_month_period,
+    )
+    # Selection is disclosed: how many gainers/decliners of how many entities.
+    assert "2 gainers" in subtitle
+    assert "2 decliners" in subtitle
+    assert "138 airports" in subtitle
+    # Comparison windows are named explicitly, not left to the footer.
+    assert "Jun 2025–May 2026" in subtitle
+    assert "Jun 2024–May 2025" in subtitle
+
+
+def test_share_movers_subtitle_names_quarter_windows():
+    movers = pd.DataFrame({"airport": ["AAA", "BBB"], "delta_pp": [0.5, -0.5]})
+    latest = list(pd.period_range("2025Q2", "2026Q1", freq="Q"))
+    previous = list(pd.period_range("2024Q2", "2025Q1", freq="Q"))
+    subtitle = chart.share_movers_subtitle(
+        movers,
+        latest_periods=latest,
+        previous_periods=previous,
+        active=31,
+        noun="gateways",
+        fmt=chart.format_quarter_period,
+    )
+    assert "31 gateways" in subtitle
+    assert "2025Q2–2026Q1" in subtitle
+    assert "2024Q2–2025Q1" in subtitle
+
+
 def test_international_share_windows_are_disjoint_and_complete():
     rows = []
     for period in pd.period_range("2024Q1", "2025Q4", freq="Q"):

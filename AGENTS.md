@@ -44,6 +44,13 @@ Charts serve the data — keep them purist:
 - **No employer/legal disclaimer on charts.** It lives in the **README only**.
   Chart surfaces stay clean: title, axes, legend, and the attribution line —
   nothing else.
+- **Disclose selection and windows — no false completeness.** A chart that shows
+  a top-N subset (e.g. the share movers) must state on the chart how many
+  entities of the total are shown and name the explicit comparison windows
+  (period start–end), so a ~20-bar chart is never read as the full field of 100+
+  airports or as ending in the current, unpublished period. Selection sizes and
+  window labels are computed from the data, never hardcoded, so they stay correct
+  on refresh (`share_movers_subtitle()` in `chart.py`).
 
 Default chart generation creates the six static dashboard charts:
 
@@ -90,3 +97,19 @@ labels never clipped.
 - **Soft timeout:** `DOWNLOAD_TIMEOUT=600` stops new downloads before job timeout
 - **Stale-data governance:** a blocking validation failure keeps the last-good
   published data and opens a `data-quality` issue rather than shipping a bad merge
+
+## Red Queen Review Loop
+
+This project treats `AGENTS.md`, `METHODOLOGY.md`, `mappings.yaml`, and the `validate/` checks as the project’s evaluator. The evaluator should improve over time, but only at explicit review boundaries.
+
+When Milan proposes a correction, methodological tweak, or better judgment rule:
+
+1. Apply the correction to the current analysis or chart.
+2. Decide whether the correction exposes a reusable rule.
+3. If reusable, encode it in the narrowest durable place:
+   - `METHODOLOGY.md` for definitions, assumptions, statistical choices, and limitations
+   - `AGENTS.md` for chart conventions, review behavior, pipeline rules, and agent operating rules
+   - `validate/` checks (`python -m validate`) for measurable gates
+   - `mappings.yaml` for airport classifications and known entity facts
+4. Add or update a validation check when the rule can be tested mechanically.
+5. Do not change the rubric mid-review to justify an existing output; finish the review, then update the evaluator for the next round.

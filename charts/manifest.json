@@ -14,7 +14,7 @@
         "vmax": 140,
         "vmin": 60
       },
-      "sha256": "4dba44cef94b069e9b4977730e0bdef11cf060de4e1062696ae6c8aa234f960e"
+      "sha256": "aeddc3e045216919bbb0506f429e18b60523b1f95e8ac2ce37f0f953307baaf2"
     },
     "domestic_market_share_gainers": {
       "file": "charts/domestic_market_share_gainers.png",
@@ -26,7 +26,7 @@
         "top_n_each_side": 10,
         "window_months": 12
       },
-      "sha256": "e7f4c6e5366a9a58c43f8a03b2435ae504c070d7721630c15cad6717ed18e0d1"
+      "sha256": "5a8ed6fde5e3172a76725f190a5d6bd2f2627d30bcca80837be28a010e425604"
     },
     "india_domestic_demand_pulse": {
       "file": "charts/india_domestic_demand_pulse.png",
@@ -36,7 +36,7 @@
       "params": {
         "moving_average_months": 12
       },
-      "sha256": "4c61c0d594fabf44e73b33ab1a9908b03f7816084f81c065fa6430ee45d929c7"
+      "sha256": "5b29e77628dcc4e777399258dfcba3429080a6538f3982911c9de93c63b150b3"
     },
     "international_gateway_share_gainers": {
       "file": "charts/international_gateway_share_gainers.png",
@@ -48,7 +48,7 @@
         "top_n_each_side": 8,
         "window_quarters": 4
       },
-      "sha256": "37caf27c2f9588a625de542595769a3134faa4dc0dab8ec455006f58bbca33f0"
+      "sha256": "f55e88b53a12148bfb39077836502d70faf417305432fa6f8c405d64f39de609"
     },
     "newcomer_airport_rampup_24m": {
       "file": "charts/newcomer_airport_rampup_24m.png",
@@ -63,7 +63,7 @@
         "min_peak_month": 20000,
         "ramp_months": 24
       },
-      "sha256": "3d1a9cebdac24428ca18d7769dfd9f9b9d94b09aa2d9947f35676a4e60f6f375"
+      "sha256": "cfd7bc6da0ded8e0412dba7c274dec6c8fc6b3a089f5d05b7561bf145d1e13d4"
     },
     "top_airport_traffic_trends": {
       "file": "charts/top_airport_traffic_trends.png",
@@ -76,7 +76,7 @@
         "previous_top_n": 10,
         "trailing_window_months": 12
       },
-      "sha256": "8131b4ba329736ed8160c86cb2c10ee09ebb1c371a5d1e72c981696ea757694b"
+      "sha256": "707e8ef5f28eda19dd52693f63e3901d30347d968522fc78133e476db9b7620f"
     }
   },
   "datasets": {
