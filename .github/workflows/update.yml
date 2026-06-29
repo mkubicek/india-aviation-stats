@@ -10,6 +10,10 @@ on:
         description: "Generate GIF animations (slow)"
         type: boolean
         default: true
+      dry_run:
+        description: "Dry run — skip commit/push (for pipeline testing)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -123,7 +127,7 @@ jobs:
           fi
 
       - name: Commit and push
-        if: steps.download.outputs.timed_out != 'true' && steps.validate.outcome == 'success'
+        if: steps.download.outputs.timed_out != 'true' && steps.validate.outcome == 'success' && inputs.dry_run != true
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
