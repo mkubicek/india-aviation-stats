@@ -209,6 +209,49 @@ def check_carrier(carrier: pd.DataFrame) -> list[Finding]:
     return out
 
 
+# ── ADVISORY: passenger metric semantics ─────────────────────
+
+
+def check_metric_semantics(
+    monthly: pd.DataFrame, carrier: pd.DataFrame | None
+) -> list[Finding]:
+    """National airport throughput ≈ 2× scheduled-domestic passengers carried.
+
+    Each domestic journey is one carrier passenger and two airport endpoints
+    (a departure + an arrival), so summing the airport layer nationally
+    double-counts journeys. This advisory makes that conservation relationship
+    visible and guards against ever reusing airport endpoint throughput as a
+    national "passengers carried" figure. The DGCA city-pair and carrier
+    workbooks are independent, so a few historic months (notably 2017) diverge a
+    few percent; the check asserts a ±5% band, not exact equality.
+    """
+    check = "semantics.domestic_airport_throughput_vs_carrier"
+    if carrier is None or "service_type" not in carrier.columns:
+        return []
+
+    throughput = monthly.groupby(["year", "month"])["passengers"].sum()
+    sched = carrier[carrier["service_type"] == "scheduled_domestic"]
+    carried = sched.groupby(["year", "month"])["passengers"].sum()
+    common = [k for k in throughput.index.intersection(carried.index) if carried.loc[k] > 0]
+    if not common:
+        return [_warn(check, "no overlapping months between airport and carrier layers")]
+
+    ratio = (throughput.loc[common] / carried.loc[common]).sort_index()
+    out_of_band = ratio[(ratio < 1.9) | (ratio > 2.1)]
+    worst = float((ratio - 2).abs().max())
+    if out_of_band.empty:
+        return [_ok(check, "ADVISORY",
+                    f"domestic airport throughput == ~2x scheduled-domestic passengers "
+                    f"carried for all {len(common)} overlapping month(s) "
+                    f"(max deviation {worst:.3f}); endpoint throughput is not "
+                    "national passengers carried")]
+    sample = ", ".join(f"{int(y)}-{int(m):02d}" for (y, m) in out_of_band.index[:6])
+    return [_warn(check,
+                  f"{len(out_of_band)} overlapping month(s) where airport throughput is "
+                  f"not within 5% of 2x scheduled-domestic passengers carried: {sample}"
+                  + ("..." if len(out_of_band) > 6 else ""))]
+
+
 # ── ADVISORY: coverage continuity ────────────────────────────
 
 
