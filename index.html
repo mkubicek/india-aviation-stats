@@ -88,6 +88,16 @@
       margin-top: 0.25rem;
     }
 
+    .metric-note {
+      color: #8b949e;
+      font-size: 0.85rem;
+      margin: -1.5rem 0 3rem;
+      padding: 0.75rem 1rem;
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+    }
+
     section {
       margin-bottom: 3rem;
     }
@@ -158,49 +168,54 @@
 
     <div class="stats-grid" aria-label="Dashboard summary">
       <div class="stat-card">
-        <div class="stat-title">Latest Domestic Month</div>
+        <div class="stat-title">Domestic Passengers Carried</div>
         <div id="domestic-month-value" class="stat-value">&mdash;</div>
-        <div id="domestic-month-label" class="stat-label">Latest domestic passengers</div>
+        <div id="domestic-month-label" class="stat-label">Latest month, scheduled domestic airlines</div>
       </div>
       <div class="stat-card">
         <div class="stat-title">Domestic T12 Growth</div>
         <div id="domestic-growth-value" class="stat-value">&mdash;</div>
-        <div id="domestic-growth-label" class="stat-label">Trailing 12 months vs previous 12 months</div>
+        <div id="domestic-growth-label" class="stat-label">Passengers carried, trailing 12 months vs previous 12 months</div>
       </div>
       <div class="stat-card">
-        <div class="stat-title">International 4Q Traffic</div>
+        <div class="stat-title">International Gateway Traffic</div>
         <div id="international-traffic-value" class="stat-value">&mdash;</div>
-        <div id="international-traffic-label" class="stat-label">Latest 4 complete quarters</div>
+        <div id="international-traffic-label" class="stat-label">Indian international gateways, latest 4 published quarters</div>
       </div>
       <div class="stat-card">
         <div class="stat-title">International 4Q Growth</div>
         <div id="international-growth-value" class="stat-value">&mdash;</div>
-        <div id="international-growth-label" class="stat-label">Latest 4Q vs previous 4Q</div>
+        <div id="international-growth-label" class="stat-label">Indian gateway throughput, latest 4Q vs previous 4Q</div>
       </div>
     </div>
+    <p class="metric-note">
+      Domestic national demand uses airline passengers carried (counted once per journey).
+      Airport charts below use airport throughput (arrivals + departures), the correct
+      airport-level metric, which is roughly twice the national passengers-carried figure.
+    </p>
 
     <main>
       <section>
         <h2>India Domestic Demand Pulse</h2>
-        <p class="section-desc">National scheduled domestic passenger flows by month and trailing 12-month total.</p>
+        <p class="section-desc">National scheduled domestic passengers carried by airlines, by month and trailing 12-month total.</p>
         <img class="chart-img" src="charts/india_domestic_demand_pulse.png" alt="India domestic demand pulse" loading="lazy">
       </section>
 
       <section>
         <h2>Top Airport Traffic Trends</h2>
-        <p class="section-desc">Trailing 12-month domestic passenger trends for the largest airports.</p>
+        <p class="section-desc">Trailing 12-month domestic airport passenger movements (arrivals + departures) for the largest airports.</p>
         <img class="chart-img" src="charts/top_airport_traffic_trends.png" alt="Top airport traffic trends" loading="lazy">
       </section>
 
       <section>
         <h2>Newcomer Airport Ramp-up</h2>
-        <p class="section-desc">First 24 DGCA-observed months for airports that appear during the dataset and clear the activity threshold.</p>
+        <p class="section-desc">Monthly airport passenger movements during the first 24 DGCA-observed months for airports that appear during the dataset and clear the activity threshold.</p>
         <img class="chart-img" src="charts/newcomer_airport_rampup_24m.png" alt="Newcomer airport ramp-up" loading="lazy">
       </section>
 
       <section>
         <h2>Market Share Movers</h2>
-        <p class="section-desc">Airports gaining or losing share of domestic and international traffic.</p>
+        <p class="section-desc">Airports gaining or losing share of domestic and international airport throughput (arrivals + departures).</p>
         <div class="chart-stack">
           <img class="chart-img" src="charts/domestic_market_share_gainers.png" alt="Domestic market share movers" loading="lazy">
           <img class="chart-img" src="charts/international_gateway_share_gainers.png" alt="International gateway share movers" loading="lazy">
@@ -209,7 +224,7 @@
 
       <section>
         <h2>Airport Seasonality Fingerprint</h2>
-        <p class="section-desc">Airport-month seasonality indexed to each airport's own average month.</p>
+        <p class="section-desc">Airport-month throughput seasonality indexed to each airport's own average month.</p>
         <img class="chart-img" src="charts/airport_seasonality_fingerprint.png" alt="Airport seasonality fingerprint" loading="lazy">
       </section>
     </main>
@@ -274,27 +289,27 @@
 
       setStat(
         'domestic-month',
-        fmtMillions(d.latest_month_passengers),
-        `${fmtMonthLabel(d.latest_month)} domestic passengers`
+        fmtMillions(d.latest_month_passengers_carried),
+        `${fmtMonthLabel(d.latest_month)}, scheduled domestic airlines`
       );
 
       setStat(
         'domestic-growth',
         fmtPct(d.trailing_12m_yoy_pct),
-        'Trailing 12 months vs previous 12 months',
+        'Passengers carried, trailing 12 months vs previous 12 months',
         pctColor(d.trailing_12m_yoy_pct)
       );
 
       setStat(
         'international-traffic',
         fmtMillions(i.latest_4q_passengers),
-        `${i.latest_quarter || 'Latest quarter'} rolling 4Q traffic`
+        `${i.latest_quarter || 'Latest quarter'} Indian gateway throughput, rolling 4Q`
       );
 
       setStat(
         'international-growth',
         fmtPct(i.latest_4q_yoy_pct),
-        'Latest 4Q vs previous 4Q',
+        'Indian gateway throughput, latest 4Q vs previous 4Q',
         pctColor(i.latest_4q_yoy_pct)
       );
 
