@@ -112,10 +112,10 @@
       background: #0d1117;
     }
 
-    .chart-grid {
+    .chart-stack {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 1.5rem;
+      gap: 2rem;
     }
 
     footer {
@@ -146,9 +146,6 @@
       .stats-grid { grid-template-columns: 1fr; }
     }
 
-    @media (min-width: 1000px) {
-      .chart-grid { grid-template-columns: 1fr 1fr; }
-    }
   </style>
 </head>
 <body>
@@ -204,7 +201,7 @@
       <section>
         <h2>Market Share Movers</h2>
         <p class="section-desc">Airports gaining or losing share of domestic and international traffic.</p>
-        <div class="chart-grid">
+        <div class="chart-stack">
           <img class="chart-img" src="charts/domestic_market_share_gainers.png" alt="Domestic market share movers" loading="lazy">
           <img class="chart-img" src="charts/international_gateway_share_gainers.png" alt="International gateway share movers" loading="lazy">
         </div>
