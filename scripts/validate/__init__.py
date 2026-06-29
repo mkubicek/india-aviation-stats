@@ -22,6 +22,7 @@ from .checks import (
     check_conservation_tripwire,
     check_coverage,
     check_definitional,
+    check_metric_semantics,
     check_schema,
 )
 from .overlap import check_unmapped_names, overlap_gate
@@ -36,7 +37,7 @@ __all__ = [
     "Finding", "run", "collect_findings",
     "check_cadence", "check_definitional", "check_schema",
     "check_conservation_tripwire", "check_coverage", "check_carrier",
-    "overlap_gate", "check_unmapped_names",
+    "check_metric_semantics", "overlap_gate", "check_unmapped_names",
 ]
 
 
@@ -81,6 +82,7 @@ def collect_findings() -> list[Finding]:
     carrier = _load_layer("carrier_monthly")
     if carrier is not None:
         findings += check_carrier(carrier)
+        findings += check_metric_semantics(monthly, carrier)
     if RAW_DOMESTIC.exists():
         findings += overlap_gate(mappings, RAW_DOMESTIC)
         findings += check_unmapped_names(mappings, RAW_DOMESTIC)

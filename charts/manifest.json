@@ -6,6 +6,7 @@
       "inputs": [
         "airport_monthly"
       ],
+      "metric_semantics": "domestic_airport_throughput_index",
       "params": {
         "max_airports": 60,
         "min_complete_years": 3,
@@ -14,47 +15,55 @@
         "vmax": 140,
         "vmin": 60
       },
-      "sha256": "aeddc3e045216919bbb0506f429e18b60523b1f95e8ac2ce37f0f953307baaf2"
+      "primary_source_table": "airport_monthly",
+      "sha256": "459e4bb40b05f54655ed64a6cd14741d3fa3899eb2c5ec6d4805f355b578aed4"
     },
     "domestic_market_share_gainers": {
       "file": "charts/domestic_market_share_gainers.png",
       "inputs": [
         "airport_monthly"
       ],
+      "metric_semantics": "domestic_airport_throughput_share",
       "params": {
         "min_traffic": 100000,
         "top_n_each_side": 10,
         "window_months": 12
       },
-      "sha256": "5a8ed6fde5e3172a76725f190a5d6bd2f2627d30bcca80837be28a010e425604"
+      "primary_source_table": "airport_monthly",
+      "sha256": "677d056d409b313df2c19e74fa0b7208b110904eafd67817549879f4ece7ff3c"
     },
     "india_domestic_demand_pulse": {
       "file": "charts/india_domestic_demand_pulse.png",
       "inputs": [
-        "airport_monthly"
+        "carrier_monthly"
       ],
+      "metric_semantics": "scheduled_domestic_passengers_carried",
       "params": {
         "moving_average_months": 12
       },
-      "sha256": "5b29e77628dcc4e777399258dfcba3429080a6538f3982911c9de93c63b150b3"
+      "primary_source_table": "carrier_monthly",
+      "sha256": "ee96ad7cbc4e71f90a9ca41e2b011971b63c4eae72557372bb6dc7e846c83e01"
     },
     "international_gateway_share_gainers": {
       "file": "charts/international_gateway_share_gainers.png",
       "inputs": [
         "airport_international_quarterly"
       ],
+      "metric_semantics": "indian_international_gateway_throughput",
       "params": {
         "min_traffic": 50000,
         "top_n_each_side": 8,
         "window_quarters": 4
       },
-      "sha256": "f55e88b53a12148bfb39077836502d70faf417305432fa6f8c405d64f39de609"
+      "primary_source_table": "airport_international_quarterly",
+      "sha256": "8dfbbc71215e3c55017e04d8e980ec626d19589df0279abed8293ca12cde024d"
     },
     "newcomer_airport_rampup_24m": {
       "file": "charts/newcomer_airport_rampup_24m.png",
       "inputs": [
         "airport_monthly"
       ],
+      "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures",
       "params": {
         "left_censor_buffer_months": 12,
         "max_labels": 12,
@@ -63,20 +72,23 @@
         "min_peak_month": 20000,
         "ramp_months": 24
       },
-      "sha256": "cfd7bc6da0ded8e0412dba7c274dec6c8fc6b3a089f5d05b7561bf145d1e13d4"
+      "primary_source_table": "airport_monthly",
+      "sha256": "e406510db4979aa192d256859d13ed7106e80c8febfa145f00c39b1e277b192d"
     },
     "top_airport_traffic_trends": {
       "file": "charts/top_airport_traffic_trends.png",
       "inputs": [
         "airport_monthly"
       ],
+      "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures",
       "params": {
         "latest_top_n": 10,
         "max_lines": 12,
         "previous_top_n": 10,
         "trailing_window_months": 12
       },
-      "sha256": "707e8ef5f28eda19dd52693f63e3901d30347d968522fc78133e476db9b7620f"
+      "primary_source_table": "airport_monthly",
+      "sha256": "78d82946dc269f74aba5f97e96f60f056b592da036b2a9a8ba51c0ba79a59f5d"
     }
   },
   "datasets": {
@@ -91,8 +103,14 @@
       "path": "data/processed/airport_monthly.csv",
       "rows": 13223,
       "sha256": "2e732cc829cbef8cd07bb59b5c0aa81cde794b43ce9614083a9294e9a0c60937"
+    },
+    "carrier_monthly": {
+      "coverage": "2015-01..2026-05",
+      "path": "data/processed/carrier_monthly.csv",
+      "rows": 3399,
+      "sha256": "10856ce10779cf9447648863809f64bf8c1ce976776d3b87c15783df8e8e9b29"
     }
   },
-  "input_fingerprint": "sha256:59d438231793ec296f2cf56357c7100e47baa4f86fa2fffeae6e5113b82dbf3c",
+  "input_fingerprint": "sha256:d935234bf6df5a87d94f8cef3c96a8a42f7ccf37fda26ad445c6bd597e588a69",
   "manifest_version": 1
 }

@@ -26,11 +26,23 @@ import pandas as pd
 import yaml
 from PIL import Image
 
+from metrics import (
+    add_month_period,
+    add_quarter_period,
+    domestic_airline_passengers_carried,
+    domestic_airport_matrix,
+    domestic_airport_throughput,
+    domestic_demand_series,
+    international_gateway_matrix,
+    international_gateway_throughput,
+)
+
 ROOT = Path(__file__).resolve().parent.parent
 PROCESSED_DIR = ROOT / "data" / "processed"
 CHARTS_DIR = ROOT / "charts"
 DOMESTIC_MONTHLY_PATH = PROCESSED_DIR / "airport_monthly.csv"
 INTERNATIONAL_QUARTERLY_PATH = PROCESSED_DIR / "airport_international_quarterly.csv"
+CARRIER_MONTHLY_PATH = PROCESSED_DIR / "carrier_monthly.csv"
 METADATA_PATH = PROCESSED_DIR / "metadata.json"
 DASHBOARD_SUMMARY_PATH = PROCESSED_DIR / "dashboard_summary.json"
 MANIFEST_PATH = CHARTS_DIR / "manifest.json"
@@ -200,25 +212,8 @@ def load_international_quarterly() -> pd.DataFrame:
     return pd.read_csv(INTERNATIONAL_QUARTERLY_PATH)
 
 
-def add_month_period(df: pd.DataFrame) -> pd.DataFrame:
-    out = df.copy()
-    out["period"] = pd.to_datetime(
-        {
-            "year": out["year"].astype(int),
-            "month": out["month"].astype(int),
-            "day": 1,
-        }
-    ).dt.to_period("M")
-    return out
-
-
-def add_quarter_period(df: pd.DataFrame) -> pd.DataFrame:
-    out = df.copy()
-    out["period"] = pd.PeriodIndex(
-        out["year"].astype(int).astype(str) + "Q" + out["quarter"].astype(int).astype(str),
-        freq="Q",
-    )
-    return out
+def load_carrier_monthly() -> pd.DataFrame:
+    return pd.read_csv(CARRIER_MONTHLY_PATH)
 
 
 def domestic_coverage(monthly: pd.DataFrame) -> str:
@@ -231,6 +226,11 @@ def international_coverage(quarterly: pd.DataFrame) -> str:
     q = add_quarter_period(quarterly)
     periods = q["period"].sort_values()
     return f"{periods.iloc[0]}..{periods.iloc[-1]}"
+
+
+def carrier_domestic_coverage(carrier: pd.DataFrame) -> str:
+    national = domestic_airline_passengers_carried(carrier)
+    return f"{national.index.min()}..{national.index.max()}"
 
 
 def add_footer(fig: plt.Figure, *, coverage: str, fingerprint: str) -> None:
@@ -306,13 +306,13 @@ def fmt_axis_pp(x, pos=None) -> str:
 
 
 def fmt_optional_pct(value: float | None) -> str:
-    if value is None or pd.isna(value):
+    if value is None or pd.isna(value) or not np.isfinite(value):
         return "n/a"
     return f"{value:+.1f}%"
 
 
 def fmt_optional_millions(value: float | None) -> str:
-    if value is None or pd.isna(value):
+    if value is None or pd.isna(value) or not np.isfinite(value):
         return "n/a"
     return f"{value / 1_000_000:.1f}M"
 
@@ -412,24 +412,10 @@ def period_timestamp(period: pd.Period) -> pd.Timestamp:
     return period.to_timestamp()
 
 
-def domestic_airport_month_matrix(monthly: pd.DataFrame) -> pd.DataFrame:
-    m = add_month_period(monthly)
-    grouped = m.groupby(["period", "airport"], as_index=False)["passengers"].sum()
-    return (
-        grouped.pivot(index="period", columns="airport", values="passengers")
-        .fillna(0)
-        .sort_index()
-    )
-
-
-def international_airport_quarter_matrix(quarterly: pd.DataFrame) -> pd.DataFrame:
-    q = add_quarter_period(quarterly)
-    grouped = q.groupby(["period", "airport"], as_index=False)["passengers"].sum()
-    return (
-        grouped.pivot(index="period", columns="airport", values="passengers")
-        .fillna(0)
-        .sort_index()
-    )
+# Airport-level endpoint-throughput matrices live in metrics.py (the single home
+# for passenger metric semantics); these names are the airport-chart entry points.
+domestic_airport_month_matrix = domestic_airport_matrix
+international_airport_quarter_matrix = international_gateway_matrix
 
 
 def complete_rolling_sum(pivot: pd.DataFrame, window: int) -> pd.DataFrame:
@@ -536,16 +522,21 @@ def share_movers_subtitle(
     previous_periods: Sequence[pd.Period],
     active: int,
     noun: str,
+    scope: str,
     fmt,
 ) -> str:
-    """Disclose the top-N-of-total selection and name the explicit windows."""
+    """Disclose the top-N-of-total selection, the metric scope, and the windows.
+
+    ``scope`` names the metric population (e.g. "Share of domestic airport
+    throughput") so the bars are never read as airline passengers carried.
+    """
     n_gainers = int((movers["delta_pp"] > 0).sum())
     n_losers = int((movers["delta_pp"] < 0).sum())
     latest_label = f"{fmt(latest_periods[0])}–{fmt(latest_periods[-1])}"
     previous_label = f"{fmt(previous_periods[0])}–{fmt(previous_periods[-1])}"
     return (
         f"Top {n_gainers} gainers & {n_losers} decliners of {active} {noun}  ·  "
-        f"{latest_label} vs {previous_label}"
+        f"{scope}  ·  {latest_label} vs {previous_label}"
     )
 
 
@@ -682,19 +673,18 @@ def seasonality_fingerprint_matrix(
 
 
 def chart_india_domestic_demand_pulse(
-    monthly: pd.DataFrame,
+    carrier: pd.DataFrame,
     *,
     coverage: str,
     fingerprint: str,
 ) -> Path:
-    m = add_month_period(monthly)
-    national = m.groupby("period")["passengers"].sum().sort_index()
-    t12 = national.rolling(12, min_periods=12).sum()
-    monthly_yoy = national / national.shift(12) - 1
-    t12_yoy = t12 / t12.shift(12) - 1
+    # National domestic demand is passengers carried (counted once per journey),
+    # sourced from the carrier table — NOT a national sum of airport endpoint
+    # throughput, which double-counts every domestic journey. See metrics.py.
+    national, t12, monthly_yoy, t12_yoy = domestic_demand_series(carrier)
 
     latest_period = national.index.max()
-    latest_month_passengers = float(national.loc[latest_period])
+    latest_month_carried = float(national.loc[latest_period])
     latest_month_yoy = float(monthly_yoy.loc[latest_period] * 100)
     latest_t12 = float(t12.dropna().iloc[-1]) if not t12.dropna().empty else np.nan
     latest_t12_yoy = (
@@ -711,7 +701,7 @@ def chart_india_domestic_demand_pulse(
         color=PRIMARY,
         alpha=0.22,
         edgecolor="none",
-        label="Monthly passengers",
+        label="Monthly passengers carried",
     )
     line = ax.plot(
         t12.index.to_timestamp(),
@@ -724,10 +714,10 @@ def chart_india_domestic_demand_pulse(
     style_axis(
         ax,
         "India Domestic Aviation Demand Pulse",
-        "Scheduled domestic passenger flows by month and trailing 12-month total",
-        "Trailing 12-month passengers",
+        "Scheduled domestic passengers carried by month and trailing 12-month total",
+        "Trailing 12-month passengers carried",
     )
-    style_secondary_axis(ax2, "Monthly passengers")
+    style_secondary_axis(ax2, "Monthly passengers carried")
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(fmt_millions))
     ax2.yaxis.set_major_formatter(mticker.FuncFormatter(fmt_millions))
     ax.xaxis.set_major_locator(mdates.YearLocator())
@@ -737,7 +727,7 @@ def chart_india_domestic_demand_pulse(
     ax2.set_ylim(0, clean_upper_bound(float(national.max()) * 1.20))
     ax.legend(
         [line, bars],
-        ["Trailing 12-month total", "Monthly passengers"],
+        ["Trailing 12-month total", "Monthly passengers carried"],
         loc="upper left",
         frameon=False,
         labelcolor=TEXT,
@@ -745,10 +735,10 @@ def chart_india_domestic_demand_pulse(
     )
 
     kpi = (
-        f"Latest month: {fmt_optional_millions(latest_month_passengers)}"
-        f" ({fmt_optional_pct(latest_month_yoy)} YoY)\n"
+        f"Latest month: {fmt_optional_millions(latest_month_carried)}"
+        f" carried ({fmt_optional_pct(latest_month_yoy)} YoY)\n"
         f"Trailing 12 months: {fmt_optional_millions(latest_t12)}"
-        f" ({fmt_optional_pct(latest_t12_yoy)} YoY)"
+        f" carried ({fmt_optional_pct(latest_t12_yoy)} YoY)"
     )
     ax.text(
         0.985,
@@ -815,8 +805,8 @@ def chart_top_airport_traffic_trends(
     style_axis(
         ax,
         "Top Airport Traffic Trends",
-        "Trailing 12-month scheduled domestic passengers by airport",
-        "Trailing 12-month passengers",
+        "Trailing 12-month domestic airport passenger movements, arrivals + departures",
+        "Domestic airport passenger movements",
     )
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(fmt_millions))
     ax.xaxis.set_major_locator(mdates.YearLocator())
@@ -909,8 +899,9 @@ def chart_newcomer_airport_rampup(
     style_axis(
         ax,
         "Newcomer Airport Ramp-up",
-        "Monthly domestic passengers during each airport's first 24 DGCA-observed months",
-        "Monthly passengers",
+        "Monthly domestic airport passenger movements during each airport's "
+        "first 24 DGCA-observed months",
+        "Airport passenger movements",
     )
     ax.set_xlabel("Months since first DGCA-observed month", color=TEXT, fontsize=11)
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(fmt_thousands))
@@ -1075,15 +1066,16 @@ def chart_domestic_market_share_gainers(
         previous_periods=previous_periods,
         active=active_entity_count(pivot, latest_periods + previous_periods),
         noun="airports",
+        scope="Share of domestic airport throughput",
         fmt=format_month_period,
     )
     return chart_share_movers(
         movers,
         chart_id="domestic_market_share_gainers",
-        title="Domestic Market Share Movers",
+        title="Domestic Airport Throughput Share Movers",
         subtitle=subtitle,
-        pax_change_header="Dom pax change",
-        latest_pax_header="Latest dom 12M pax",
+        pax_change_header="Throughput change",
+        latest_pax_header="Latest 12M throughput",
         coverage=coverage,
         fingerprint=fingerprint,
     )
@@ -1112,15 +1104,16 @@ def chart_international_gateway_share_gainers(
         previous_periods=previous_periods,
         active=active_entity_count(pivot, latest_periods + previous_periods),
         noun="gateways",
+        scope="Indian airport gateway throughput",
         fmt=format_quarter_period,
     )
     return chart_share_movers(
         movers,
         chart_id="international_gateway_share_gainers",
-        title="International Gateway Share Movers",
+        title="International Gateway Throughput Share Movers",
         subtitle=subtitle,
-        pax_change_header="Intl pax change",
-        latest_pax_header="Latest intl 4Q pax",
+        pax_change_header="Throughput change",
+        latest_pax_header="Latest 4Q throughput",
         coverage=coverage,
         fingerprint=fingerprint,
     )
@@ -1173,7 +1166,7 @@ def chart_airport_seasonality_fingerprint(
     ax.text(
         0.5,
         1.01,
-        "Monthly passenger index by airport; 100 = that airport's average month",
+        "Monthly airport-throughput index by airport; 100 = that airport's average month",
         transform=ax.transAxes,
         ha="center",
         va="bottom",
@@ -1201,44 +1194,67 @@ def chart_airport_seasonality_fingerprint(
 def generate_dashboard_summary(
     monthly: pd.DataFrame,
     quarterly: pd.DataFrame,
+    carrier: pd.DataFrame,
     *,
     fingerprint: str,
 ) -> dict:
-    m = add_month_period(monthly)
-    national = m.groupby("period")["passengers"].sum().sort_index()
-    t12 = national.rolling(12, min_periods=12).sum()
-    monthly_yoy = national / national.shift(12) - 1
-    t12_yoy = t12 / t12.shift(12) - 1
+    # Domestic headline = passengers carried (carrier table, counted once per
+    # journey). Airport endpoint throughput is also reported, under an explicit
+    # key, for airport-level context — it is ~2× passengers carried nationally.
+    national, t12, monthly_yoy, t12_yoy = domestic_demand_series(carrier)
     latest_month = national.index.max()
 
-    q = add_quarter_period(quarterly)
-    international = q.groupby("period")["passengers"].sum().sort_index()
+    m = add_month_period(monthly)
+    throughput = domestic_airport_throughput(monthly)
+    # Airport context is keyed to the carrier headline month. The two layers are
+    # published independently, so if the carrier extends a month beyond the
+    # airport layer, report null rather than silently quoting a different month.
+    airport_month_present = latest_month in throughput.index
+
+    # International uses positional rolling(4)/shift(4). Unlike the carrier series
+    # it is NOT gap-filled: a missing quarter here means "not yet published", not
+    # "zero traffic" (filling 0 would understate the 4Q total). The quarterly
+    # table is contiguous, and check_coverage warns if a quarter ever goes missing.
+    international = international_gateway_throughput(quarterly)
     latest_4q = international.rolling(4, min_periods=4).sum()
     latest_4q_yoy = latest_4q / latest_4q.shift(4) - 1
     latest_quarter = international.index.max()
+    q = add_quarter_period(quarterly)
 
     def nullable_int(value: float) -> int | None:
-        return None if pd.isna(value) else int(round(float(value)))
+        if pd.isna(value) or not np.isfinite(value):
+            return None
+        return int(round(float(value)))
 
     def nullable_pct(value: float) -> float | None:
-        return None if pd.isna(value) else round(float(value) * 100, 1)
+        # Non-finite (e.g. YoY against a zero base) serializes as a non-standard
+        # `Infinity` JSON token that browsers reject — emit null instead.
+        if pd.isna(value) or not np.isfinite(value):
+            return None
+        return round(float(value) * 100, 1)
 
     summary = {
         "data_date": load_metadata().get("data_date"),
         "generated_date": date.today().isoformat(),
         "domestic": {
             "latest_month": str(latest_month),
-            "latest_month_passengers": nullable_int(national.loc[latest_month]),
+            "latest_month_passengers_carried": nullable_int(national.loc[latest_month]),
             "latest_month_yoy_pct": nullable_pct(monthly_yoy.loc[latest_month]),
-            "trailing_12m_passengers": nullable_int(t12.dropna().iloc[-1])
+            "trailing_12m_passengers_carried": nullable_int(t12.dropna().iloc[-1])
             if not t12.dropna().empty
             else None,
             "trailing_12m_yoy_pct": nullable_pct(t12_yoy.dropna().iloc[-1])
             if not t12_yoy.dropna().empty
             else None,
+            "passengers_metric": "scheduled_domestic_passengers_carried",
             "airports_latest_month": int(
                 m.loc[m["period"] == latest_month, "airport"].nunique()
-            ),
+            )
+            if airport_month_present
+            else None,
+            "airport_throughput_latest_month": nullable_int(throughput.loc[latest_month])
+            if airport_month_present
+            else None,
         },
         "international": {
             "latest_quarter": str(latest_quarter),
@@ -1260,10 +1276,13 @@ def generate_dashboard_summary(
 def write_dashboard_summary(
     monthly: pd.DataFrame,
     quarterly: pd.DataFrame,
+    carrier: pd.DataFrame,
     *,
     fingerprint: str,
 ) -> Path:
-    summary = generate_dashboard_summary(monthly, quarterly, fingerprint=fingerprint)
+    summary = generate_dashboard_summary(
+        monthly, quarterly, carrier, fingerprint=fingerprint
+    )
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     DASHBOARD_SUMMARY_PATH.write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n",
@@ -1294,8 +1313,10 @@ def build_chart_manifest(
     *,
     monthly: pd.DataFrame,
     quarterly: pd.DataFrame,
+    carrier: pd.DataFrame,
     domestic_coverage_text: str,
     international_coverage_text: str,
+    carrier_coverage_text: str,
     overall_fingerprint: str,
 ) -> dict:
     return {
@@ -1313,6 +1334,11 @@ def build_chart_manifest(
                 rows=len(quarterly),
                 coverage=international_coverage_text,
             ),
+            "carrier_monthly": dataset_manifest_entry(
+                CARRIER_MONTHLY_PATH,
+                rows=len(carrier),
+                coverage=carrier_coverage_text,
+            ),
         },
         "charts": dict(sorted(chart_records.items())),
     }
@@ -1323,16 +1349,20 @@ def write_chart_manifest(
     *,
     monthly: pd.DataFrame,
     quarterly: pd.DataFrame,
+    carrier: pd.DataFrame,
     domestic_coverage_text: str,
     international_coverage_text: str,
+    carrier_coverage_text: str,
     overall_fingerprint: str,
 ) -> Path:
     manifest = build_chart_manifest(
         chart_records,
         monthly=monthly,
         quarterly=quarterly,
+        carrier=carrier,
         domestic_coverage_text=domestic_coverage_text,
         international_coverage_text=international_coverage_text,
+        carrier_coverage_text=carrier_coverage_text,
         overall_fingerprint=overall_fingerprint,
     )
     CHARTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -1382,17 +1412,50 @@ def chart_params(chart_id: str) -> dict:
     return params[chart_id]
 
 
+# Per-chart source table + metric semantics. The same `passengers` column means
+# different things across layers, so reproducibility metadata must record which
+# layer a chart reads and what the number actually means. Carrier = passengers
+# carried (counted once); airport = endpoint throughput (arrivals + departures).
+CHART_SEMANTICS = {
+    "india_domestic_demand_pulse": (
+        "carrier_monthly",
+        "scheduled_domestic_passengers_carried",
+    ),
+    "top_airport_traffic_trends": (
+        "airport_monthly",
+        "domestic_airport_throughput_arrivals_plus_departures",
+    ),
+    "newcomer_airport_rampup_24m": (
+        "airport_monthly",
+        "domestic_airport_throughput_arrivals_plus_departures",
+    ),
+    "domestic_market_share_gainers": (
+        "airport_monthly",
+        "domestic_airport_throughput_share",
+    ),
+    "international_gateway_share_gainers": (
+        "airport_international_quarterly",
+        "indian_international_gateway_throughput",
+    ),
+    "airport_seasonality_fingerprint": (
+        "airport_monthly",
+        "domestic_airport_throughput_index",
+    ),
+}
+
+
 def chart_inputs(chart_id: str) -> list[str]:
-    if chart_id == "international_gateway_share_gainers":
-        return ["airport_international_quarterly"]
-    return ["airport_monthly"]
+    return [CHART_SEMANTICS[chart_id][0]]
 
 
 def register_chart(path: Path, chart_id: str) -> dict:
+    primary_source_table, metric_semantics = CHART_SEMANTICS[chart_id]
     return {
         "file": str(path.relative_to(ROOT)),
         "sha256": sha256_file(path),
         "inputs": chart_inputs(chart_id),
+        "primary_source_table": primary_source_table,
+        "metric_semantics": metric_semantics,
         "params": chart_params(chart_id),
     }
 
@@ -1454,7 +1517,11 @@ def chart_airport_passenger_race(
         ax.set_yticks(range(len(airports)))
         ax.set_yticklabels(airports, fontsize=12, color=TEXT, fontweight="bold")
         ax.set_xlim(0, fixed_xlim)
-        ax.set_xlabel("Trailing 12-month domestic passengers", color=TEXT, fontsize=11)
+        ax.set_xlabel(
+            "Trailing 12-month domestic airport passenger movements",
+            color=TEXT,
+            fontsize=11,
+        )
         ax.xaxis.set_major_formatter(mticker.FuncFormatter(fmt_millions))
         ax.tick_params(colors=TEXT, labelsize=9)
         ax.grid(axis="x", alpha=0.2, color=GRID, linestyle="--")
@@ -1490,7 +1557,7 @@ def chart_airport_passenger_race(
         ax.text(
             0.0,
             1.035,
-            "Scheduled domestic passenger flows by airport | Trailing 12-month total",
+            "Domestic airport passenger movements by airport | Trailing 12-month total",
             transform=ax.transAxes,
             ha="left",
             va="bottom",
@@ -1564,22 +1631,25 @@ def chart_airport_passenger_race(
 def generate_charts(
     monthly: pd.DataFrame,
     quarterly: pd.DataFrame,
+    carrier: pd.DataFrame,
     *,
     only: str | None,
     include_gifs: bool,
     domestic_coverage_text: str,
     international_coverage_text: str,
+    carrier_coverage_text: str,
     domestic_fingerprint: str,
     international_fingerprint: str,
+    carrier_fingerprint: str,
 ) -> dict[str, dict]:
     selected_ids = [only] if only else CHART_IDS
     chart_records: dict[str, dict] = {}
 
     chart_functions = {
         "india_domestic_demand_pulse": lambda: chart_india_domestic_demand_pulse(
-            monthly,
-            coverage=domestic_coverage_text,
-            fingerprint=domestic_fingerprint,
+            carrier,
+            coverage=carrier_coverage_text,
+            fingerprint=carrier_fingerprint,
         ),
         "top_airport_traffic_trends": lambda: chart_top_airport_traffic_trends(
             monthly,
@@ -1665,28 +1735,36 @@ def main(argv: Sequence[str] | None = None) -> None:
         raise FileNotFoundError("No processed domestic airport data. Run clean.py first.")
     if not INTERNATIONAL_QUARTERLY_PATH.exists():
         raise FileNotFoundError("No processed international airport data. Run clean.py first.")
+    if not CARRIER_MONTHLY_PATH.exists():
+        raise FileNotFoundError("No processed carrier data. Run clean.py first.")
 
     print("=== Generating Charts ===\n", flush=True)
 
     monthly = load_domestic_monthly()
     quarterly = load_international_quarterly()
+    carrier = load_carrier_monthly()
     domestic_coverage_text = domestic_coverage(monthly)
     international_coverage_text = international_coverage(quarterly)
+    carrier_coverage_text = carrier_domestic_coverage(carrier)
     domestic_fingerprint = input_fingerprint([DOMESTIC_MONTHLY_PATH])
     international_fingerprint = input_fingerprint([INTERNATIONAL_QUARTERLY_PATH])
+    carrier_fingerprint = input_fingerprint([CARRIER_MONTHLY_PATH])
     overall_fingerprint = input_fingerprint(
-        [DOMESTIC_MONTHLY_PATH, INTERNATIONAL_QUARTERLY_PATH]
+        [DOMESTIC_MONTHLY_PATH, INTERNATIONAL_QUARTERLY_PATH, CARRIER_MONTHLY_PATH]
     )
 
     chart_records = generate_charts(
         monthly,
         quarterly,
+        carrier,
         only=args.only,
         include_gifs=args.include_gifs and not args.skip_gifs,
         domestic_coverage_text=domestic_coverage_text,
         international_coverage_text=international_coverage_text,
+        carrier_coverage_text=carrier_coverage_text,
         domestic_fingerprint=domestic_fingerprint,
         international_fingerprint=international_fingerprint,
+        carrier_fingerprint=carrier_fingerprint,
     )
 
     if not args.skip_dashboard_summary:
@@ -1694,6 +1772,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         summary_path = write_dashboard_summary(
             monthly,
             quarterly,
+            carrier,
             fingerprint=overall_fingerprint,
         )
         print(f"    Saved: {summary_path.relative_to(ROOT)}", flush=True)
@@ -1704,8 +1783,10 @@ def main(argv: Sequence[str] | None = None) -> None:
             chart_records,
             monthly=monthly,
             quarterly=quarterly,
+            carrier=carrier,
             domestic_coverage_text=domestic_coverage_text,
             international_coverage_text=international_coverage_text,
+            carrier_coverage_text=carrier_coverage_text,
             overall_fingerprint=overall_fingerprint,
         )
         print(f"    Saved: {manifest_path.relative_to(ROOT)}", flush=True)

@@ -61,12 +61,18 @@ def test_dashboard_summary_schema(generated_chart_artifacts):
     assert summary["generated_date"]
     assert {
         "latest_month",
-        "latest_month_passengers",
+        "latest_month_passengers_carried",
         "latest_month_yoy_pct",
-        "trailing_12m_passengers",
+        "trailing_12m_passengers_carried",
         "trailing_12m_yoy_pct",
+        "passengers_metric",
         "airports_latest_month",
+        "airport_throughput_latest_month",
     } <= set(summary["domestic"])
+    # The domestic headline is passengers carried (carrier table), and the old
+    # ambiguous generic key must not survive.
+    assert "latest_month_passengers" not in summary["domestic"]
+    assert summary["domestic"]["passengers_metric"] == "scheduled_domestic_passengers_carried"
     assert {
         "latest_quarter",
         "latest_4q_passengers",
@@ -149,12 +155,15 @@ def test_share_movers_subtitle_discloses_selection_and_windows():
         previous_periods=previous,
         active=138,
         noun="airports",
+        scope="Share of domestic airport throughput",
         fmt=chart.format_month_period,
     )
     # Selection is disclosed: how many gainers/decliners of how many entities.
     assert "2 gainers" in subtitle
     assert "2 decliners" in subtitle
     assert "138 airports" in subtitle
+    # The metric scope is named so the bars are not read as passengers carried.
+    assert "domestic airport throughput" in subtitle
     # Comparison windows are named explicitly, not left to the footer.
     assert "Jun 2025–May 2026" in subtitle
     assert "Jun 2024–May 2025" in subtitle
@@ -170,9 +179,11 @@ def test_share_movers_subtitle_names_quarter_windows():
         previous_periods=previous,
         active=31,
         noun="gateways",
+        scope="Indian airport gateway throughput",
         fmt=chart.format_quarter_period,
     )
     assert "31 gateways" in subtitle
+    assert "gateway throughput" in subtitle
     assert "2025Q2–2026Q1" in subtitle
     assert "2024Q2–2025Q1" in subtitle
 
@@ -231,15 +242,19 @@ def test_chart_manifest_stable_for_same_inputs(generated_chart_artifacts):
     manifest = json.loads((ROOT / "charts/manifest.json").read_text())
     monthly = pd.read_csv(ROOT / "data/processed/airport_monthly.csv")
     quarterly = pd.read_csv(ROOT / "data/processed/airport_international_quarterly.csv")
+    carrier = pd.read_csv(ROOT / "data/processed/carrier_monthly.csv")
     kwargs = {
         "monthly": monthly,
         "quarterly": quarterly,
+        "carrier": carrier,
         "domestic_coverage_text": chart.domestic_coverage(monthly),
         "international_coverage_text": chart.international_coverage(quarterly),
+        "carrier_coverage_text": chart.carrier_domestic_coverage(carrier),
         "overall_fingerprint": chart.input_fingerprint(
             [
                 ROOT / "data/processed/airport_monthly.csv",
                 ROOT / "data/processed/airport_international_quarterly.csv",
+                ROOT / "data/processed/carrier_monthly.csv",
             ]
         ),
     }
