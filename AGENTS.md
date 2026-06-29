@@ -102,7 +102,7 @@ labels never clipped.
 
 This project treats `AGENTS.md`, `METHODOLOGY.md`, `mappings.yaml`, and the `validate/` checks as the project’s evaluator. The evaluator should improve over time, but only at explicit review boundaries.
 
-When Milan proposes a correction, methodological tweak, or better judgment rule:
+When a reviewer or contributor proposes a correction, methodological tweak, or better judgment rule:
 
 1. Apply the correction to the current analysis or chart.
 2. Decide whether the correction exposes a reusable rule.
