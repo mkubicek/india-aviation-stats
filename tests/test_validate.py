@@ -11,6 +11,7 @@ from validate.checks import (
     check_carrier,
     check_conservation_tripwire,
     check_definitional,
+    check_metric_semantics,
     check_schema,
 )
 from validate.overlap import check_unmapped_names, overlap_gate
@@ -130,6 +131,47 @@ def test_published_carrier_is_tidy_and_links_not_collapses():
     assert "Airheritage" not in set(df["airline"])     # spelling canonicalized
     assert "Vistara" in set(df["airline"])             # merger linked, not collapsed
     assert int(df.duplicated(["airline", "service_type", "year", "month"]).sum()) == 0
+
+
+# ── passenger metric semantics ──
+
+def test_metric_semantics_passes_when_throughput_is_twice_carried():
+    monthly = pd.DataFrame([
+        {"year": 2026, "month": 5, "airport": "DEL", "passengers": 1200},
+        {"year": 2026, "month": 5, "airport": "BOM", "passengers": 800},
+    ])  # national throughput = 2000
+    carrier = pd.DataFrame([
+        {"airline": "X", "service_type": "scheduled_domestic",
+         "year": 2026, "month": 5, "passengers": 1000},  # exactly half
+        {"airline": "X", "service_type": "scheduled_international",
+         "year": 2026, "month": 5, "passengers": 500},   # ignored
+    ])
+    findings = check_metric_semantics(monthly, carrier)
+    assert len(findings) == 1
+    f = findings[0]
+    assert f.check == "semantics.domestic_airport_throughput_vs_carrier"
+    assert f.status == "pass"
+
+
+def test_metric_semantics_warns_when_layers_diverge():
+    monthly = pd.DataFrame([
+        {"year": 2026, "month": 5, "airport": "DEL", "passengers": 3000},
+    ])  # national throughput = 3000 → ratio 3.0, well outside the ±5% band
+    carrier = pd.DataFrame([
+        {"airline": "X", "service_type": "scheduled_domestic",
+         "year": 2026, "month": 5, "passengers": 1000},
+    ])
+    findings = check_metric_semantics(monthly, carrier)
+    assert findings[0].status == "warn"
+
+
+def test_published_layers_satisfy_metric_semantics():
+    proc = ROOT / "data" / "processed"
+    monthly = pd.read_csv(proc / "airport_monthly.csv")
+    carrier = pd.read_csv(proc / "carrier_monthly.csv")
+    findings = check_metric_semantics(monthly, carrier)
+    # The committed data holds the ~2x conservation identity within tolerance.
+    assert findings and findings[0].status == "pass"
 
 
 # ── schema conformance against the real published tables ──
