@@ -60,13 +60,23 @@ the non-trivial cleanup decisions.
 
 ## Charts
 
-Generated from the published tables, no editorial overlays.
+Generated from the published tables, no editorial overlays. National domestic
+demand uses **scheduled domestic passengers carried** (`carrier_monthly.csv`,
+counted once per journey); airport charts use **airport throughput**
+(`airport_monthly.csv`, arrivals + departures), which is the correct airport-level
+metric and is roughly twice the national passengers-carried figure. Each chart's
+source table and metric semantics are recorded in
+[`charts/manifest.json`](charts/manifest.json).
 
 ### India Domestic Demand Pulse
+
+Scheduled domestic passengers carried, by month and trailing 12-month total.
 
 ![India Domestic Demand Pulse](charts/india_domestic_demand_pulse.png)
 
 ### Top Airport Traffic Trends
+
+Trailing 12-month domestic airport passenger movements (arrivals + departures).
 
 ![Top Airport Traffic Trends](charts/top_airport_traffic_trends.png)
 
@@ -75,6 +85,8 @@ Generated from the published tables, no editorial overlays.
 ![Newcomer Airport Ramp-up](charts/newcomer_airport_rampup_24m.png)
 
 ### Market Share Movers
+
+Share of domestic airport throughput, and of Indian international gateway throughput.
 
 ![Domestic Market Share Movers](charts/domestic_market_share_gainers.png)
 

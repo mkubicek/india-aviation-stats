@@ -9,6 +9,15 @@ change bumps the version and is recorded in the `schema_changelog`.
 counts are whole-person **integers**. `airport` is a canonical key — an IATA code
 when one exists, else a stable `name:<slug>` — never a raw source label.
 
+> **Passenger semantics differ by table.** The same column name, `passengers`,
+> means **airport endpoint throughput** in the airport tables (each domestic
+> journey is counted twice — once as a departure at the origin, once as an arrival
+> at the destination) and **passengers carried** in `carrier_monthly.csv` (each
+> journey counted once, by the operating airline). For national domestic demand,
+> use `carrier_monthly.csv` filtered to `service_type == scheduled_domestic` — not
+> a national sum of the airport layer, which double-counts journeys. See
+> [METHODOLOGY.md → Passenger metric semantics](../METHODOLOGY.md#passenger-metric-semantics).
+
 ---
 
 ## `airport_monthly.csv` — domestic monthly (canonical core)
@@ -27,6 +36,13 @@ Domestic, monthly. The crown-jewel series. **Schema v2.0.**
 Key: exactly one row per `(airport, year, month)`. Source: DGCA domestic
 city-pair workbooks.
 
+`passengers` here means **airport passenger movements / endpoint throughput** —
+it equals `departures + arrivals` at the airport. Because each domestic city-pair
+passenger is attributed to *both* route endpoints, summing this column across all
+airports gives domestic **airport throughput** (~2× journeys), **not** domestic
+passengers carried. For national domestic passengers carried, use
+`carrier_monthly.csv` with `service_type == scheduled_domestic`.
+
 ## `airport_international_quarterly.csv` — international quarterly
 
 International, quarterly — the real cadence, no midpoint-month hack. **v1.0.**
@@ -42,6 +58,10 @@ International, quarterly — the real cadence, no midpoint-month hack. **v1.0.**
 
 Key: one row per `(airport, year, quarter)`. Foreign counterpart cities are
 dropped. Source: DGCA international city-pair workbooks.
+
+`passengers` means **Indian international gateway endpoint traffic**. Foreign
+counterpart cities are dropped, so the table represents Indian airport gateway
+throughput — not foreign-airport totals and not airline-carried passengers.
 
 ## `airport_yearly.csv` (derived convenience view)
 
@@ -80,6 +100,12 @@ keeps its own series (`succeeded_by` in `mappings.yaml`). **v1.0.**
 
 Key: one row per `(airline, service_type, year, month)`. Aggregate "Total" rows
 dropped. Source: DGCA domestic carrier workbooks.
+
+`passengers` means **passengers carried** by the airline in that month and service
+type — each journey counted once. For national scheduled domestic passenger
+demand, sum rows where `service_type == scheduled_domestic`; this is the canonical
+national domestic-demand metric (the dashboard's domestic headline). Nationally it
+is ~½ of summed airport endpoint throughput.
 
 ---
 
