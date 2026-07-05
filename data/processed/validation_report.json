@@ -2,7 +2,7 @@
   "blocking_failures": 0,
   "tripwire_failures": 0,
   "advisories": 1,
-  "passed": 16,
+  "passed": 17,
   "findings": [
     {
       "check": "cadence.layer1_unique",
@@ -93,6 +93,12 @@
       "status": "warn",
       "severity": "ADVISORY",
       "message": "2 row(s) with weight_load_factor outside 0-100"
+    },
+    {
+      "check": "semantics.domestic_airport_throughput_vs_carrier",
+      "status": "pass",
+      "severity": "ADVISORY",
+      "message": "domestic airport throughput == ~2x scheduled-domestic passengers carried for all 133 overlapping month(s) (max deviation 0.092); endpoint throughput is not national passengers carried"
     },
     {
       "check": "overlap.concurrent.COK",
