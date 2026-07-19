@@ -1,6 +1,6 @@
 {
-  "data_date": "2026-07-05",
-  "processed_date": "2026-07-05",
+  "data_date": "2026-07-19",
+  "processed_date": "2026-07-19",
   "tables": {
     "airport_monthly": {
       "schema_version": "2.0",
