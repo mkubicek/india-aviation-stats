@@ -42,6 +42,7 @@ from network import (
     bidirectional_segments,
     comparison_windows as route_comparison_windows,
     coordinate_coverage,
+    dual_airport_monthly_development,
     dual_airport_metrics,
     eligible_route_markets,
     pareto_frontier,
@@ -1249,25 +1250,31 @@ def route_frontier_data(
     routes: pd.DataFrame,
     monthly: pd.DataFrame,
     *,
+    focal_airport: str = ROUTE_FRONTIER_FOCAL,
+    proxy_airport: str | None = ROUTE_FRONTIER_PROXY,
+    distance_origin: str | None = ROUTE_FRONTIER_DISTANCE_ORIGIN,
+    window_months: int = ROUTE_WINDOW_MONTHS,
+    min_t12_passengers: int = ROUTE_FRONTIER_MIN_T12,
+    min_persistence_months: int = ROUTE_FRONTIER_MIN_PERSISTENCE,
     segment_monthly: pd.DataFrame | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, list[str], object]:
     windows = route_comparison_windows(
-        routes, window_months=ROUTE_WINDOW_MONTHS
+        routes, window_months=window_months
     )
     frontier = route_market_frontier(
         routes,
         monthly,
-        focal_airport=ROUTE_FRONTIER_FOCAL,
-        proxy_airport=ROUTE_FRONTIER_PROXY,
-        distance_origin=ROUTE_FRONTIER_DISTANCE_ORIGIN,
+        focal_airport=focal_airport,
+        proxy_airport=proxy_airport,
+        distance_origin=distance_origin,
         coordinates=airport_coordinates(),
-        window_months=ROUTE_WINDOW_MONTHS,
+        window_months=window_months,
         segment_monthly=segment_monthly,
     )
     eligible = eligible_route_markets(
         frontier,
-        min_t12_passengers=ROUTE_FRONTIER_MIN_T12,
-        min_persistence_months=ROUTE_FRONTIER_MIN_PERSISTENCE,
+        min_t12_passengers=min_t12_passengers,
+        min_persistence_months=min_persistence_months,
     )
     pareto = pareto_frontier(
         eligible,
@@ -1279,30 +1286,53 @@ def route_frontier_data(
     return frontier, eligible, pareto, windows
 
 
-def chart_ncr_route_opportunity_frontier(
+def chart_route_market_frontier(
     routes: pd.DataFrame,
     monthly: pd.DataFrame,
     *,
+    focal_airport: str,
+    proxy_airport: str | None,
+    distance_origin: str | None,
+    window_months: int,
+    min_t12_passengers: int,
+    min_persistence_months: int,
+    proxy_min_t12_passengers: int,
+    proxy_min_persistence_months: int,
+    title: str,
+    interpretation_note: str,
+    chart_id: str,
     coverage: str,
     fingerprint: str,
     segment_monthly: pd.DataFrame | None = None,
 ) -> Path:
     frontier, eligible, pareto, windows = route_frontier_data(
-        routes, monthly, segment_monthly=segment_monthly
+        routes,
+        monthly,
+        focal_airport=focal_airport,
+        proxy_airport=proxy_airport,
+        distance_origin=distance_origin,
+        window_months=window_months,
+        min_t12_passengers=min_t12_passengers,
+        min_persistence_months=min_persistence_months,
+        segment_monthly=segment_monthly,
     )
     total_markets = int((frontier["latest_t12_passengers"] > 0).sum())
-    proxy_volume = f"{ROUTE_FRONTIER_PROXY.lower()}_t12_passengers"
-    proxy_persistence = (
-        f"{ROUTE_FRONTIER_PROXY.lower()}_persistence_months"
-    )
-    proxy_demonstrated = (
-        (eligible[proxy_volume] >= DUAL_MIN_MARKET_PASSENGERS)
-        & (eligible[proxy_persistence] >= 6)
-    )
     pareto_mask = eligible.index.isin(pareto)
     standard = eligible[~pareto_mask]
-    proxy = eligible[proxy_demonstrated]
     frontier_points = eligible[pareto_mask]
+    proxy = eligible.iloc[0:0]
+    if proxy_airport:
+        proxy_volume = f"{proxy_airport.lower()}_t12_passengers"
+        proxy_persistence = (
+            f"{proxy_airport.lower()}_persistence_months"
+        )
+        proxy = eligible[
+            (eligible[proxy_volume] >= proxy_min_t12_passengers)
+            & (
+                eligible[proxy_persistence]
+                >= proxy_min_persistence_months
+            )
+        ]
 
     fig, ax = plt.subplots(figsize=FIGSIZE_WIDE, facecolor=BG)
     ax.set_facecolor(BG)
@@ -1315,7 +1345,7 @@ def chart_ncr_route_opportunity_frontier(
             alpha=0.72,
             edgecolors=BG,
             linewidths=0.8,
-            label="Other eligible DEL markets",
+            label=f"Other eligible {focal_airport} markets",
         )
     if len(frontier_points):
         ax.scatter(
@@ -1348,7 +1378,7 @@ def chart_ncr_route_opportunity_frontier(
                     "lw": 0.7,
                 },
             )
-    if len(proxy):
+    if proxy_airport and len(proxy):
         ax.scatter(
             proxy["latest_t12_passengers"] / 1_000_000,
             proxy["yoy_change_pct"],
@@ -1358,7 +1388,11 @@ def chart_ncr_route_opportunity_frontier(
             edgecolors="#4cc9f0",
             linewidths=1.6,
             zorder=5,
-            label="Also at HDO (≥10K, ≥6 months)",
+            label=(
+                f"Also at {proxy_airport} "
+                f"(≥{proxy_min_t12_passengers / 1_000:g}K, "
+                f"≥{proxy_min_persistence_months} months)"
+            ),
         )
 
     ax.axhline(0, color=SUBTLE, linewidth=1, alpha=0.7)
@@ -1367,7 +1401,8 @@ def chart_ncr_route_opportunity_frontier(
         mticker.FuncFormatter(lambda value, _: f"{value:g}M")
     )
     ax.set_xlabel(
-        "Latest trailing-12-month bidirectional DEL segment passengers (log scale)",
+        f"Latest trailing-{window_months}-month bidirectional "
+        f"{focal_airport} segment passengers (log scale)",
         color=TEXT,
         fontsize=11,
     )
@@ -1389,7 +1424,7 @@ def chart_ncr_route_opportunity_frontier(
         f"{format_month_period(windows.previous[-1])}"
     )
     ax.set_title(
-        "Observable DEL Route-Market Frontier",
+        title,
         fontsize=17,
         fontweight="bold",
         color=TITLE,
@@ -1400,8 +1435,8 @@ def chart_ncr_route_opportunity_frontier(
         1.02,
         f"{latest_label} vs {previous_label} | "
         f"{len(eligible)} of {total_markets} observed markets shown | "
-        f"≥{ROUTE_FRONTIER_MIN_T12 / 1_000:.0f}K passengers in both windows, "
-        f"≥{ROUTE_FRONTIER_MIN_PERSISTENCE}/12 active months",
+        f"≥{min_t12_passengers / 1_000:.0f}K passengers in both windows, "
+        f"≥{min_persistence_months}/{window_months} active months",
         transform=ax.transAxes,
         ha="center",
         va="bottom",
@@ -1411,8 +1446,7 @@ def chart_ncr_route_opportunity_frontier(
     ax.text(
         0.0,
         -0.14,
-        "Observable DEL market / NCR demand proxy — not NIA demand, diversion, "
-        "route economics, or a forecast. All eligible points shown; labels identify "
+        f"{interpretation_note} All eligible points shown; labels identify "
         "the non-dominated volume–growth frontier.",
         transform=ax.transAxes,
         ha="left",
@@ -1428,13 +1462,48 @@ def chart_ncr_route_opportunity_frontier(
     )
     add_footer(fig, coverage=coverage, fingerprint=fingerprint)
     fig.subplots_adjust(left=0.10, right=0.97, top=0.82, bottom=0.20)
-    return save_chart(fig, "ncr_route_opportunity_frontier")
+    return save_chart(fig, chart_id)
+
+
+def chart_ncr_route_opportunity_frontier(
+    routes: pd.DataFrame,
+    monthly: pd.DataFrame,
+    *,
+    coverage: str,
+    fingerprint: str,
+    segment_monthly: pd.DataFrame | None = None,
+) -> Path:
+    """Configured NCR case-study view using the generic frontier renderer."""
+    return chart_route_market_frontier(
+        routes,
+        monthly,
+        focal_airport=ROUTE_FRONTIER_FOCAL,
+        proxy_airport=ROUTE_FRONTIER_PROXY,
+        distance_origin=ROUTE_FRONTIER_DISTANCE_ORIGIN,
+        window_months=ROUTE_WINDOW_MONTHS,
+        min_t12_passengers=ROUTE_FRONTIER_MIN_T12,
+        min_persistence_months=ROUTE_FRONTIER_MIN_PERSISTENCE,
+        proxy_min_t12_passengers=DUAL_MIN_MARKET_PASSENGERS,
+        proxy_min_persistence_months=6,
+        title="Observable DEL Route-Market Frontier",
+        interpretation_note=(
+            "Observable DEL market / NCR demand proxy — not NIA demand, "
+            "diversion, route economics, or a forecast."
+        ),
+        chart_id="ncr_route_opportunity_frontier",
+        coverage=coverage,
+        fingerprint=fingerprint,
+        segment_monthly=segment_monthly,
+    )
 
 
 def dual_airport_role_data(
     routes: pd.DataFrame,
     monthly: pd.DataFrame,
     *,
+    airport_pairs: Sequence[tuple[str, str]] = DUAL_AIRPORT_PAIRS,
+    min_market_passengers: int = DUAL_MIN_MARKET_PASSENGERS,
+    persistence_fraction: float = DUAL_PERSISTENCE_FRACTION,
     segment_monthly: pd.DataFrame | None = None,
 ) -> list[dict]:
     return [
@@ -1443,11 +1512,11 @@ def dual_airport_role_data(
             monthly,
             incumbent=incumbent,
             newcomer=newcomer,
-            min_market_passengers=DUAL_MIN_MARKET_PASSENGERS,
-            persistence_fraction=DUAL_PERSISTENCE_FRACTION,
+            min_market_passengers=min_market_passengers,
+            persistence_fraction=persistence_fraction,
             segment_monthly=segment_monthly,
         )
-        for incumbent, newcomer in DUAL_AIRPORT_PAIRS
+        for incumbent, newcomer in airport_pairs
     ]
 
 
@@ -1457,10 +1526,20 @@ def chart_dual_airport_network_roles(
     *,
     coverage: str,
     fingerprint: str,
+    airport_pairs: Sequence[tuple[str, str]] = DUAL_AIRPORT_PAIRS,
+    min_market_passengers: int = DUAL_MIN_MARKET_PASSENGERS,
+    persistence_fraction: float = DUAL_PERSISTENCE_FRACTION,
+    title: str = "Observed Roles in Indian Dual-Airport Systems",
+    chart_id: str = "dual_airport_network_roles",
     segment_monthly: pd.DataFrame | None = None,
 ) -> Path:
     pairs = dual_airport_role_data(
-        routes, monthly, segment_monthly=segment_monthly
+        routes,
+        monthly,
+        airport_pairs=airport_pairs,
+        min_market_passengers=min_market_passengers,
+        persistence_fraction=persistence_fraction,
+        segment_monthly=segment_monthly,
     )
     fig, (share_ax, network_ax) = plt.subplots(
         1, 2, figsize=FIGSIZE_WIDE, facecolor=BG
@@ -1563,7 +1642,7 @@ def chart_dual_airport_network_roles(
         ax.spines["left"].set_color(GRID)
 
     fig.suptitle(
-        "Observed Roles in Indian Dual-Airport Systems",
+        title,
         fontsize=17,
         fontweight="bold",
         color=TITLE,
@@ -1573,8 +1652,8 @@ def chart_dual_airport_network_roles(
         0.5,
         0.895,
         f"All {len(pairs)} supported pairs shown | Active market = "
-        f"≥{DUAL_MIN_MARKET_PASSENGERS / 1_000:.0f}K bidirectional passengers "
-        "and observed in at least half the comparison months",
+        f"≥{min_market_passengers / 1_000:.0f}K bidirectional passengers "
+        f"and observed in ≥{persistence_fraction:.0%} of comparison months",
         ha="center",
         va="bottom",
         fontsize=9,
@@ -1593,7 +1672,7 @@ def chart_dual_airport_network_roles(
     )
     add_footer(fig, coverage=coverage, fingerprint=fingerprint)
     fig.subplots_adjust(left=0.13, right=0.96, top=0.80, bottom=0.16, wspace=0.26)
-    return save_chart(fig, "dual_airport_network_roles")
+    return save_chart(fig, chart_id)
 
 
 def chart_domestic_network_decentralisation(
@@ -1602,13 +1681,17 @@ def chart_domestic_network_decentralisation(
     *,
     coverage: str,
     fingerprint: str,
+    start_year: int = NETWORK_START_YEAR,
+    min_route_persistence_months: int = NETWORK_MIN_ROUTE_PERSISTENCE,
+    title: str = "India's Domestic Network Is Becoming More Polycentric",
+    chart_id: str = "domestic_network_decentralisation",
     segment_monthly: pd.DataFrame | None = None,
 ) -> Path:
     annual = annual_network_metrics(
         routes,
         monthly,
-        start_year=NETWORK_START_YEAR,
-        min_route_persistence_months=NETWORK_MIN_ROUTE_PERSISTENCE,
+        start_year=start_year,
+        min_route_persistence_months=min_route_persistence_months,
         segment_monthly=segment_monthly,
     )
     years = annual.index.to_numpy()
@@ -1748,7 +1831,7 @@ def chart_domestic_network_decentralisation(
         )
 
     fig.suptitle(
-        "India's Domestic Network Is Becoming More Polycentric",
+        title,
         fontsize=17,
         fontweight="bold",
         color=TITLE,
@@ -1759,7 +1842,7 @@ def chart_domestic_network_decentralisation(
         0.895,
         f"Complete calendar years {annual.index.min()}–{annual.index.max()} | "
         "Traffic share uses airport throughput | Active route = bidirectional "
-        f"segment observed in ≥{NETWORK_MIN_ROUTE_PERSISTENCE} months",
+        f"segment observed in ≥{min_route_persistence_months} months",
         ha="center",
         va="bottom",
         fontsize=9,
@@ -1777,7 +1860,7 @@ def chart_domestic_network_decentralisation(
     )
     add_footer(fig, coverage=coverage, fingerprint=fingerprint)
     fig.subplots_adjust(left=0.08, right=0.92, top=0.80, bottom=0.17, wspace=0.30)
-    return save_chart(fig, "domestic_network_decentralisation")
+    return save_chart(fig, chart_id)
 
 
 def _json_safe(value):
@@ -1868,6 +1951,26 @@ def generate_route_analysis_summary(
                     }
                 )
     for item in dual:
+        development = dual_airport_monthly_development(
+            monthly,
+            incumbent=item["incumbent"],
+            newcomer=item["newcomer"],
+            pre_entry_months=12,
+        ).reset_index()
+        item["monthly_development_pre_entry_months"] = 12
+        item["monthly_passenger_development"] = [
+            {
+                "period": str(row.period),
+                "months_from_entry": int(row.months_from_entry),
+                "incumbent_throughput": int(row.incumbent_throughput),
+                "newcomer_throughput": int(row.newcomer_throughput),
+                "combined_throughput": int(row.combined_throughput),
+                "newcomer_share_pct": _json_safe(
+                    row.newcomer_share_pct
+                ),
+            }
+            for row in development.itertuples()
+        ]
         acquisition = route_acquisition_sequence(
             routes,
             item["newcomer"],
@@ -2027,6 +2130,9 @@ def generate_route_analysis_summary(
             ),
             "last_year_metrics": _json_safe(
                 annual.loc[last_year].to_dict()
+            ),
+            "annual_metrics": _json_safe(
+                annual.reset_index().to_dict(orient="records")
             ),
         },
         "tests_not_selected_as_headline_charts": {

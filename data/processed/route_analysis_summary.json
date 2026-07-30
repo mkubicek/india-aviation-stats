@@ -354,6 +354,441 @@
       "jaccard_similarity": 0.3448275862068966,
       "min_market_passengers": 10000,
       "min_persistence_months": 6,
+      "monthly_development_pre_entry_months": 12,
+      "monthly_passenger_development": [
+        {
+          "combined_throughput": 450421,
+          "incumbent_throughput": 450421,
+          "months_from_entry": -12,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2022-01"
+        },
+        {
+          "combined_throughput": 511861,
+          "incumbent_throughput": 511861,
+          "months_from_entry": -11,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2022-02"
+        },
+        {
+          "combined_throughput": 806017,
+          "incumbent_throughput": 806017,
+          "months_from_entry": -10,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2022-03"
+        },
+        {
+          "combined_throughput": 625804,
+          "incumbent_throughput": 625804,
+          "months_from_entry": -9,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2022-04"
+        },
+        {
+          "combined_throughput": 661204,
+          "incumbent_throughput": 661204,
+          "months_from_entry": -8,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2022-05"
+        },
+        {
+          "combined_throughput": 598270,
+          "incumbent_throughput": 598270,
+          "months_from_entry": -7,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2022-06"
+        },
+        {
+          "combined_throughput": 499571,
+          "incumbent_throughput": 499571,
+          "months_from_entry": -6,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2022-07"
+        },
+        {
+          "combined_throughput": 567074,
+          "incumbent_throughput": 567074,
+          "months_from_entry": -5,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2022-08"
+        },
+        {
+          "combined_throughput": 604220,
+          "incumbent_throughput": 604220,
+          "months_from_entry": -4,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2022-09"
+        },
+        {
+          "combined_throughput": 668920,
+          "incumbent_throughput": 668920,
+          "months_from_entry": -3,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2022-10"
+        },
+        {
+          "combined_throughput": 716103,
+          "incumbent_throughput": 716103,
+          "months_from_entry": -2,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2022-11"
+        },
+        {
+          "combined_throughput": 826706,
+          "incumbent_throughput": 826706,
+          "months_from_entry": -1,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2022-12"
+        },
+        {
+          "combined_throughput": 941491,
+          "incumbent_throughput": 785145,
+          "months_from_entry": 0,
+          "newcomer_share_pct": 16.60621291122273,
+          "newcomer_throughput": 156346,
+          "period": "2023-01"
+        },
+        {
+          "combined_throughput": 906955,
+          "incumbent_throughput": 674210,
+          "months_from_entry": 1,
+          "newcomer_share_pct": 25.662243440964545,
+          "newcomer_throughput": 232745,
+          "period": "2023-02"
+        },
+        {
+          "combined_throughput": 980621,
+          "incumbent_throughput": 694185,
+          "months_from_entry": 2,
+          "newcomer_share_pct": 29.209653882590725,
+          "newcomer_throughput": 286436,
+          "period": "2023-03"
+        },
+        {
+          "combined_throughput": 990888,
+          "incumbent_throughput": 649987,
+          "months_from_entry": 3,
+          "newcomer_share_pct": 34.40358547081002,
+          "newcomer_throughput": 340901,
+          "period": "2023-04"
+        },
+        {
+          "combined_throughput": 941967,
+          "incumbent_throughput": 596850,
+          "months_from_entry": 4,
+          "newcomer_share_pct": 36.63790769740341,
+          "newcomer_throughput": 345117,
+          "period": "2023-05"
+        },
+        {
+          "combined_throughput": 827300,
+          "incumbent_throughput": 519910,
+          "months_from_entry": 5,
+          "newcomer_share_pct": 37.15580805028406,
+          "newcomer_throughput": 307390,
+          "period": "2023-06"
+        },
+        {
+          "combined_throughput": 750895,
+          "incumbent_throughput": 478218,
+          "months_from_entry": 6,
+          "newcomer_share_pct": 36.31359910506795,
+          "newcomer_throughput": 272677,
+          "period": "2023-07"
+        },
+        {
+          "combined_throughput": 811287,
+          "incumbent_throughput": 513701,
+          "months_from_entry": 7,
+          "newcomer_share_pct": 36.68073074016963,
+          "newcomer_throughput": 297586,
+          "period": "2023-08"
+        },
+        {
+          "combined_throughput": 821515,
+          "incumbent_throughput": 496885,
+          "months_from_entry": 8,
+          "newcomer_share_pct": 39.51601614091039,
+          "newcomer_throughput": 324630,
+          "period": "2023-09"
+        },
+        {
+          "combined_throughput": 863073,
+          "incumbent_throughput": 526137,
+          "months_from_entry": 9,
+          "newcomer_share_pct": 39.03910793177402,
+          "newcomer_throughput": 336936,
+          "period": "2023-10"
+        },
+        {
+          "combined_throughput": 890201,
+          "incumbent_throughput": 502324,
+          "months_from_entry": 10,
+          "newcomer_share_pct": 43.57184501028419,
+          "newcomer_throughput": 387877,
+          "period": "2023-11"
+        },
+        {
+          "combined_throughput": 1023348,
+          "incumbent_throughput": 556968,
+          "months_from_entry": 11,
+          "newcomer_share_pct": 45.573939656890914,
+          "newcomer_throughput": 466380,
+          "period": "2023-12"
+        },
+        {
+          "combined_throughput": 1033704,
+          "incumbent_throughput": 559338,
+          "months_from_entry": 12,
+          "newcomer_share_pct": 45.88992593624481,
+          "newcomer_throughput": 474366,
+          "period": "2024-01"
+        },
+        {
+          "combined_throughput": 917980,
+          "incumbent_throughput": 517535,
+          "months_from_entry": 13,
+          "newcomer_share_pct": 43.622410074293555,
+          "newcomer_throughput": 400445,
+          "period": "2024-02"
+        },
+        {
+          "combined_throughput": 948249,
+          "incumbent_throughput": 537946,
+          "months_from_entry": 14,
+          "newcomer_share_pct": 43.26954207175542,
+          "newcomer_throughput": 410303,
+          "period": "2024-03"
+        },
+        {
+          "combined_throughput": 857925,
+          "incumbent_throughput": 503253,
+          "months_from_entry": 15,
+          "newcomer_share_pct": 41.34067663257278,
+          "newcomer_throughput": 354672,
+          "period": "2024-04"
+        },
+        {
+          "combined_throughput": 933201,
+          "incumbent_throughput": 543797,
+          "months_from_entry": 16,
+          "newcomer_share_pct": 41.72777354503478,
+          "newcomer_throughput": 389404,
+          "period": "2024-05"
+        },
+        {
+          "combined_throughput": 889626,
+          "incumbent_throughput": 525587,
+          "months_from_entry": 17,
+          "newcomer_share_pct": 40.92045421334358,
+          "newcomer_throughput": 364039,
+          "period": "2024-06"
+        },
+        {
+          "combined_throughput": 796884,
+          "incumbent_throughput": 475929,
+          "months_from_entry": 18,
+          "newcomer_share_pct": 40.27625099763579,
+          "newcomer_throughput": 320955,
+          "period": "2024-07"
+        },
+        {
+          "combined_throughput": 865053,
+          "incumbent_throughput": 515432,
+          "months_from_entry": 19,
+          "newcomer_share_pct": 40.4161363523391,
+          "newcomer_throughput": 349621,
+          "period": "2024-08"
+        },
+        {
+          "combined_throughput": 890742,
+          "incumbent_throughput": 572426,
+          "months_from_entry": 20,
+          "newcomer_share_pct": 35.73604927128169,
+          "newcomer_throughput": 318316,
+          "period": "2024-09"
+        },
+        {
+          "combined_throughput": 894937,
+          "incumbent_throughput": 565159,
+          "months_from_entry": 21,
+          "newcomer_share_pct": 36.84929777179846,
+          "newcomer_throughput": 329778,
+          "period": "2024-10"
+        },
+        {
+          "combined_throughput": 975091,
+          "incumbent_throughput": 597129,
+          "months_from_entry": 22,
+          "newcomer_share_pct": 38.761715573213166,
+          "newcomer_throughput": 377962,
+          "period": "2024-11"
+        },
+        {
+          "combined_throughput": 1065873,
+          "incumbent_throughput": 698522,
+          "months_from_entry": 23,
+          "newcomer_share_pct": 34.46480021541028,
+          "newcomer_throughput": 367351,
+          "period": "2024-12"
+        },
+        {
+          "combined_throughput": 1066735,
+          "incumbent_throughput": 673374,
+          "months_from_entry": 24,
+          "newcomer_share_pct": 36.87523143048649,
+          "newcomer_throughput": 393361,
+          "period": "2025-01"
+        },
+        {
+          "combined_throughput": 939540,
+          "incumbent_throughput": 599564,
+          "months_from_entry": 25,
+          "newcomer_share_pct": 36.18536730740575,
+          "newcomer_throughput": 339976,
+          "period": "2025-02"
+        },
+        {
+          "combined_throughput": 984101,
+          "incumbent_throughput": 604013,
+          "months_from_entry": 26,
+          "newcomer_share_pct": 38.62286492951435,
+          "newcomer_throughput": 380088,
+          "period": "2025-03"
+        },
+        {
+          "combined_throughput": 865095,
+          "incumbent_throughput": 520806,
+          "months_from_entry": 27,
+          "newcomer_share_pct": 39.797825672325004,
+          "newcomer_throughput": 344289,
+          "period": "2025-04"
+        },
+        {
+          "combined_throughput": 914033,
+          "incumbent_throughput": 502143,
+          "months_from_entry": 28,
+          "newcomer_share_pct": 45.06292442395406,
+          "newcomer_throughput": 411890,
+          "period": "2025-05"
+        },
+        {
+          "combined_throughput": 879964,
+          "incumbent_throughput": 485788,
+          "months_from_entry": 29,
+          "newcomer_share_pct": 44.79455977744544,
+          "newcomer_throughput": 394176,
+          "period": "2025-06"
+        },
+        {
+          "combined_throughput": 740991,
+          "incumbent_throughput": 404724,
+          "months_from_entry": 30,
+          "newcomer_share_pct": 45.380713126070354,
+          "newcomer_throughput": 336267,
+          "period": "2025-07"
+        },
+        {
+          "combined_throughput": 796944,
+          "incumbent_throughput": 439450,
+          "months_from_entry": 31,
+          "newcomer_share_pct": 44.858107972454775,
+          "newcomer_throughput": 357494,
+          "period": "2025-08"
+        },
+        {
+          "combined_throughput": 827509,
+          "incumbent_throughput": 451601,
+          "months_from_entry": 32,
+          "newcomer_share_pct": 45.42645457632485,
+          "newcomer_throughput": 375908,
+          "period": "2025-09"
+        },
+        {
+          "combined_throughput": 921597,
+          "incumbent_throughput": 495557,
+          "months_from_entry": 33,
+          "newcomer_share_pct": 46.22844909434384,
+          "newcomer_throughput": 426040,
+          "period": "2025-10"
+        },
+        {
+          "combined_throughput": 986695,
+          "incumbent_throughput": 542301,
+          "months_from_entry": 34,
+          "newcomer_share_pct": 45.03863909313415,
+          "newcomer_throughput": 444394,
+          "period": "2025-11"
+        },
+        {
+          "combined_throughput": 994402,
+          "incumbent_throughput": 519653,
+          "months_from_entry": 35,
+          "newcomer_share_pct": 47.74216061512346,
+          "newcomer_throughput": 474749,
+          "period": "2025-12"
+        },
+        {
+          "combined_throughput": 1081568,
+          "incumbent_throughput": 546122,
+          "months_from_entry": 36,
+          "newcomer_share_pct": 49.50645729163585,
+          "newcomer_throughput": 535446,
+          "period": "2026-01"
+        },
+        {
+          "combined_throughput": 888112,
+          "incumbent_throughput": 469316,
+          "months_from_entry": 37,
+          "newcomer_share_pct": 47.15576413785649,
+          "newcomer_throughput": 418796,
+          "period": "2026-02"
+        },
+        {
+          "combined_throughput": 934367,
+          "incumbent_throughput": 499225,
+          "months_from_entry": 38,
+          "newcomer_share_pct": 46.57078000400271,
+          "newcomer_throughput": 435142,
+          "period": "2026-03"
+        },
+        {
+          "combined_throughput": 838172,
+          "incumbent_throughput": 463317,
+          "months_from_entry": 39,
+          "newcomer_share_pct": 44.722920832478295,
+          "newcomer_throughput": 374855,
+          "period": "2026-04"
+        },
+        {
+          "combined_throughput": 930760,
+          "incumbent_throughput": 519871,
+          "months_from_entry": 40,
+          "newcomer_share_pct": 44.145536980532036,
+          "newcomer_throughput": 410889,
+          "period": "2026-05"
+        },
+        {
+          "combined_throughput": 795078,
+          "incumbent_throughput": 464793,
+          "months_from_entry": 41,
+          "newcomer_share_pct": 41.54120727777652,
+          "newcomer_throughput": 330285,
+          "period": "2026-06"
+        }
+      ],
       "newcomer": "GOX",
       "newcomer_destinations": [
         "AGX",
@@ -601,6 +1036,753 @@
       "jaccard_similarity": 0.08433734939759036,
       "min_market_passengers": 10000,
       "min_persistence_months": 6,
+      "monthly_development_pre_entry_months": 12,
+      "monthly_passenger_development": [
+        {
+          "combined_throughput": 4337411,
+          "incumbent_throughput": 4337411,
+          "months_from_entry": -12,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2018-10"
+        },
+        {
+          "combined_throughput": 4078070,
+          "incumbent_throughput": 4078070,
+          "months_from_entry": -11,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2018-11"
+        },
+        {
+          "combined_throughput": 4435468,
+          "incumbent_throughput": 4435468,
+          "months_from_entry": -10,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2018-12"
+        },
+        {
+          "combined_throughput": 4278152,
+          "incumbent_throughput": 4278152,
+          "months_from_entry": -9,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2019-01"
+        },
+        {
+          "combined_throughput": 4052608,
+          "incumbent_throughput": 4052608,
+          "months_from_entry": -8,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2019-02"
+        },
+        {
+          "combined_throughput": 4130999,
+          "incumbent_throughput": 4130999,
+          "months_from_entry": -7,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2019-03"
+        },
+        {
+          "combined_throughput": 3900786,
+          "incumbent_throughput": 3900786,
+          "months_from_entry": -6,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2019-04"
+        },
+        {
+          "combined_throughput": 4299082,
+          "incumbent_throughput": 4299082,
+          "months_from_entry": -5,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2019-05"
+        },
+        {
+          "combined_throughput": 4411651,
+          "incumbent_throughput": 4411651,
+          "months_from_entry": -4,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2019-06"
+        },
+        {
+          "combined_throughput": 4395609,
+          "incumbent_throughput": 4395609,
+          "months_from_entry": -3,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2019-07"
+        },
+        {
+          "combined_throughput": 4350021,
+          "incumbent_throughput": 4350021,
+          "months_from_entry": -2,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2019-08"
+        },
+        {
+          "combined_throughput": 4325819,
+          "incumbent_throughput": 4325819,
+          "months_from_entry": -1,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2019-09"
+        },
+        {
+          "combined_throughput": 4512628,
+          "incumbent_throughput": 4512395,
+          "months_from_entry": 0,
+          "newcomer_share_pct": 0.005163288443009262,
+          "newcomer_throughput": 233,
+          "period": "2019-10"
+        },
+        {
+          "combined_throughput": 4742037,
+          "incumbent_throughput": 4740868,
+          "months_from_entry": 1,
+          "newcomer_share_pct": 0.02465185320148282,
+          "newcomer_throughput": 1169,
+          "period": "2019-11"
+        },
+        {
+          "combined_throughput": 4609301,
+          "incumbent_throughput": 4607849,
+          "months_from_entry": 2,
+          "newcomer_share_pct": 0.03150152268207262,
+          "newcomer_throughput": 1452,
+          "period": "2019-12"
+        },
+        {
+          "combined_throughput": 4459384,
+          "incumbent_throughput": 4457860,
+          "months_from_entry": 3,
+          "newcomer_share_pct": 0.034175123739063513,
+          "newcomer_throughput": 1524,
+          "period": "2020-01"
+        },
+        {
+          "combined_throughput": 4568066,
+          "incumbent_throughput": 4566293,
+          "months_from_entry": 4,
+          "newcomer_share_pct": 0.0388129243316537,
+          "newcomer_throughput": 1773,
+          "period": "2020-02"
+        },
+        {
+          "combined_throughput": 2786497,
+          "incumbent_throughput": 2784891,
+          "months_from_entry": 5,
+          "newcomer_share_pct": 0.05763508806935733,
+          "newcomer_throughput": 1606,
+          "period": "2020-03"
+        },
+        {
+          "combined_throughput": 0,
+          "incumbent_throughput": 0,
+          "months_from_entry": 6,
+          "newcomer_share_pct": null,
+          "newcomer_throughput": 0,
+          "period": "2020-04"
+        },
+        {
+          "combined_throughput": 155182,
+          "incumbent_throughput": 155140,
+          "months_from_entry": 7,
+          "newcomer_share_pct": 0.027064994651441535,
+          "newcomer_throughput": 42,
+          "period": "2020-05"
+        },
+        {
+          "combined_throughput": 898055,
+          "incumbent_throughput": 898055,
+          "months_from_entry": 8,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2020-06"
+        },
+        {
+          "combined_throughput": 886511,
+          "incumbent_throughput": 886511,
+          "months_from_entry": 9,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2020-07"
+        },
+        {
+          "combined_throughput": 1164765,
+          "incumbent_throughput": 1164466,
+          "months_from_entry": 10,
+          "newcomer_share_pct": 0.0256704142037235,
+          "newcomer_throughput": 299,
+          "period": "2020-08"
+        },
+        {
+          "combined_throughput": 1490251,
+          "incumbent_throughput": 1489553,
+          "months_from_entry": 11,
+          "newcomer_share_pct": 0.04683774746670192,
+          "newcomer_throughput": 698,
+          "period": "2020-09"
+        },
+        {
+          "combined_throughput": 1935002,
+          "incumbent_throughput": 1934227,
+          "months_from_entry": 12,
+          "newcomer_share_pct": 0.04005163818952125,
+          "newcomer_throughput": 775,
+          "period": "2020-10"
+        },
+        {
+          "combined_throughput": 2236163,
+          "incumbent_throughput": 2234444,
+          "months_from_entry": 13,
+          "newcomer_share_pct": 0.07687275033170658,
+          "newcomer_throughput": 1719,
+          "period": "2020-11"
+        },
+        {
+          "combined_throughput": 2483794,
+          "incumbent_throughput": 2481832,
+          "months_from_entry": 14,
+          "newcomer_share_pct": 0.07899205811754115,
+          "newcomer_throughput": 1962,
+          "period": "2020-12"
+        },
+        {
+          "combined_throughput": 2670315,
+          "incumbent_throughput": 2668084,
+          "months_from_entry": 15,
+          "newcomer_share_pct": 0.08354819562486074,
+          "newcomer_throughput": 2231,
+          "period": "2021-01"
+        },
+        {
+          "combined_throughput": 2814134,
+          "incumbent_throughput": 2811793,
+          "months_from_entry": 16,
+          "newcomer_share_pct": 0.08318722562607182,
+          "newcomer_throughput": 2341,
+          "period": "2021-02"
+        },
+        {
+          "combined_throughput": 2981618,
+          "incumbent_throughput": 2978969,
+          "months_from_entry": 17,
+          "newcomer_share_pct": 0.08884437912569618,
+          "newcomer_throughput": 2649,
+          "period": "2021-03"
+        },
+        {
+          "combined_throughput": 2248344,
+          "incumbent_throughput": 2246003,
+          "months_from_entry": 18,
+          "newcomer_share_pct": 0.10412107755752678,
+          "newcomer_throughput": 2341,
+          "period": "2021-04"
+        },
+        {
+          "combined_throughput": 827812,
+          "incumbent_throughput": 826730,
+          "months_from_entry": 19,
+          "newcomer_share_pct": 0.13070600571144173,
+          "newcomer_throughput": 1082,
+          "period": "2021-05"
+        },
+        {
+          "combined_throughput": 1328136,
+          "incumbent_throughput": 1326406,
+          "months_from_entry": 20,
+          "newcomer_share_pct": 0.13025774468879692,
+          "newcomer_throughput": 1730,
+          "period": "2021-06"
+        },
+        {
+          "combined_throughput": 2023223,
+          "incumbent_throughput": 2020582,
+          "months_from_entry": 21,
+          "newcomer_share_pct": 0.13053430096435242,
+          "newcomer_throughput": 2641,
+          "period": "2021-07"
+        },
+        {
+          "combined_throughput": 2630517,
+          "incumbent_throughput": 2627878,
+          "months_from_entry": 22,
+          "newcomer_share_pct": 0.10032248413524794,
+          "newcomer_throughput": 2639,
+          "period": "2021-08"
+        },
+        {
+          "combined_throughput": 2771689,
+          "incumbent_throughput": 2769243,
+          "months_from_entry": 23,
+          "newcomer_share_pct": 0.08824943924083835,
+          "newcomer_throughput": 2446,
+          "period": "2021-09"
+        },
+        {
+          "combined_throughput": 3452977,
+          "incumbent_throughput": 3450483,
+          "months_from_entry": 24,
+          "newcomer_share_pct": 0.07222753004146856,
+          "newcomer_throughput": 2494,
+          "period": "2021-10"
+        },
+        {
+          "combined_throughput": 4061615,
+          "incumbent_throughput": 4059087,
+          "months_from_entry": 25,
+          "newcomer_share_pct": 0.06224125132490401,
+          "newcomer_throughput": 2528,
+          "period": "2021-11"
+        },
+        {
+          "combined_throughput": 4219919,
+          "incumbent_throughput": 4217185,
+          "months_from_entry": 26,
+          "newcomer_share_pct": 0.06478797341844714,
+          "newcomer_throughput": 2734,
+          "period": "2021-12"
+        },
+        {
+          "combined_throughput": 2329526,
+          "incumbent_throughput": 2327410,
+          "months_from_entry": 27,
+          "newcomer_share_pct": 0.09083392930579011,
+          "newcomer_throughput": 2116,
+          "period": "2022-01"
+        },
+        {
+          "combined_throughput": 3090432,
+          "incumbent_throughput": 3088092,
+          "months_from_entry": 28,
+          "newcomer_share_pct": 0.07571756958250497,
+          "newcomer_throughput": 2340,
+          "period": "2022-02"
+        },
+        {
+          "combined_throughput": 4117212,
+          "incumbent_throughput": 4114504,
+          "months_from_entry": 29,
+          "newcomer_share_pct": 0.06577266363743232,
+          "newcomer_throughput": 2708,
+          "period": "2022-03"
+        },
+        {
+          "combined_throughput": 3989200,
+          "incumbent_throughput": 3986746,
+          "months_from_entry": 30,
+          "newcomer_share_pct": 0.061516093452321265,
+          "newcomer_throughput": 2454,
+          "period": "2022-04"
+        },
+        {
+          "combined_throughput": 4252509,
+          "incumbent_throughput": 4249711,
+          "months_from_entry": 31,
+          "newcomer_share_pct": 0.06579645098928656,
+          "newcomer_throughput": 2798,
+          "period": "2022-05"
+        },
+        {
+          "combined_throughput": 3995889,
+          "incumbent_throughput": 3993594,
+          "months_from_entry": 32,
+          "newcomer_share_pct": 0.057434027822094155,
+          "newcomer_throughput": 2295,
+          "period": "2022-06"
+        },
+        {
+          "combined_throughput": 3685818,
+          "incumbent_throughput": 3683508,
+          "months_from_entry": 33,
+          "newcomer_share_pct": 0.06267265502528882,
+          "newcomer_throughput": 2310,
+          "period": "2022-07"
+        },
+        {
+          "combined_throughput": 3787661,
+          "incumbent_throughput": 3785467,
+          "months_from_entry": 34,
+          "newcomer_share_pct": 0.057924930451801256,
+          "newcomer_throughput": 2194,
+          "period": "2022-08"
+        },
+        {
+          "combined_throughput": 3869351,
+          "incumbent_throughput": 3867382,
+          "months_from_entry": 35,
+          "newcomer_share_pct": 0.05088708674917318,
+          "newcomer_throughput": 1969,
+          "period": "2022-09"
+        },
+        {
+          "combined_throughput": 4126540,
+          "incumbent_throughput": 4124832,
+          "months_from_entry": 36,
+          "newcomer_share_pct": 0.04139060811236532,
+          "newcomer_throughput": 1708,
+          "period": "2022-10"
+        },
+        {
+          "combined_throughput": 4293331,
+          "incumbent_throughput": 4291325,
+          "months_from_entry": 37,
+          "newcomer_share_pct": 0.04672362787774807,
+          "newcomer_throughput": 2006,
+          "period": "2022-11"
+        },
+        {
+          "combined_throughput": 4633675,
+          "incumbent_throughput": 4631973,
+          "months_from_entry": 38,
+          "newcomer_share_pct": 0.03673110436100935,
+          "newcomer_throughput": 1702,
+          "period": "2022-12"
+        },
+        {
+          "combined_throughput": 4380490,
+          "incumbent_throughput": 4379663,
+          "months_from_entry": 39,
+          "newcomer_share_pct": 0.01887916648594107,
+          "newcomer_throughput": 827,
+          "period": "2023-01"
+        },
+        {
+          "combined_throughput": 4368385,
+          "incumbent_throughput": 4368385,
+          "months_from_entry": 40,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2023-02"
+        },
+        {
+          "combined_throughput": 4620754,
+          "incumbent_throughput": 4620754,
+          "months_from_entry": 41,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2023-03"
+        },
+        {
+          "combined_throughput": 4634985,
+          "incumbent_throughput": 4634985,
+          "months_from_entry": 42,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2023-04"
+        },
+        {
+          "combined_throughput": 4609624,
+          "incumbent_throughput": 4609624,
+          "months_from_entry": 43,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2023-05"
+        },
+        {
+          "combined_throughput": 4410719,
+          "incumbent_throughput": 4410719,
+          "months_from_entry": 44,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2023-06"
+        },
+        {
+          "combined_throughput": 4330412,
+          "incumbent_throughput": 4330412,
+          "months_from_entry": 45,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2023-07"
+        },
+        {
+          "combined_throughput": 4420100,
+          "incumbent_throughput": 4420100,
+          "months_from_entry": 46,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2023-08"
+        },
+        {
+          "combined_throughput": 4305665,
+          "incumbent_throughput": 4305257,
+          "months_from_entry": 47,
+          "newcomer_share_pct": 0.009475888161294481,
+          "newcomer_throughput": 408,
+          "period": "2023-09"
+        },
+        {
+          "combined_throughput": 4484319,
+          "incumbent_throughput": 4483912,
+          "months_from_entry": 48,
+          "newcomer_share_pct": 0.009076071528363615,
+          "newcomer_throughput": 407,
+          "period": "2023-10"
+        },
+        {
+          "combined_throughput": 4397848,
+          "incumbent_throughput": 4397498,
+          "months_from_entry": 49,
+          "newcomer_share_pct": 0.007958437854150485,
+          "newcomer_throughput": 350,
+          "period": "2023-11"
+        },
+        {
+          "combined_throughput": 4767847,
+          "incumbent_throughput": 4767641,
+          "months_from_entry": 50,
+          "newcomer_share_pct": 0.004320608442343054,
+          "newcomer_throughput": 206,
+          "period": "2023-12"
+        },
+        {
+          "combined_throughput": 4487188,
+          "incumbent_throughput": 4487104,
+          "months_from_entry": 51,
+          "newcomer_share_pct": 0.0018719964485553091,
+          "newcomer_throughput": 84,
+          "period": "2024-01"
+        },
+        {
+          "combined_throughput": 4506373,
+          "incumbent_throughput": 4505651,
+          "months_from_entry": 52,
+          "newcomer_share_pct": 0.016021754080276975,
+          "newcomer_throughput": 722,
+          "period": "2024-02"
+        },
+        {
+          "combined_throughput": 4737621,
+          "incumbent_throughput": 4736290,
+          "months_from_entry": 53,
+          "newcomer_share_pct": 0.0280942692545478,
+          "newcomer_throughput": 1331,
+          "period": "2024-03"
+        },
+        {
+          "combined_throughput": 4609638,
+          "incumbent_throughput": 4600919,
+          "months_from_entry": 54,
+          "newcomer_share_pct": 0.18914717381278096,
+          "newcomer_throughput": 8719,
+          "period": "2024-04"
+        },
+        {
+          "combined_throughput": 4806456,
+          "incumbent_throughput": 4797387,
+          "months_from_entry": 55,
+          "newcomer_share_pct": 0.1886837203960673,
+          "newcomer_throughput": 9069,
+          "period": "2024-05"
+        },
+        {
+          "combined_throughput": 4682071,
+          "incumbent_throughput": 4673502,
+          "months_from_entry": 56,
+          "newcomer_share_pct": 0.1830173015317367,
+          "newcomer_throughput": 8569,
+          "period": "2024-06"
+        },
+        {
+          "combined_throughput": 4606196,
+          "incumbent_throughput": 4598946,
+          "months_from_entry": 57,
+          "newcomer_share_pct": 0.15739668915521615,
+          "newcomer_throughput": 7250,
+          "period": "2024-07"
+        },
+        {
+          "combined_throughput": 4581910,
+          "incumbent_throughput": 4575111,
+          "months_from_entry": 58,
+          "newcomer_share_pct": 0.1483878993694769,
+          "newcomer_throughput": 6799,
+          "period": "2024-08"
+        },
+        {
+          "combined_throughput": 4482609,
+          "incumbent_throughput": 4477266,
+          "months_from_entry": 59,
+          "newcomer_share_pct": 0.1191939783282459,
+          "newcomer_throughput": 5343,
+          "period": "2024-09"
+        },
+        {
+          "combined_throughput": 4615307,
+          "incumbent_throughput": 4606612,
+          "months_from_entry": 60,
+          "newcomer_share_pct": 0.1883948348398059,
+          "newcomer_throughput": 8695,
+          "period": "2024-10"
+        },
+        {
+          "combined_throughput": 4844404,
+          "incumbent_throughput": 4835683,
+          "months_from_entry": 61,
+          "newcomer_share_pct": 0.18002214513900988,
+          "newcomer_throughput": 8721,
+          "period": "2024-11"
+        },
+        {
+          "combined_throughput": 4956899,
+          "incumbent_throughput": 4947654,
+          "months_from_entry": 62,
+          "newcomer_share_pct": 0.18650773396835402,
+          "newcomer_throughput": 9245,
+          "period": "2024-12"
+        },
+        {
+          "combined_throughput": 4739705,
+          "incumbent_throughput": 4731795,
+          "months_from_entry": 63,
+          "newcomer_share_pct": 0.16688802362172328,
+          "newcomer_throughput": 7910,
+          "period": "2025-01"
+        },
+        {
+          "combined_throughput": 4768419,
+          "incumbent_throughput": 4759853,
+          "months_from_entry": 64,
+          "newcomer_share_pct": 0.17964025392902763,
+          "newcomer_throughput": 8566,
+          "period": "2025-02"
+        },
+        {
+          "combined_throughput": 4947629,
+          "incumbent_throughput": 4898530,
+          "months_from_entry": 65,
+          "newcomer_share_pct": 0.9923743271777249,
+          "newcomer_throughput": 49099,
+          "period": "2025-03"
+        },
+        {
+          "combined_throughput": 4744972,
+          "incumbent_throughput": 4680387,
+          "months_from_entry": 66,
+          "newcomer_share_pct": 1.361124997154883,
+          "newcomer_throughput": 64585,
+          "period": "2025-04"
+        },
+        {
+          "combined_throughput": 4433514,
+          "incumbent_throughput": 4384693,
+          "months_from_entry": 67,
+          "newcomer_share_pct": 1.1011806887268203,
+          "newcomer_throughput": 48821,
+          "period": "2025-05"
+        },
+        {
+          "combined_throughput": 4418709,
+          "incumbent_throughput": 4341903,
+          "months_from_entry": 68,
+          "newcomer_share_pct": 1.7382000036662293,
+          "newcomer_throughput": 76806,
+          "period": "2025-06"
+        },
+        {
+          "combined_throughput": 4151256,
+          "incumbent_throughput": 4043459,
+          "months_from_entry": 69,
+          "newcomer_share_pct": 2.59673216973369,
+          "newcomer_throughput": 107797,
+          "period": "2025-07"
+        },
+        {
+          "combined_throughput": 4300146,
+          "incumbent_throughput": 4141640,
+          "months_from_entry": 70,
+          "newcomer_share_pct": 3.6860608918859965,
+          "newcomer_throughput": 158506,
+          "period": "2025-08"
+        },
+        {
+          "combined_throughput": 4244055,
+          "incumbent_throughput": 4105310,
+          "months_from_entry": 71,
+          "newcomer_share_pct": 3.2691612149229923,
+          "newcomer_throughput": 138745,
+          "period": "2025-09"
+        },
+        {
+          "combined_throughput": 4753895,
+          "incumbent_throughput": 4624095,
+          "months_from_entry": 72,
+          "newcomer_share_pct": 2.7303926569686543,
+          "newcomer_throughput": 129800,
+          "period": "2025-10"
+        },
+        {
+          "combined_throughput": 5397953,
+          "incumbent_throughput": 5272083,
+          "months_from_entry": 73,
+          "newcomer_share_pct": 2.3318098545874704,
+          "newcomer_throughput": 125870,
+          "period": "2025-11"
+        },
+        {
+          "combined_throughput": 4994494,
+          "incumbent_throughput": 4913809,
+          "months_from_entry": 74,
+          "newcomer_share_pct": 1.615478965436739,
+          "newcomer_throughput": 80685,
+          "period": "2025-12"
+        },
+        {
+          "combined_throughput": 5128132,
+          "incumbent_throughput": 5053426,
+          "months_from_entry": 75,
+          "newcomer_share_pct": 1.4567877737936543,
+          "newcomer_throughput": 74706,
+          "period": "2026-01"
+        },
+        {
+          "combined_throughput": 5095846,
+          "incumbent_throughput": 5002117,
+          "months_from_entry": 76,
+          "newcomer_share_pct": 1.8393216749485757,
+          "newcomer_throughput": 93729,
+          "period": "2026-02"
+        },
+        {
+          "combined_throughput": 5171812,
+          "incumbent_throughput": 5087802,
+          "months_from_entry": 77,
+          "newcomer_share_pct": 1.6243823248022162,
+          "newcomer_throughput": 84010,
+          "period": "2026-03"
+        },
+        {
+          "combined_throughput": 4857027,
+          "incumbent_throughput": 4809136,
+          "months_from_entry": 78,
+          "newcomer_share_pct": 0.9860146958211268,
+          "newcomer_throughput": 47891,
+          "period": "2026-04"
+        },
+        {
+          "combined_throughput": 5310126,
+          "incumbent_throughput": 5263929,
+          "months_from_entry": 79,
+          "newcomer_share_pct": 0.869979356422051,
+          "newcomer_throughput": 46197,
+          "period": "2026-05"
+        },
+        {
+          "combined_throughput": 4765462,
+          "incumbent_throughput": 4721821,
+          "months_from_entry": 80,
+          "newcomer_share_pct": 0.9157768963428939,
+          "newcomer_throughput": 43641,
+          "period": "2026-06"
+        }
+      ],
       "newcomer": "HDO",
       "newcomer_destinations": [
         "AIP",
@@ -1052,6 +2234,153 @@
       "jaccard_similarity": 0.6,
       "min_market_passengers": 10000,
       "min_persistence_months": 3,
+      "monthly_development_pre_entry_months": 12,
+      "monthly_passenger_development": [
+        {
+          "combined_throughput": 3416689,
+          "incumbent_throughput": 3416689,
+          "months_from_entry": -12,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2025-01"
+        },
+        {
+          "combined_throughput": 3208087,
+          "incumbent_throughput": 3208087,
+          "months_from_entry": -11,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2025-02"
+        },
+        {
+          "combined_throughput": 3249384,
+          "incumbent_throughput": 3249384,
+          "months_from_entry": -10,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2025-03"
+        },
+        {
+          "combined_throughput": 3193657,
+          "incumbent_throughput": 3193657,
+          "months_from_entry": -9,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2025-04"
+        },
+        {
+          "combined_throughput": 3178186,
+          "incumbent_throughput": 3178186,
+          "months_from_entry": -8,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2025-05"
+        },
+        {
+          "combined_throughput": 3094917,
+          "incumbent_throughput": 3094917,
+          "months_from_entry": -7,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2025-06"
+        },
+        {
+          "combined_throughput": 3013423,
+          "incumbent_throughput": 3013423,
+          "months_from_entry": -6,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2025-07"
+        },
+        {
+          "combined_throughput": 3147410,
+          "incumbent_throughput": 3147410,
+          "months_from_entry": -5,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2025-08"
+        },
+        {
+          "combined_throughput": 3077577,
+          "incumbent_throughput": 3077577,
+          "months_from_entry": -4,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2025-09"
+        },
+        {
+          "combined_throughput": 3164032,
+          "incumbent_throughput": 3164032,
+          "months_from_entry": -3,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2025-10"
+        },
+        {
+          "combined_throughput": 3377984,
+          "incumbent_throughput": 3377984,
+          "months_from_entry": -2,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2025-11"
+        },
+        {
+          "combined_throughput": 3262346,
+          "incumbent_throughput": 3262346,
+          "months_from_entry": -1,
+          "newcomer_share_pct": 0.0,
+          "newcomer_throughput": 0,
+          "period": "2025-12"
+        },
+        {
+          "combined_throughput": 3628465,
+          "incumbent_throughput": 3433402,
+          "months_from_entry": 0,
+          "newcomer_share_pct": 5.3759096477436055,
+          "newcomer_throughput": 195063,
+          "period": "2026-01"
+        },
+        {
+          "combined_throughput": 3349451,
+          "incumbent_throughput": 3165353,
+          "months_from_entry": 1,
+          "newcomer_share_pct": 5.496363433888121,
+          "newcomer_throughput": 184098,
+          "period": "2026-02"
+        },
+        {
+          "combined_throughput": 3348462,
+          "incumbent_throughput": 3127717,
+          "months_from_entry": 2,
+          "newcomer_share_pct": 6.592429599021879,
+          "newcomer_throughput": 220745,
+          "period": "2026-03"
+        },
+        {
+          "combined_throughput": 3364476,
+          "incumbent_throughput": 2844994,
+          "months_from_entry": 3,
+          "newcomer_share_pct": 15.440205250386688,
+          "newcomer_throughput": 519482,
+          "period": "2026-04"
+        },
+        {
+          "combined_throughput": 3890733,
+          "incumbent_throughput": 3261073,
+          "months_from_entry": 4,
+          "newcomer_share_pct": 16.183582887851724,
+          "newcomer_throughput": 629660,
+          "period": "2026-05"
+        },
+        {
+          "combined_throughput": 3350565,
+          "incumbent_throughput": 2861025,
+          "months_from_entry": 5,
+          "newcomer_share_pct": 14.610670140707612,
+          "newcomer_throughput": 489540,
+          "period": "2026-06"
+        }
+      ],
       "newcomer": "NMIA",
       "newcomer_destinations": [
         "AGR",
@@ -1515,6 +2844,138 @@
   "executive_finding": "Observable route-market volume and persistent growth provide the strongest actionable evidence. Dual-airport analogues support a complementary origin/destination role; the segment data does not support a transfer-hub claim.",
   "generated_date": "2026-07-30",
   "national_decentralisation": {
+    "annual_metrics": [
+      {
+        "active_airports": 78,
+        "active_routes": 339,
+        "effective_traffic_centres": 10.609362494843598,
+        "median_direct_destinations": 5.0,
+        "median_effective_destinations": 2.516705793685996,
+        "route_births": null,
+        "route_deaths": null,
+        "route_survival_pct": null,
+        "top_five_airport_share_pct": 58.89966218417334,
+        "traffic_hhi": 0.09425637030368447,
+        "year": 2016
+      },
+      {
+        "active_airports": 90,
+        "active_routes": 427,
+        "effective_traffic_centres": 11.379251423590665,
+        "median_direct_destinations": 5.5,
+        "median_effective_destinations": 2.4576208309853573,
+        "route_births": 107.0,
+        "route_deaths": 19.0,
+        "route_survival_pct": 94.3952802359882,
+        "top_five_airport_share_pct": 57.038723889022606,
+        "traffic_hhi": 0.08787924291108203,
+        "year": 2017
+      },
+      {
+        "active_airports": 100,
+        "active_routes": 554,
+        "effective_traffic_centres": 12.361267993736398,
+        "median_direct_destinations": 5.0,
+        "median_effective_destinations": 2.8659993407219586,
+        "route_births": 146.0,
+        "route_deaths": 19.0,
+        "route_survival_pct": 95.5503512880562,
+        "top_five_airport_share_pct": 55.38252044992856,
+        "traffic_hhi": 0.08089784967907111,
+        "year": 2018
+      },
+      {
+        "active_airports": 102,
+        "active_routes": 604,
+        "effective_traffic_centres": 13.026777488286028,
+        "median_direct_destinations": 6.0,
+        "median_effective_destinations": 3.5619364184879534,
+        "route_births": 138.0,
+        "route_deaths": 88.0,
+        "route_survival_pct": 84.11552346570397,
+        "top_five_airport_share_pct": 54.2096376157175,
+        "traffic_hhi": 0.07676495594549171,
+        "year": 2019
+      },
+      {
+        "active_airports": 105,
+        "active_routes": 573,
+        "effective_traffic_centres": 13.5959747511544,
+        "median_direct_destinations": 6.0,
+        "median_effective_destinations": 3.4832608923310078,
+        "route_births": 52.0,
+        "route_deaths": 83.0,
+        "route_survival_pct": 86.25827814569537,
+        "top_five_airport_share_pct": 53.17288336247507,
+        "traffic_hhi": 0.0735511810151819,
+        "year": 2020
+      },
+      {
+        "active_airports": 109,
+        "active_routes": 657,
+        "effective_traffic_centres": 13.47961884135894,
+        "median_direct_destinations": 7.0,
+        "median_effective_destinations": 3.7789750601446555,
+        "route_births": 160.0,
+        "route_deaths": 76.0,
+        "route_survival_pct": 86.73647469458987,
+        "top_five_airport_share_pct": 52.414617309145356,
+        "traffic_hhi": 0.07418607393643377,
+        "year": 2021
+      },
+      {
+        "active_airports": 113,
+        "active_routes": 653,
+        "effective_traffic_centres": 13.229992550847431,
+        "median_direct_destinations": 7.0,
+        "median_effective_destinations": 3.8432945223184585,
+        "route_births": 86.0,
+        "route_deaths": 90.0,
+        "route_survival_pct": 86.3013698630137,
+        "top_five_airport_share_pct": 53.18927967210922,
+        "traffic_hhi": 0.07558583243011321,
+        "year": 2022
+      },
+      {
+        "active_airports": 122,
+        "active_routes": 690,
+        "effective_traffic_centres": 13.496822840077165,
+        "median_direct_destinations": 6.5,
+        "median_effective_destinations": 3.919489962825262,
+        "route_births": 122.0,
+        "route_deaths": 85.0,
+        "route_survival_pct": 86.98315467075038,
+        "top_five_airport_share_pct": 53.09378690011144,
+        "traffic_hhi": 0.07409151115406377,
+        "year": 2023
+      },
+      {
+        "active_airports": 128,
+        "active_routes": 704,
+        "effective_traffic_centres": 13.743489216796098,
+        "median_direct_destinations": 5.0,
+        "median_effective_destinations": 3.931144150989495,
+        "route_births": 104.0,
+        "route_deaths": 90.0,
+        "route_survival_pct": 86.95652173913044,
+        "top_five_airport_share_pct": 53.09501141771028,
+        "traffic_hhi": 0.07276172624182561,
+        "year": 2024
+      },
+      {
+        "active_airports": 129,
+        "active_routes": 731,
+        "effective_traffic_centres": 14.45552046436943,
+        "median_direct_destinations": 6.0,
+        "median_effective_destinations": 3.9360156756622566,
+        "route_births": 117.0,
+        "route_deaths": 90.0,
+        "route_survival_pct": 87.2159090909091,
+        "top_five_airport_share_pct": 51.94574552631842,
+        "traffic_hhi": 0.06917772365684388,
+        "year": 2025
+      }
+    ],
     "first_year": 2016,
     "first_year_metrics": {
       "active_airports": 78.0,

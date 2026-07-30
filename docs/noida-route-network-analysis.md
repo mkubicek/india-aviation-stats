@@ -136,6 +136,12 @@ The chart distinguishes:
 - combined-market breadth now versus the equal-length pre-entry incumbent
   baseline.
 
+The machine-readable analysis also publishes a continuous monthly series for
+each pair from 12 months before newcomer entry through June 2026. Every row
+keeps incumbent, newcomer, and combined airport throughput plus newcomer share
+separate, so the observed development can be inspected without treating entry
+as the cause of the change.
+
 Combined persistent breadth moved from 18 to 29 markets for GOI/GOX, from 69 to
 83 for DEL/HDO, and remained 65 for BOM/NMIA. Those before/after comparisons
 are observational: calendar periods, operating models, catchments, airline
@@ -185,6 +191,11 @@ The direction is clear: traffic and route breadth are spreading across more
 centres. The conclusion is also limited. National polycentric growth makes an
 additional NCR airport more structurally plausible, but does not say which DXN
 routes are addressable or profitable.
+
+The machine-readable annual series additionally retains traffic HHI, median
+direct and effective destinations, and route births, deaths, and year-over-year
+survival. These diagnostics were tested but kept out of the chart when they did
+not improve the headline interpretation.
 
 ## Candidate theses tested
 

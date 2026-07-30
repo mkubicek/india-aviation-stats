@@ -107,7 +107,7 @@
         "total_supported_pairs": 3
       },
       "primary_source_table": "domestic_route_monthly",
-      "sha256": "9e6be6da22d7c28802e0926e6b4b10bc5706f63b6bc11206cb6d96bc8ed11bfe"
+      "sha256": "e59936d904930d175caa8b5dc4096134e8107deb1e5f49e6602f457b2b4e8f84"
     },
     "india_domestic_demand_pulse": {
       "file": "charts/india_domestic_demand_pulse.png",

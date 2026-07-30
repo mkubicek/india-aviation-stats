@@ -108,8 +108,53 @@ def test_route_analysis_summary_declares_windows_claims_and_selection(
     assert frontier["selection"]["min_latest_persistence_months"] == 9
     assert "forecast" in frontier["not_interpretation"]
     assert len(summary["dual_airport_sensitivity"]) == 36
+    for analogue in summary["dual_airport_analogues"]:
+        development = analogue["monthly_passenger_development"]
+        assert analogue["monthly_development_pre_entry_months"] == 12
+        assert development
+        assert all(
+            row["combined_throughput"]
+            == row["incumbent_throughput"] + row["newcomer_throughput"]
+            for row in development
+        )
+    annual = summary["national_decentralisation"]["annual_metrics"]
+    assert [row["year"] for row in annual] == list(range(2016, 2026))
+    assert {"route_births", "route_deaths", "route_survival_pct"} <= set(
+        annual[-1]
+    )
     assert summary["claim_boundaries"]
     assert "personal open-source analysis" in summary["disclaimer"]
+
+
+def test_route_chart_data_helpers_accept_generic_focal_and_pair_parameters():
+    routes = pd.read_csv(ROOT / "data/processed/domestic_route_monthly.csv")
+    monthly = pd.read_csv(ROOT / "data/processed/airport_monthly.csv")
+
+    frontier, eligible, _, _ = chart.route_frontier_data(
+        routes,
+        monthly,
+        focal_airport="BOM",
+        proxy_airport=None,
+        distance_origin=None,
+        min_t12_passengers=500_000,
+        min_persistence_months=12,
+    )
+    assert len(frontier) > 0
+    assert len(eligible) > 0
+    assert "hdo_t12_passengers" not in frontier
+
+    pair = chart.dual_airport_role_data(
+        routes,
+        monthly,
+        airport_pairs=[("DEL", "HDO")],
+        min_market_passengers=50_000,
+        persistence_fraction=0.75,
+    )
+    assert len(pair) == 1
+    assert pair[0]["incumbent"] == "DEL"
+    assert pair[0]["newcomer"] == "HDO"
+    assert pair[0]["min_market_passengers"] == 50_000
+    assert pair[0]["min_persistence_months"] == 9
 
 
 def test_chart_manifest_references_existing_files(generated_chart_artifacts):

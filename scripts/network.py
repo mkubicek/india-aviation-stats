@@ -556,6 +556,77 @@ def dual_airport_metrics(
     }
 
 
+def dual_airport_monthly_development(
+    airport_monthly: pd.DataFrame,
+    *,
+    incumbent: str,
+    newcomer: str,
+    pre_entry_months: int = 12,
+    end_period: pd.Period | str | None = None,
+) -> pd.DataFrame:
+    """Monthly incumbent, newcomer, combined traffic, and newcomer share.
+
+    The series begins with a disclosed pre-entry window and runs through the
+    requested end period (the latest published month by default). It describes
+    observed airport throughput only; it does not attribute changes to entry.
+    """
+    if pre_entry_months < 0:
+        raise ValueError("pre_entry_months must be non-negative")
+
+    airport = add_month_period(airport_monthly)
+    newcomer_rows = airport[
+        (airport["airport"] == newcomer) & (airport["passengers"] > 0)
+    ]
+    if newcomer_rows.empty:
+        raise ValueError(f"{newcomer} has no observed positive passenger month")
+
+    entry = newcomer_rows["period"].min()
+    latest = airport["period"].max()
+    end = pd.Period(end_period, freq="M") if end_period is not None else latest
+    if end < entry:
+        raise ValueError("end_period precedes the newcomer's first positive month")
+    if end > latest:
+        raise ValueError("end_period exceeds the latest published month")
+    start = entry - pre_entry_months
+    periods = pd.period_range(start, end, freq="M")
+
+    traffic = airport.pivot_table(
+        index="period",
+        columns="airport",
+        values="passengers",
+        aggfunc="sum",
+        fill_value=0,
+    ).reindex(periods, fill_value=0)
+
+    incumbent_traffic = (
+        traffic[incumbent].astype("int64")
+        if incumbent in traffic
+        else pd.Series(0, index=periods, dtype="int64")
+    )
+    newcomer_traffic = (
+        traffic[newcomer].astype("int64")
+        if newcomer in traffic
+        else pd.Series(0, index=periods, dtype="int64")
+    )
+    combined = incumbent_traffic + newcomer_traffic
+    out = pd.DataFrame(
+        {
+            "incumbent_throughput": incumbent_traffic,
+            "newcomer_throughput": newcomer_traffic,
+            "combined_throughput": combined,
+            "newcomer_share_pct": (
+                100 * newcomer_traffic / combined.replace(0, np.nan)
+            ),
+            "months_from_entry": [
+                period.ordinal - entry.ordinal for period in periods
+            ],
+        },
+        index=periods,
+    )
+    out.index.name = "period"
+    return out
+
+
 def route_acquisition_sequence(
     routes: pd.DataFrame,
     newcomer: str,

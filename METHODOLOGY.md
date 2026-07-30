@@ -244,7 +244,10 @@ and BOM/NMIA. A persistent market has at least 10,000 bidirectional passengers
 and positive traffic in at least half the comparison months. The chart reports
 newcomer share of pair throughput, shared/unique destinations, effective
 destinations, and combined breadth versus an equal-length pre-entry incumbent
-baseline. Comparisons are observational, not causal.
+baseline. `route_analysis_summary.json` also retains incumbent, newcomer, and
+combined monthly throughput from 12 months before entry through the latest
+published month, plus the first-24-month route-acquisition sequence.
+Comparisons are observational, not causal.
 
 ### Domestic Network Decentralisation
 

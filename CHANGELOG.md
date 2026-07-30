@@ -42,7 +42,8 @@
   and unexplained published-history disappearance.
 - Reusable deterministic route/network metrics in `scripts/network.py`, with
   unit and end-to-end tests covering route construction, conservation, windows,
-  Pareto selection, dual-airport metrics, and network structure.
+  Pareto selection, parameterised dual-airport metrics and monthly development,
+  and network structure.
 - Three evidence-selected charts: observable DEL route-market frontier,
   dual-airport network roles, and domestic network decentralisation. Structural
   one-stop and triangle-closure tests remain documented but were not promoted

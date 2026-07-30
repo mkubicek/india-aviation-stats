@@ -8,6 +8,7 @@ from network import (
     annual_network_metrics,
     bidirectional_segments,
     comparison_windows,
+    dual_airport_monthly_development,
     dual_airport_metrics,
     effective_destinations,
     eligible_route_markets,
@@ -165,6 +166,49 @@ def test_dual_airport_metrics_apply_volume_and_persistence_floor():
     assert result["newcomer_share_pct"] > 0
     assert result["combined_vs_baseline_throughput_change_pct"] > 0
     assert result["combined_vs_baseline_destination_change"] == 1
+
+
+def test_dual_airport_monthly_development_discloses_pre_entry_and_components():
+    rows = []
+    rows += _route_rows(
+        "2024-12",
+        3,
+        {
+            ("INC", "AAA"): 100,
+            ("AAA", "INC"): 100,
+        },
+    )
+    rows += _route_rows(
+        "2025-01",
+        2,
+        {
+            ("NEW", "AAA"): 20,
+            ("AAA", "NEW"): 20,
+        },
+    )
+    routes = pd.DataFrame(rows)
+    airport = airport_monthly_from_routes(routes)
+
+    development = dual_airport_monthly_development(
+        airport,
+        incumbent="INC",
+        newcomer="NEW",
+        pre_entry_months=1,
+    )
+
+    assert [str(period) for period in development.index] == [
+        "2024-12",
+        "2025-01",
+        "2025-02",
+    ]
+    assert development.loc[pd.Period("2024-12"), "months_from_entry"] == -1
+    assert development.loc[pd.Period("2025-01"), "months_from_entry"] == 0
+    assert (
+        development["combined_throughput"]
+        == development["incumbent_throughput"]
+        + development["newcomer_throughput"]
+    ).all()
+    assert development.loc[pd.Period("2025-01"), "newcomer_share_pct"] > 0
 
 
 def test_route_acquisition_sequence_uses_first_positive_month():

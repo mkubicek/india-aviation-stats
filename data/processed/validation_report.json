@@ -134,7 +134,7 @@
       "check": "routes.history_preserved",
       "status": "pass",
       "severity": "BLOCKING",
-      "message": "first route-table publication; no prior route baseline"
+      "message": "all 133,694 previously published route-month keys remain"
     },
     {
       "check": "carrier.unique",
