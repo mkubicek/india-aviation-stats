@@ -80,3 +80,25 @@ def test_airline_assumption_triggers_if_a_brand_is_collapsed():
         "params": {"airlines": ["Vistara", "Nonexistent Air"]},
         "covers": []}}]
     assert A.evaluate(fake, MAPPINGS)[0]["verdict"] == "TRIGGERED"
+
+
+@requires_raw
+def test_source_label_resolution_assumption_holds_for_dxn():
+    results = {r["id"]: r for r in A.evaluate(A.load_assumptions(), MAPPINGS)}
+    assert results["DXN-001"]["verdict"] == "HOLDS"
+
+
+@requires_raw
+def test_source_label_resolution_assumption_triggers_on_wrong_airport():
+    fake = [{"id": "X", "frontmatter": {
+        "falsification": "source-label-resolves-to",
+        "params": {"label": "GAUTAM BUDDHA NAGAR", "airport": "DEL"},
+        "covers": ["DXN"],
+    }}]
+    assert A.evaluate(fake, MAPPINGS)[0]["verdict"] == "TRIGGERED"
+
+
+@requires_raw
+def test_source_self_loop_exclusion_assumption_holds():
+    results = {r["id"]: r for r in A.evaluate(A.load_assumptions(), MAPPINGS)}
+    assert results["HYD-001"]["verdict"] == "HOLDS"

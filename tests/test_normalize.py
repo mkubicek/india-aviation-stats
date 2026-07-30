@@ -104,6 +104,30 @@ def test_parse_domestic_city_file(tmp_path):
     assert row["FreightFromCity2"] == 20.626
 
 
+def test_parse_domestic_city_file_keeps_blank_reverse_direction(tmp_path):
+    path = tmp_path / "DOM CITYPAIR DATA, APRIL 2025.xlsx"
+    _write_xlsx(
+        path,
+        [
+            ["City Pair wise Passenger Traffic Statistics For April 2025"],
+            [
+                "S.No.",
+                "CITY 1",
+                "CITY 2",
+                "PASSENGERS TO CITY 2",
+                "PASSENGERS FROM CITY 2",
+            ],
+            [1, "Delhi", "Mumbai", 100, None],
+        ],
+    )
+
+    parsed = parse_domestic_city_file(path)
+
+    assert len(parsed) == 1
+    assert parsed.iloc[0]["PaxToCity2"] == 100
+    assert parsed.iloc[0]["PaxFromCity2"] == 0
+
+
 def test_parse_domestic_carrier_file(tmp_path):
     path = tmp_path / "indigo25.xlsx"
     _write_xlsx(

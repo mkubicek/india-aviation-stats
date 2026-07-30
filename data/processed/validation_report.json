@@ -2,7 +2,7 @@
   "blocking_failures": 0,
   "tripwire_failures": 0,
   "advisories": 1,
-  "passed": 17,
+  "passed": 26,
   "findings": [
     {
       "check": "cadence.layer1_unique",
@@ -77,10 +77,64 @@
       "message": "airport_yearly: schema v2.0 conforms"
     },
     {
+      "check": "schema.domestic_route_monthly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "domestic_route_monthly: schema v1.0 conforms"
+    },
+    {
       "check": "conservation.tripwire",
       "status": "pass",
       "severity": "TRIPWIRE",
       "message": "per month sum(departures) == sum(arrivals) (true by construction; tripwire only)"
+    },
+    {
+      "check": "routes.unique",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "one row per (year, month, origin, destination)"
+    },
+    {
+      "check": "routes.canonical_endpoints",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "all 143 route endpoints are canonical airports"
+    },
+    {
+      "check": "routes.no_self_loops",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "all domestic routes have distinct endpoints"
+    },
+    {
+      "check": "routes.integer_passengers",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "domestic route passengers are whole-person integers"
+    },
+    {
+      "check": "routes.nonnegative",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "all domestic route passengers are non-negative"
+    },
+    {
+      "check": "routes.airport_reconciliation",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "all 13,350 airport-month departures and arrivals reconcile exactly to directed routes"
+    },
+    {
+      "check": "routes.national_reconciliation",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "directed route passengers equal national departures and arrivals for all 135 month(s)"
+    },
+    {
+      "check": "routes.history_preserved",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "first route-table publication; no prior route baseline"
     },
     {
       "check": "carrier.unique",
@@ -98,7 +152,7 @@
       "check": "semantics.domestic_airport_throughput_vs_carrier",
       "status": "pass",
       "severity": "ADVISORY",
-      "message": "domestic airport throughput == ~2x scheduled-domestic passengers carried for all 133 overlapping month(s) (max deviation 0.092); endpoint throughput is not national passengers carried"
+      "message": "domestic airport throughput == ~2x scheduled-domestic passengers carried for all 134 overlapping month(s) (max deviation 0.092); endpoint throughput is not national passengers carried"
     },
     {
       "check": "overlap.concurrent.COK",
@@ -135,15 +189,37 @@
       ]
     },
     {
+      "id": "DXN-001",
+      "title": "GAUTAM BUDDHA NAGAR is Noida International Airport (DXN)",
+      "category": "rename",
+      "test": "source-label-resolves-to",
+      "verdict": "HOLDS",
+      "detail": "GAUTAM BUDDHA NAGAR resolves to DXN in all 1 observed month(s)",
+      "covers": [
+        "DXN"
+      ]
+    },
+    {
       "id": "GOA-001",
       "title": "Goa is two airports \u2014 Dabolim (GOI) and Mopa (GOX) \u2014 and the DGCA \"GOI\" label is Mopa from 2023",
       "category": "deduplication",
       "test": "size-ordering-holds",
       "verdict": "HOLDS",
-      "detail": "GOI (69,062,871) >= GOX (15,065,993)",
+      "detail": "GOI (69,527,664) >= GOX (15,396,278)",
       "covers": [
         "GOI",
         "GOX"
+      ]
+    },
+    {
+      "id": "HYD-001",
+      "title": "January 2025 HYDERABAD-to-HYDERABAD is an invalid domestic self-pair",
+      "category": "source-anomaly",
+      "test": "source-self-loop-excluded",
+      "verdict": "HOLDS",
+      "detail": "HYDERABAD->HYDERABAD 2025-01 is excluded as HYD",
+      "covers": [
+        "HYD"
       ]
     },
     {

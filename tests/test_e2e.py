@@ -19,6 +19,7 @@ import pandas as pd
 
 from clean import _finalize, _split_endpoints
 from entities import build_airport_resolver
+from routes import airport_monthly_from_routes, build_domestic_routes
 from validate.checks import check_cadence, check_definitional
 from validate.overlap import overlap_gate
 
@@ -96,3 +97,26 @@ def test_overlap_gate_blocks_then_passes_with_declaration(tmp_path):
     # Declared -> passes.
     mappings["concurrent_labels"] = [{"airport": "COK", "labels": ["KOCHI", "COCHIN"]}]
     assert not [f for f in overlap_gate(mappings, raw_csv) if f.status == "fail"]
+
+
+def test_raw_city_pair_to_route_table_to_airport_reconciliation():
+    raw = _raw([
+        [2025, 1, "Alpha", "Beta", 100, 80],
+        [2025, 1, "Alpha", "Gamma", 5, 0],
+    ])
+    route_fixture = {
+        "airports": {
+            "AAA": {"city": "Alpha"},
+            "BBB": {"city": "Beta"},
+            "CCC": {"city": "Gamma"},
+        }
+    }
+    routes = build_domestic_routes(raw, build_airport_resolver(route_fixture))
+    airport = airport_monthly_from_routes(routes)
+
+    assert len(routes) == 4  # two directed observations per source pair
+    by_airport = airport.set_index("airport")
+    assert by_airport.loc["AAA", "departures"] == 105
+    assert by_airport.loc["AAA", "arrivals"] == 80
+    assert airport["departures"].sum() == routes["passengers"].sum()
+    assert airport["arrivals"].sum() == routes["passengers"].sum()

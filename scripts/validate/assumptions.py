@@ -144,12 +144,50 @@ def _t_airlines_distinct(params, ctx) -> tuple[str, str]:
     return "HOLDS", f"{names} all present as distinct airlines"
 
 
+def _t_source_label_resolves(params, ctx) -> tuple[str, str]:
+    label = str(params["label"]).upper()
+    airport = str(params["airport"])
+    periods = sorted(ctx["label_months"].get(label, set()))
+    if not periods:
+        return "ORPHANED", f"{label} no longer appears in the domestic source"
+    resolver = ctx["airport_resolver"]
+    wrong = [
+        (year, month, resolver.resolve(label, year, month))
+        for year, month in periods
+        if resolver.resolve(label, year, month) != airport
+    ]
+    if wrong:
+        year, month, resolved = wrong[0]
+        return (
+            "TRIGGERED",
+            f"{label} resolves to {resolved!r}, not {airport}, in {year}-{month:02d}",
+        )
+    return "HOLDS", f"{label} resolves to {airport} in all {len(periods)} observed month(s)"
+
+
+def _t_source_self_loop_excluded(params, ctx) -> tuple[str, str]:
+    key = (
+        int(params["year"]),
+        int(params["month"]),
+        str(params["city1"]).upper(),
+        str(params["city2"]).upper(),
+        str(params["airport"]),
+    )
+    if key not in ctx["source_self_loops"]:
+        return "ORPHANED", f"source self-loop {key[:4]} no longer appears"
+    if key not in ctx["declared_route_exclusions"]:
+        return "TRIGGERED", f"source self-loop {key[:4]} is no longer excluded"
+    return "HOLDS", f"{key[2]}->{key[3]} {key[0]}-{key[1]:02d} is excluded as {key[4]}"
+
+
 TESTS = {
     "size-ordering-holds": _t_size_ordering,
     "distinct-airports-not-merged": _t_distinct,
     "month-disjoint-rename": _t_month_disjoint,
     "concurrent-merge-declared": _t_concurrent_declared,
     "airlines-linked-not-collapsed": _t_airlines_distinct,
+    "source-label-resolves-to": _t_source_label_resolves,
+    "source-self-loop-excluded": _t_source_self_loop_excluded,
 }
 
 
@@ -161,11 +199,44 @@ def _context(mappings: dict) -> dict:
     totals = {} if l1.empty else l1.groupby("airport")["passengers"].sum().to_dict()
     declared = {e["airport"]: set(x.upper() for x in e["labels"])
                 for e in (mappings.get("concurrent_labels") or [])}
+    resolver = build_airport_resolver(
+        mappings, extra_aliases=mappings.get("airport_aliases")
+    )
+    source_self_loops = set()
+    if RAW_DOMESTIC.exists():
+        raw = pd.read_csv(RAW_DOMESTIC)
+        for row in raw.itertuples(index=False):
+            year, month = int(row.Year), int(row.Month)
+            origin = resolver.resolve(row.City1, year, month)
+            destination = resolver.resolve(row.City2, year, month)
+            if origin and origin == destination:
+                source_self_loops.add(
+                    (
+                        year,
+                        month,
+                        str(row.City1).upper(),
+                        str(row.City2).upper(),
+                        origin,
+                    )
+                )
+    declared_route_exclusions = {
+        (
+            int(item["year"]),
+            int(item["month"]),
+            str(item["city1"]).upper(),
+            str(item["city2"]).upper(),
+            str(item["airport"]),
+        )
+        for item in mappings.get("domestic_route_exclusions", [])
+    }
     return {
         "totals": totals,
         "label_months": _label_months(),
         "declared_concurrent": declared,
         "airlines": _carrier_airlines(),
+        "airport_resolver": resolver,
+        "source_self_loops": source_self_loops,
+        "declared_route_exclusions": declared_route_exclusions,
     }
 
 

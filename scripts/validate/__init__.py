@@ -9,8 +9,11 @@ process exit code (non-zero iff a BLOCKING check failed). The assumptions ledger
 
 from __future__ import annotations
 
+import io
 import json
+import os
 from pathlib import Path
+import subprocess
 
 import pandas as pd
 import yaml
@@ -22,7 +25,9 @@ from .checks import (
     check_conservation_tripwire,
     check_coverage,
     check_definitional,
+    check_domestic_routes,
     check_metric_semantics,
+    check_route_history,
     check_schema,
 )
 from .overlap import check_unmapped_names, overlap_gate
@@ -50,6 +55,19 @@ def _load_layer(name: str) -> pd.DataFrame | None:
     return pd.read_csv(path) if path.exists() else None
 
 
+def _load_head_layer(name: str) -> pd.DataFrame | None:
+    """Load the committed HEAD copy of a processed CSV, if one exists."""
+    result = subprocess.run(
+        ["git", "show", f"HEAD:data/processed/{name}.csv"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return None
+    return pd.read_csv(io.StringIO(result.stdout))
+
+
 def collect_findings() -> list[Finding]:
     """Run every mechanical check + the overlap gate; return all findings."""
     mappings = _load_mappings()
@@ -61,10 +79,12 @@ def collect_findings() -> list[Finding]:
     monthly = _load_layer("airport_monthly")
     quarterly = _load_layer("airport_international_quarterly")
     yearly = _load_layer("airport_yearly")
+    routes = _load_layer("domestic_route_monthly")
     layers = {
         "airport_monthly": monthly,
         "airport_international_quarterly": quarterly,
         "airport_yearly": yearly,
+        "domestic_route_monthly": routes,
     }
 
     findings: list[Finding] = []
@@ -79,6 +99,15 @@ def collect_findings() -> list[Finding]:
         findings += check_definitional(quarterly, "airport_international_quarterly")
     findings += check_schema(layers, metadata)
     findings += check_conservation_tripwire(monthly)
+    if routes is not None:
+        findings += check_domestic_routes(
+            routes, monthly, set(mappings.get("airports", {}))
+        )
+        findings += check_route_history(
+            routes,
+            _load_head_layer("domestic_route_monthly"),
+            allow_removal=os.environ.get("ALLOW_ROUTE_HISTORY_REMOVAL") == "1",
+        )
     carrier = _load_layer("carrier_monthly")
     if carrier is not None:
         findings += check_carrier(carrier)

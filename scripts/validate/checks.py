@@ -32,6 +32,10 @@ EXPECTED_SCHEMAS = {
     "airport_yearly": {
         "year": "int", "airport": "str", "category": "str", "passengers": "int",
     },
+    "domestic_route_monthly": {
+        "year": "int", "month": "int", "origin": "str", "destination": "str",
+        "passengers": "int",
+    },
 }
 
 
@@ -175,6 +179,265 @@ def check_conservation_tripwire(monthly: pd.DataFrame) -> list[Finding]:
     return [_ok("conservation.tripwire", "TRIPWIRE",
                "per month sum(departures) == sum(arrivals) "
                "(true by construction; tripwire only)")]
+
+
+# ── BLOCKING: directed domestic route contract ───────────────
+
+
+ROUTE_KEY = ["year", "month", "origin", "destination"]
+
+
+def check_domestic_routes(
+    routes: pd.DataFrame,
+    monthly: pd.DataFrame | None,
+    canonical_airports: set[str],
+) -> list[Finding]:
+    """Validate route keys, endpoints, values, and exact airport reconciliation."""
+    out = []
+    required = set(ROUTE_KEY + ["passengers"])
+    if not required <= set(routes.columns):
+        return [
+            _fail(
+                "routes.columns",
+                "BLOCKING",
+                f"domestic routes missing columns: {sorted(required - set(routes.columns))}",
+            )
+        ]
+
+    duplicate_count = int(routes.duplicated(ROUTE_KEY).sum())
+    if duplicate_count:
+        out.append(
+            _fail(
+                "routes.unique",
+                "BLOCKING",
+                f"{duplicate_count} duplicate directed route-month key(s)",
+            )
+        )
+    else:
+        out.append(
+            _ok(
+                "routes.unique",
+                "BLOCKING",
+                "one row per (year, month, origin, destination)",
+            )
+        )
+
+    endpoints = set(routes["origin"].dropna()) | set(
+        routes["destination"].dropna()
+    )
+    unknown = sorted(str(x) for x in endpoints - canonical_airports)
+    null_endpoints = int(
+        routes["origin"].isna().sum() + routes["destination"].isna().sum()
+    )
+    if unknown or null_endpoints:
+        detail = []
+        if unknown:
+            detail.append(f"unknown={unknown[:10]}")
+        if null_endpoints:
+            detail.append(f"null={null_endpoints}")
+        out.append(
+            _fail(
+                "routes.canonical_endpoints",
+                "BLOCKING",
+                "non-canonical domestic route endpoints: " + ", ".join(detail),
+            )
+        )
+    else:
+        out.append(
+            _ok(
+                "routes.canonical_endpoints",
+                "BLOCKING",
+                f"all {len(endpoints)} route endpoints are canonical airports",
+            )
+        )
+
+    self_loops = routes[routes["origin"] == routes["destination"]]
+    if len(self_loops):
+        out.append(
+            _fail(
+                "routes.no_self_loops",
+                "BLOCKING",
+                f"{len(self_loops)} route-month row(s) have origin == destination",
+            )
+        )
+    else:
+        out.append(
+            _ok(
+                "routes.no_self_loops",
+                "BLOCKING",
+                "all domestic routes have distinct endpoints",
+            )
+        )
+
+    if not pd.api.types.is_integer_dtype(routes["passengers"]):
+        out.append(
+            _fail(
+                "routes.integer_passengers",
+                "BLOCKING",
+                "domestic route passengers are not integer dtype",
+            )
+        )
+    else:
+        out.append(
+            _ok(
+                "routes.integer_passengers",
+                "BLOCKING",
+                "domestic route passengers are whole-person integers",
+            )
+        )
+    negative = int((routes["passengers"] < 0).sum())
+    if negative:
+        out.append(
+            _fail(
+                "routes.nonnegative",
+                "BLOCKING",
+                f"{negative} route-month row(s) have negative passengers",
+            )
+        )
+    else:
+        out.append(
+            _ok(
+                "routes.nonnegative",
+                "BLOCKING",
+                "all domestic route passengers are non-negative",
+            )
+        )
+
+    airport_columns = {"year", "month", "airport", "departures", "arrivals"}
+    if monthly is None or not airport_columns <= set(monthly.columns):
+        missing = (
+            sorted(airport_columns)
+            if monthly is None
+            else sorted(airport_columns - set(monthly.columns))
+        )
+        out.append(
+            _fail(
+                "routes.airport_reconciliation",
+                "BLOCKING",
+                "airport_monthly is unavailable for route reconciliation; "
+                f"missing columns: {missing}",
+            )
+        )
+        return out
+
+    route_departures = (
+        routes.groupby(["year", "month", "origin"])["passengers"]
+        .sum()
+        .rename("route_departures")
+    )
+    route_arrivals = (
+        routes.groupby(["year", "month", "destination"])["passengers"]
+        .sum()
+        .rename("route_arrivals")
+    )
+    airport_departures = monthly.set_index(["year", "month", "airport"])[
+        "departures"
+    ]
+    airport_arrivals = monthly.set_index(["year", "month", "airport"])["arrivals"]
+    departure_check = pd.concat(
+        [route_departures, airport_departures.rename("airport_departures")],
+        axis=1,
+    ).fillna(0)
+    arrival_check = pd.concat(
+        [route_arrivals, airport_arrivals.rename("airport_arrivals")],
+        axis=1,
+    ).fillna(0)
+    bad_departures = departure_check[
+        departure_check["route_departures"]
+        != departure_check["airport_departures"]
+    ]
+    bad_arrivals = arrival_check[
+        arrival_check["route_arrivals"] != arrival_check["airport_arrivals"]
+    ]
+    if len(bad_departures) or len(bad_arrivals):
+        out.append(
+            _fail(
+                "routes.airport_reconciliation",
+                "BLOCKING",
+                f"{len(bad_departures)} airport-month departure mismatch(es), "
+                f"{len(bad_arrivals)} arrival mismatch(es)",
+            )
+        )
+    else:
+        out.append(
+            _ok(
+                "routes.airport_reconciliation",
+                "BLOCKING",
+                f"all {len(monthly):,} airport-month departures and arrivals "
+                "reconcile exactly to directed routes",
+            )
+        )
+
+    route_total = routes.groupby(["year", "month"])["passengers"].sum()
+    airport_total = monthly.groupby(["year", "month"]).agg(
+        departures=("departures", "sum"), arrivals=("arrivals", "sum")
+    )
+    national = airport_total.join(route_total.rename("routes"), how="outer").fillna(0)
+    broken_national = national[
+        (national["routes"] != national["departures"])
+        | (national["routes"] != national["arrivals"])
+    ]
+    if len(broken_national):
+        out.append(
+            _fail(
+                "routes.national_reconciliation",
+                "BLOCKING",
+                f"{len(broken_national)} month(s) where directed route passengers "
+                "do not equal national departures and arrivals",
+            )
+        )
+    else:
+        out.append(
+            _ok(
+                "routes.national_reconciliation",
+                "BLOCKING",
+                f"directed route passengers equal national departures and arrivals "
+                f"for all {len(national)} month(s)",
+            )
+        )
+    return out
+
+
+def check_route_history(
+    current: pd.DataFrame,
+    previous: pd.DataFrame | None,
+    *,
+    allow_removal: bool = False,
+) -> list[Finding]:
+    """Block silent disappearance of previously published historical route keys."""
+    check = "routes.history_preserved"
+    if previous is None:
+        return [
+            _ok(
+                check,
+                "BLOCKING",
+                "first route-table publication; no prior route baseline",
+            )
+        ]
+    old_keys = set(
+        previous[ROUTE_KEY].itertuples(index=False, name=None)
+    )
+    new_keys = set(current[ROUTE_KEY].itertuples(index=False, name=None))
+    missing = sorted(old_keys - new_keys)
+    if not missing:
+        return [
+            _ok(
+                check,
+                "BLOCKING",
+                f"all {len(old_keys):,} previously published route-month keys remain",
+            )
+        ]
+    sample = ", ".join(
+        f"{y}-{m:02d} {origin}->{destination}"
+        for y, m, origin, destination in missing[:5]
+    )
+    message = (
+        f"{len(missing)} previously published route-month key(s) disappeared: "
+        f"{sample}{'...' if len(missing) > 5 else ''}"
+    )
+    if allow_removal:
+        return [_warn(check, message + " (explicit override enabled)")]
+    return [_fail(check, "BLOCKING", message)]
 
 
 # ── carrier monthly: own contract ────────────────────────────

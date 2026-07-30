@@ -42,6 +42,9 @@ def test_chart_outputs_exist_after_generation(generated_chart_artifacts):
         "domestic_market_share_gainers.png",
         "international_gateway_share_gainers.png",
         "airport_seasonality_fingerprint.png",
+        "ncr_route_opportunity_frontier.png",
+        "dual_airport_network_roles.png",
+        "domestic_network_decentralisation.png",
         "manifest.json",
     ]
     for filename in expected:
@@ -82,12 +85,97 @@ def test_dashboard_summary_schema(generated_chart_artifacts):
     assert summary["fingerprint"].startswith("sha256:")
 
 
+def test_route_analysis_summary_declares_windows_claims_and_selection(
+    generated_chart_artifacts,
+):
+    summary = json.loads(
+        (ROOT / "data/processed/route_analysis_summary.json").read_text()
+    )
+    assert summary["source_table"] == (
+        "data/processed/domestic_route_monthly.csv"
+    )
+    routes = pd.read_csv(ROOT / "data/processed/domestic_route_monthly.csv")
+    windows = chart.route_comparison_windows(routes)
+    assert summary["comparison_windows"] == {
+        "latest": f"{windows.latest[0]}..{windows.latest[-1]}",
+        "previous": f"{windows.previous[0]}..{windows.previous[-1]}",
+    }
+    frontier = summary["route_market_frontier"]
+    assert frontier["interpretation"] == (
+        "observable DEL market / NCR demand proxy"
+    )
+    assert frontier["selection"]["eligible_markets"] > 0
+    assert frontier["selection"]["min_latest_persistence_months"] == 9
+    assert "forecast" in frontier["not_interpretation"]
+    assert len(summary["dual_airport_sensitivity"]) == 36
+    assert summary["claim_boundaries"]
+    assert "personal open-source analysis" in summary["disclaimer"]
+
+
 def test_chart_manifest_references_existing_files(generated_chart_artifacts):
     manifest = json.loads((ROOT / "charts/manifest.json").read_text())
+    assert "domestic_route_monthly" in manifest["datasets"]
+    for dataset in manifest["datasets"].values():
+        assert len(dataset["sha256"]) == 64
     for record in manifest["charts"].values():
         path = ROOT / record["file"]
         assert path.exists()
         assert record["sha256"] == chart.sha256_file(path)
+        assert record["input_fingerprint"].startswith("sha256:")
+        assert record["primary_source_table"]
+        assert record["metric_semantics"]
+        assert record["inputs"]
+        assert record["params"]["selection_rule"]
+        assert record["params"]["data_coverage"]
+        assert any(
+            key in record["params"]
+            for key in ("period", "latest_period", "comparison_periods")
+        )
+
+    count_keys = {
+        "india_domestic_demand_pulse": (
+            "months_shown",
+            "total_eligible_months",
+        ),
+        "top_airport_traffic_trends": (
+            "airports_shown",
+            "total_eligible_airports",
+        ),
+        "newcomer_airport_rampup_24m": (
+            "airports_shown",
+            "total_eligible_airports",
+        ),
+        "domestic_market_share_gainers": (
+            "entities_shown",
+            "total_eligible_entities",
+        ),
+        "international_gateway_share_gainers": (
+            "entities_shown",
+            "total_eligible_entities",
+        ),
+        "airport_seasonality_fingerprint": (
+            "airports_shown",
+            "total_eligible_airports",
+        ),
+        "ncr_route_opportunity_frontier": (
+            "markets_shown",
+            "total_observed_latest_markets",
+        ),
+        "dual_airport_network_roles": (
+            "pairs_shown",
+            "total_supported_pairs",
+        ),
+        "domestic_network_decentralisation": (
+            "years_shown",
+            "total_eligible_complete_years",
+        ),
+    }
+    for chart_id, keys in count_keys.items():
+        params = manifest["charts"][chart_id]["params"]
+        assert all(key in params for key in keys)
+    assert manifest["charts"]["dual_airport_network_roles"]["params"][
+        "baseline_periods"
+    ]
 
 
 def test_newcomer_ramp_excludes_left_censored_airports():
@@ -243,18 +331,22 @@ def test_chart_manifest_stable_for_same_inputs(generated_chart_artifacts):
     monthly = pd.read_csv(ROOT / "data/processed/airport_monthly.csv")
     quarterly = pd.read_csv(ROOT / "data/processed/airport_international_quarterly.csv")
     carrier = pd.read_csv(ROOT / "data/processed/carrier_monthly.csv")
+    routes = pd.read_csv(ROOT / "data/processed/domestic_route_monthly.csv")
     kwargs = {
         "monthly": monthly,
         "quarterly": quarterly,
         "carrier": carrier,
+        "routes": routes,
         "domestic_coverage_text": chart.domestic_coverage(monthly),
         "international_coverage_text": chart.international_coverage(quarterly),
         "carrier_coverage_text": chart.carrier_domestic_coverage(carrier),
+        "route_coverage_text": chart.route_coverage(routes),
         "overall_fingerprint": chart.input_fingerprint(
             [
                 ROOT / "data/processed/airport_monthly.csv",
                 ROOT / "data/processed/airport_international_quarterly.csv",
                 ROOT / "data/processed/carrier_monthly.csv",
+                ROOT / "data/processed/domestic_route_monthly.csv",
             ]
         ),
     }

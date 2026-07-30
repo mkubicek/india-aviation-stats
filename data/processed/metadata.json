@@ -1,10 +1,21 @@
 {
-  "data_date": "2026-07-19",
-  "processed_date": "2026-07-19",
+  "data_date": "2026-07-30",
+  "processed_date": "2026-07-30",
   "tables": {
+    "domestic_route_monthly": {
+      "schema_version": "1.0",
+      "rows": 133694,
+      "columns": [
+        "year",
+        "month",
+        "origin",
+        "destination",
+        "passengers"
+      ]
+    },
     "airport_monthly": {
       "schema_version": "2.0",
-      "rows": 13223,
+      "rows": 13350,
       "columns": [
         "year",
         "month",
@@ -38,7 +49,7 @@
     },
     "carrier_monthly": {
       "schema_version": "1.0",
-      "rows": 3399,
+      "rows": 3422,
       "columns": [
         "airline",
         "service_type",
@@ -58,6 +69,13 @@
     }
   },
   "schema_changelog": [
+    {
+      "version": "1.0",
+      "tables": [
+        "domestic_route_monthly"
+      ],
+      "change": "Added a canonical directed domestic route table built from both city-pair passenger directions, with strict endpoint resolution and exact reconciliation to airport departures and arrivals."
+    },
     {
       "version": "2.0",
       "tables": [

@@ -812,8 +812,12 @@ def parse_domestic_city_file(path: Path) -> pd.DataFrame:
                 continue
             pax_to = _to_number(row[pax_to_col])
             pax_from = _to_number(row[pax_from_col])
-            if pax_to is None or pax_from is None:
+            if pax_to is None and pax_from is None:
                 continue
+            # A blank in one direction is an explicit zero observation, not a
+            # reason to discard the valid opposite direction.
+            pax_to = 0 if pax_to is None else pax_to
+            pax_from = 0 if pax_from is None else pax_from
             sheet_records.append(
                 {
                     "Year": year,

@@ -2,12 +2,12 @@
 
 Resolution is 100% table-driven (``mappings.yaml`` entity tables + the flat
 ``airport_aliases`` spelling map) via the validity-window resolver — there is no
-hardcoded fallback. A label that does not resolve is foreign (international
-counterpart city) and is dropped; a *domestic* label that fails to resolve is a
-real coverage loss and is surfaced.
+hardcoded fallback. An unresolved international counterpart may be foreign and
+is dropped; an unresolved *domestic* endpoint is a hard failure.
 
-Published tables (in ``data/processed/``) — three source tables + one derived view:
+Published tables (in ``data/processed/``) — four canonical views + one derived view:
   ``airport_monthly.csv``                domestic, monthly (the canonical core)
+  ``domestic_route_monthly.csv``         domestic, directed route-month
   ``airport_international_quarterly.csv`` international, real quarter
   ``carrier_monthly.csv``                airline monthly (see clean carrier)
   ``airport_yearly.csv``                 derived from monthly + quarterly (whole years)
@@ -25,6 +25,7 @@ import pandas as pd
 import yaml
 
 from entities import build_airport_resolver, build_airline_resolver
+from routes import airport_monthly_from_routes, build_domestic_routes
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
@@ -69,11 +70,19 @@ CARRIER_TOTAL_ROWS = {"Total Domestic", "Total International"}
 # Per-table schema versions (consumers detect breaking changes via metadata.json).
 SCHEMA_VERSIONS = {
     "airport_monthly": "2.0",
+    "domestic_route_monthly": "1.0",
     "airport_international_quarterly": "1.0",
     "airport_yearly": "2.0",
     "carrier_monthly": "1.0",
 }
 SCHEMA_CHANGELOG = [
+    {
+        "version": "1.0",
+        "tables": ["domestic_route_monthly"],
+        "change": "Added a canonical directed domestic route table built from "
+        "both city-pair passenger directions, with strict endpoint resolution "
+        "and exact reconciliation to airport departures and arrivals.",
+    },
     {
         "version": "2.0",
         "tables": ["airport_monthly", "airport_yearly"],
@@ -146,34 +155,40 @@ def _finalize(df: pd.DataFrame, key_cols: list[str]) -> pd.DataFrame:
     return out[cols].sort_values(key_cols).reset_index(drop=True)
 
 
-# ── domestic monthly ────────────────────────────────
+# ── domestic monthly routes + airport endpoints ─────
 
 
-def process_domestic_monthly() -> pd.DataFrame | None:
-    """domestic monthly: ``year, month, airport, passengers, departures, arrivals``."""
+def process_domestic_routes() -> pd.DataFrame | None:
+    """Directed domestic routes: year, month, origin, destination, passengers."""
     path = source_csv("domestic/city.csv")
     if not path.exists():
         print("  WARNING: domestic/city.csv not found, skipping", flush=True)
         return None
 
-    print(f"  Processing {path.relative_to(ROOT)} -> domestic monthly...", flush=True)
+    print(f"  Processing {path.relative_to(ROOT)} -> domestic routes...", flush=True)
     df = pd.read_csv(path)
-    monthly = _split_endpoints(df, ["Year", "Month"]).rename(
-        columns={"Year": "year", "Month": "month"}
+    routes = build_domestic_routes(
+        df,
+        AIRPORT_RESOLVER,
+        exclusions=MAPPINGS.get("domestic_route_exclusions"),
     )
-    monthly["airport"] = monthly.apply(
-        lambda r: resolve_airport(r["city"], r["year"], r["month"]), axis=1
+    print(
+        f"    domestic routes: {len(routes):,} directed route-month rows, "
+        f"{routes[['origin', 'destination']].stack().nunique()} airports, "
+        f"{int(routes['year'].min())}-{int(routes['year'].max())}"
     )
+    return routes
 
-    unmapped = monthly[monthly["airport"].isna()]
-    if not unmapped.empty:
-        lost = unmapped.assign(pax=unmapped.departures + unmapped.arrivals)
-        top = lost.groupby("city")["pax"].sum().sort_values(ascending=False)
-        print(f"    WARNING: {len(top)} unmapped DOMESTIC label(s) dropped "
-              f"(top: {', '.join(f'{c}={int(v):,}' for c, v in top.head(5).items())})")
-    monthly = monthly[monthly["airport"].notna()]
 
-    result = _finalize(monthly, ["year", "month", "airport"])
+def process_domestic_monthly(
+    routes: pd.DataFrame | None = None,
+) -> pd.DataFrame | None:
+    """Domestic airport endpoints derived exactly from directed routes."""
+    if routes is None:
+        routes = process_domestic_routes()
+    if routes is None:
+        return None
+    result = airport_monthly_from_routes(routes)
     print(f"    domestic monthly: {len(result):,} airport-month rows, "
           f"{result['airport'].nunique()} airports, "
           f"{int(result['year'].min())}-{int(result['year'].max())}")
@@ -249,12 +264,18 @@ def build_yearly(monthly: pd.DataFrame | None, quarterly: pd.DataFrame | None) -
 
 
 def process_airport_data() -> dict[str, pd.DataFrame]:
-    """Build and write the monthly, quarterly, and yearly tables."""
-    monthly = process_domestic_monthly()
+    """Build and write the route, monthly, quarterly, and yearly tables."""
+    routes = process_domestic_routes()
+    monthly = process_domestic_monthly(routes)
     quarterly = process_international_quarterly()
     yearly = build_yearly(monthly, quarterly)
 
     written = {}
+    if routes is not None:
+        out = PROCESSED_DIR / "domestic_route_monthly.csv"
+        routes.to_csv(out, index=False)
+        written["domestic_route_monthly"] = routes
+        print(f"  Saved: {out.name} ({len(routes):,} rows)")
     if monthly is not None:
         out = PROCESSED_DIR / "airport_monthly.csv"
         monthly.to_csv(out, index=False)

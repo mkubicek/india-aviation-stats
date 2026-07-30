@@ -1,13 +1,14 @@
 # Data dictionary
 
-Every published file is a **single-grain table**: one airport (or airline) is
-one entity, and one file has one time grain. Schema versions live in
+Every published file is a **single-grain table**: one route, airport, or airline
+entity set and one time grain. Schema versions live in
 `data/processed/metadata.json` (`tables.<name>.schema_version`); a breaking
 change bumps the version and is recorded in the `schema_changelog`.
 
 `passengers == departures + arrivals` on every airport row, and all passenger
-counts are whole-person **integers**. `airport` is a canonical key — an IATA code
-when one exists, else a stable `name:<slug>` — never a raw source label.
+counts are whole-person **integers**. Airport keys (`airport`, `origin`, and
+`destination`) use an IATA code when one exists, else a stable `name:<slug>` —
+never a raw source label.
 
 > **Passenger semantics differ by table.** The same column name, `passengers`,
 > means **airport endpoint throughput** in the airport tables (each domestic
@@ -17,8 +18,45 @@ when one exists, else a stable `name:<slug>` — never a raw source label.
 > use `carrier_monthly.csv` filtered to `service_type == scheduled_domestic` — not
 > a national sum of the airport layer, which double-counts journeys. See
 > [METHODOLOGY.md → Passenger metric semantics](../METHODOLOGY.md#passenger-metric-semantics).
+>
+> In `domestic_route_monthly.csv`, `passengers` means observed passengers on one
+> **directed domestic segment**. It is neither airport throughput nor
+> itinerary-level origin-and-destination demand.
 
 ---
+
+## `domestic_route_monthly.csv` — directed domestic segments
+
+Domestic, monthly. **Schema v1.0.**
+
+| column | type | unit | key | notes |
+|---|---|---|---|---|
+| `year` | int | calendar year | ✓ | |
+| `month` | int | 1–12 | ✓ | |
+| `origin` | string | canonical airport key | ✓ | IATA or `name:<slug>` |
+| `destination` | string | canonical airport key | ✓ | always differs from `origin` |
+| `passengers` | int | persons | | observed on this directed segment |
+
+Key: exactly one row per `(year, month, origin, destination)`. Source: both
+directions reported in DGCA domestic city-pair workbooks.
+
+For each normalized source row:
+
+- `City1 → City2 = PaxToCity2`
+- `City2 → City1 = PaxFromCity2`
+
+Both endpoints use the period-aware airport resolver in `mappings.yaml`, and
+duplicate canonical routes are summed deterministically. A blank passenger cell
+in one direction means zero; explicit zero-direction rows are retained so the
+published layer preserves source semantics. Network calculations exclude
+zero-weight edges.
+
+The route layer reconciles exactly to the airport layer for every airport-month:
+outgoing route passengers equal `airport_monthly.departures`, and incoming route
+passengers equal `airport_monthly.arrivals`. Nationally, the directed route sum
+equals both national departures and national arrivals. The table describes
+segments, not true passenger origin/final destination, transfer flows,
+itineraries, seats, frequencies, fares, or route economics.
 
 ## `airport_monthly.csv` — domestic monthly (canonical core)
 

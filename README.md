@@ -12,12 +12,13 @@ trust, **with the proof that the cleaning is correct shipped alongside the data.
 
 ## The data
 
-Four single-grain tables (three source + one derived) in [`data/processed/`](data/processed/) — full schema
+Five single-grain tables in [`data/processed/`](data/processed/) — full schema
 in the **[data dictionary](docs/data-dictionary.md)**:
 
 | Table | Grain | Scope |
 |---|---|---|
 | `airport_monthly.csv` | airport × month | domestic — the canonical core |
+| `domestic_route_monthly.csv` | directed route × month | domestic segment passengers |
 | `airport_international_quarterly.csv` | airport × quarter | international |
 | `carrier_monthly.csv` | airline × service × month | airline operating stats |
 | `airport_yearly.csv` | airport × year | **derived** from the monthly + quarterly tables |
@@ -28,6 +29,7 @@ silently-wrong number. Stable per-file URLs to `curl` or cite:
 
 ```
 https://raw.githubusercontent.com/mkubicek/india-aviation-stats/main/data/processed/airport_monthly.csv
+https://raw.githubusercontent.com/mkubicek/india-aviation-stats/main/data/processed/domestic_route_monthly.csv
 ```
 
 ## How the cleanup is validated
@@ -68,6 +70,10 @@ metric and is roughly twice the national passengers-carried figure. Each chart's
 source table and metric semantics are recorded in
 [`charts/manifest.json`](charts/manifest.json).
 
+The domestic route layer records observed directional segment passengers. It
+supports route-market and topology analysis but does not identify true passenger
+origin/final destination or transfers.
+
 ### India Domestic Demand Pulse
 
 Scheduled domestic passengers carried, by month and trailing 12-month total.
@@ -95,6 +101,21 @@ Share of domestic airport throughput, and of Indian international gateway throug
 ### Airport Seasonality Fingerprint
 
 ![Airport Seasonality Fingerprint](charts/airport_seasonality_fingerprint.png)
+
+### Domestic Network Decentralisation
+
+Complete-calendar-year traffic concentration and persistent route breadth.
+
+![Domestic Network Decentralisation](charts/domestic_network_decentralisation.png)
+
+### Route-network case study
+
+The standalone
+**[Noida route-network analysis](docs/noida-route-network-analysis.md)** compares
+volume/growth, dual-airport, hub, structural one-stop, decentralisation, and
+triangle-closure hypotheses. The NIA-specific charts and interpretation live in
+that document rather than turning the general dashboard into an airport strategy
+deck.
 
 ### Bonus animation
 

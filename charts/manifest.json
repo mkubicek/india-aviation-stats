@@ -3,92 +3,232 @@
   "charts": {
     "airport_seasonality_fingerprint": {
       "file": "charts/airport_seasonality_fingerprint.png",
+      "input_fingerprint": "sha256:3796b87e9678cf61db32508bd6fb52c997fbbb59437b9ba146686450e0d041a9",
       "inputs": [
         "airport_monthly"
       ],
       "metric_semantics": "domestic_airport_throughput_index",
       "params": {
+        "airports_shown": 60,
+        "data_coverage": "2015-04..2026-06",
         "max_airports": 60,
         "min_complete_years": 3,
         "min_latest_t12": 100000,
+        "period": "2016..2025",
+        "selection_rule": "Top eligible airports by latest trailing-12-month throughput, capped at max_airports",
+        "total_eligible_airports": 89,
         "vcenter": 100,
         "vmax": 140,
         "vmin": 60
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "ac583aea5105ff58263ce05d065b1155769d73c9684a835c56e5fa184459d190"
+      "sha256": "0711ff33e7246d157d622568b969a0b0e06c8669bd2342824713818ea9986dde"
     },
     "domestic_market_share_gainers": {
       "file": "charts/domestic_market_share_gainers.png",
+      "input_fingerprint": "sha256:3796b87e9678cf61db32508bd6fb52c997fbbb59437b9ba146686450e0d041a9",
       "inputs": [
         "airport_monthly"
       ],
       "metric_semantics": "domestic_airport_throughput_share",
       "params": {
+        "data_coverage": "2015-04..2026-06",
+        "entities_shown": 20,
+        "latest_period": "2025-07..2026-06",
         "min_traffic": 100000,
+        "previous_period": "2024-07..2025-06",
+        "selection_rule": "Top 10 share gainers and top 10 decliners among entities meeting the configured traffic floor",
         "top_n_each_side": 10,
+        "total_eligible_entities": 92,
         "window_months": 12
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "d513e81dc300def736ec33742f56ffbe27560df597acbd3e21f662c9dc0ab396"
+      "sha256": "95aa4497017f448ea29a47e8720cd5a04df4c1966b4bf38e025916c2600fe779"
+    },
+    "domestic_network_decentralisation": {
+      "file": "charts/domestic_network_decentralisation.png",
+      "input_fingerprint": "sha256:593ad887d32dc33dc1d52af3df2d9aff73498e1a1dacebae3d611f17f5328443",
+      "inputs": [
+        "domestic_route_monthly",
+        "airport_monthly"
+      ],
+      "metric_semantics": "domestic_network_concentration_and_persistent_route_breadth",
+      "params": {
+        "complete_calendar_years_only": true,
+        "data_coverage": "2015-04..2026-06",
+        "min_route_persistence_months": 3,
+        "period": "2016..2025",
+        "selection_rule": "All complete calendar years from the configured start year",
+        "start_year": 2016,
+        "total_eligible_complete_years": 10,
+        "years_shown": 10
+      },
+      "primary_source_table": "domestic_route_monthly",
+      "sha256": "6848847afda8c29fcba95006f75a009662837dc2012c1b051c34b7a0f0ab31af"
+    },
+    "dual_airport_network_roles": {
+      "file": "charts/dual_airport_network_roles.png",
+      "input_fingerprint": "sha256:593ad887d32dc33dc1d52af3df2d9aff73498e1a1dacebae3d611f17f5328443",
+      "inputs": [
+        "domestic_route_monthly",
+        "airport_monthly"
+      ],
+      "metric_semantics": "observed_airport_throughput_and_direct_market_topology",
+      "params": {
+        "baseline_periods": {
+          "GOX": "2022-01..2022-12",
+          "HDO": "2018-10..2019-09",
+          "NMIA": "2025-07..2025-12"
+        },
+        "comparison_periods": {
+          "GOX": "2025-07..2026-06",
+          "HDO": "2025-07..2026-06",
+          "NMIA": "2026-01..2026-06"
+        },
+        "data_coverage": "2015-04..2026-06",
+        "min_market_passengers": 10000,
+        "pairs": [
+          [
+            "GOI",
+            "GOX"
+          ],
+          [
+            "DEL",
+            "HDO"
+          ],
+          [
+            "BOM",
+            "NMIA"
+          ]
+        ],
+        "pairs_shown": 3,
+        "persistence_fraction": 0.5,
+        "selection_rule": "All mapped Indian dual-airport pairs with observed newcomer traffic and a defensible same-market incumbent are shown",
+        "total_supported_pairs": 3
+      },
+      "primary_source_table": "domestic_route_monthly",
+      "sha256": "9e6be6da22d7c28802e0926e6b4b10bc5706f63b6bc11206cb6d96bc8ed11bfe"
     },
     "india_domestic_demand_pulse": {
       "file": "charts/india_domestic_demand_pulse.png",
+      "input_fingerprint": "sha256:d8b8670218befb294d9b1531ffe6a9d3f28f751b527370310b89e3c731d0eac7",
       "inputs": [
         "carrier_monthly"
       ],
       "metric_semantics": "scheduled_domestic_passengers_carried",
       "params": {
-        "moving_average_months": 12
+        "data_coverage": "2015-01..2026-06",
+        "months_shown": 138,
+        "moving_average_months": 12,
+        "period": "2015-01..2026-06",
+        "selection_rule": "All published months of scheduled domestic carrier passengers carried are shown",
+        "total_eligible_months": 138
       },
       "primary_source_table": "carrier_monthly",
-      "sha256": "82d206bd0cbc6262a5bf8f9b403d997ce1d4b3b949c71799cac178019d2162a4"
+      "sha256": "c85a9000049c9aca7f633acf087c66f44d9dce1b94ad7ea4dcc9d80779d927de"
     },
     "international_gateway_share_gainers": {
       "file": "charts/international_gateway_share_gainers.png",
+      "input_fingerprint": "sha256:e4ec3c6c50fd1eb7750c0c96b48eeeee6f4b99f6b71999dd3d41f02fecb588c5",
       "inputs": [
         "airport_international_quarterly"
       ],
       "metric_semantics": "indian_international_gateway_throughput",
       "params": {
+        "data_coverage": "2015Q1..2026Q1",
+        "entities_shown": 16,
+        "latest_period": "2025Q2..2026Q1",
         "min_traffic": 50000,
+        "previous_period": "2024Q2..2025Q1",
+        "selection_rule": "Top 8 share gainers and top 8 decliners among entities meeting the configured traffic floor",
         "top_n_each_side": 8,
+        "total_eligible_entities": 29,
         "window_quarters": 4
       },
       "primary_source_table": "airport_international_quarterly",
-      "sha256": "4e13c3bdbcd2a3a8c1bdb0f6a3118852a1128af108dd6c196db7752cef60ff60"
+      "sha256": "284c56e97c915a07be7baf00f68b702b1d708e5a2fb57cbef335a2e115eaf27d"
+    },
+    "ncr_route_opportunity_frontier": {
+      "file": "charts/ncr_route_opportunity_frontier.png",
+      "input_fingerprint": "sha256:593ad887d32dc33dc1d52af3df2d9aff73498e1a1dacebae3d611f17f5328443",
+      "inputs": [
+        "domestic_route_monthly",
+        "airport_monthly"
+      ],
+      "metric_semantics": "observed_bidirectional_domestic_segment_passengers",
+      "params": {
+        "data_coverage": "2015-04..2026-06",
+        "distance_origin": "DXN",
+        "focal_airport": "DEL",
+        "latest_period": "2025-07..2026-06",
+        "markets_shown": 39,
+        "min_latest_persistence_months": 9,
+        "min_t12_passengers_each_window": 250000,
+        "pareto_dimensions": [
+          "latest_t12_passengers",
+          "yoy_change_pct"
+        ],
+        "pareto_markets": [
+          "BLR",
+          "BOM",
+          "IXB",
+          "PAT"
+        ],
+        "previous_period": "2024-07..2025-06",
+        "proxy_airport": "HDO",
+        "proxy_min_persistence_months": 6,
+        "proxy_min_t12_passengers": 10000,
+        "selection_rule": "Both T12 windows meet the passenger floor; latest window meets the persistence floor; all eligible markets shown",
+        "total_observed_latest_markets": 92,
+        "window_months": 12
+      },
+      "primary_source_table": "domestic_route_monthly",
+      "sha256": "6c06b06709c47c4029ad393344c6bbeb9cb6414d13bc341ea82fcd90c7e06154"
     },
     "newcomer_airport_rampup_24m": {
       "file": "charts/newcomer_airport_rampup_24m.png",
+      "input_fingerprint": "sha256:3796b87e9678cf61db32508bd6fb52c997fbbb59437b9ba146686450e0d041a9",
       "inputs": [
         "airport_monthly"
       ],
       "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures",
       "params": {
+        "airports_labeled": 12,
+        "airports_shown": 23,
+        "data_coverage": "2015-04..2026-06",
         "left_censor_buffer_months": 12,
         "max_labels": 12,
         "min_cumulative_available": 100000,
         "min_observed_months": 3,
         "min_peak_month": 20000,
-        "ramp_months": 24
+        "period": "2015-04..2026-06",
+        "ramp_months": 24,
+        "selection_rule": "All non-left-censored airports meeting the configured observed-month and traffic/peak eligibility thresholds",
+        "total_eligible_airports": 23
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "e3d48ef43c2b114a425f74060221c91daf270833a3746d323bcd9198a6cfe6b7"
+      "sha256": "b4f2bb75466e1be8a5a8bae65383c6a00284549ff2577805ec78ab74ec9203ee"
     },
     "top_airport_traffic_trends": {
       "file": "charts/top_airport_traffic_trends.png",
+      "input_fingerprint": "sha256:3796b87e9678cf61db32508bd6fb52c997fbbb59437b9ba146686450e0d041a9",
       "inputs": [
         "airport_monthly"
       ],
       "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures",
       "params": {
+        "airports_shown": 11,
+        "data_coverage": "2015-04..2026-06",
         "latest_top_n": 10,
         "max_lines": 12,
+        "period": "2016-03..2026-06",
         "previous_top_n": 10,
+        "selection_rule": "Union of latest and year-prior top 10 trailing-12-month airports, capped at 12 with deterministic tie-breaks",
+        "total_eligible_airports": 133,
         "trailing_window_months": 12
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "c68a9a4b188dd72639fa937da7bff7569c1b89d5d17424d4eb3240ecf56cb449"
+      "sha256": "ad6cbf4e89a4c6183b7f1dbd9563ec5beeebc7a18e76d48ecc47f476fb40b385"
     }
   },
   "datasets": {
@@ -99,18 +239,24 @@
       "sha256": "f89146307f63c6391a9957a0491cb03cfefb84b09f6e7d2b5dbabe203e36558d"
     },
     "airport_monthly": {
-      "coverage": "2015-04..2026-05",
+      "coverage": "2015-04..2026-06",
       "path": "data/processed/airport_monthly.csv",
-      "rows": 13223,
-      "sha256": "2e732cc829cbef8cd07bb59b5c0aa81cde794b43ce9614083a9294e9a0c60937"
+      "rows": 13350,
+      "sha256": "60b0c6b29cebb76f4da9a506e32184b8cb8c65fefb6d8416b9272ee411b3c758"
     },
     "carrier_monthly": {
-      "coverage": "2015-01..2026-05",
+      "coverage": "2015-01..2026-06",
       "path": "data/processed/carrier_monthly.csv",
-      "rows": 3399,
-      "sha256": "789d7b1919c0e514ee65a50ec44730f6502227277ded676286ede006f23b84f9"
+      "rows": 3422,
+      "sha256": "168445a7dd6184e06602be1af958b9a5d45fcc32407be980f5507391b840dd2c"
+    },
+    "domestic_route_monthly": {
+      "coverage": "2015-04..2026-06",
+      "path": "data/processed/domestic_route_monthly.csv",
+      "rows": 133694,
+      "sha256": "6b07b9276e383fe8066c6e2563db7d40c306d86fb9b17d6d9cc18c9af139bcfa"
     }
   },
-  "input_fingerprint": "sha256:8ee7683a9dcc6649e7d9e85df100d61cca77ed654ce40acd397080f41ad99d12",
+  "input_fingerprint": "sha256:986db40824be9fe6f5d878f244f6b9ab28816717c115881a5d3aa356f3413b54",
   "manifest_version": 1
 }

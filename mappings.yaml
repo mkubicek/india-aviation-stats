@@ -613,9 +613,14 @@ airports:
     lon: 77.5801
     tier: greenfield
     opened_year: 2026
-    opening_date: "2026-04"
+    opening_date: "2026-06"
     phase1_capacity: 12000000
     ultimate_capacity: 70000000
+    variants:
+      - label: GAUTAM BUDDHA NAGAR
+        valid_from: "2026-06"
+      - label: JEWAR
+      - label: NOIDA INTERNATIONAL AIRPORT
 
   NMIA:
     name: Navi Mumbai International Airport
@@ -701,6 +706,7 @@ airports:
     variants:
       - label: KALABURAGI
       - label: KALABURAGI KARNATAKA
+      - label: GULBARGA
   KLH:
     name: Chhatrapati Rajaram Maharaj Airport
     city: Kolhapur
@@ -1211,6 +1217,19 @@ concurrent_labels:
       rows in 2015-2016. Disjoint route subsets, correct to sum (KOCHI ~50M vs COCHIN
       ~157k residual).
     source: https://en.wikipedia.org/wiki/Cochin_International_Airport
+
+# Exact source rows that cannot represent an inter-airport domestic route.
+# Exclusions are applied before both the route and airport endpoint tables are
+# built, and each is covered by a falsifiable assumptions/ file.
+domestic_route_exclusions:
+  - year: 2025
+    month: 1
+    city1: HYDERABAD
+    city2: HYDERABAD
+    airport: HYD
+    reason: Same canonical airport at both endpoints; the source reports two
+      reverse-direction passengers, but an airport-to-itself row is not a
+      domestic city-pair journey.
 
 # Airline entity table. Airlines LINK, they do not collapse: a merged brand keeps
 # its own entry and series; succeeded_by records the merger (Vistara -> Air India)

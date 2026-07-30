@@ -1,0 +1,2008 @@
+{
+  "claim_boundaries": [
+    "Segment passengers are not true passenger origin/final destination.",
+    "No transfer volumes, schedules, fares, capacity, yields, or profitability.",
+    "DEL is an observable NCR market proxy, not an NIA demand forecast.",
+    "Dual-airport comparisons are observational, not causal estimates."
+  ],
+  "comparison_windows": {
+    "latest": "2025-07..2026-06",
+    "previous": "2024-07..2025-06"
+  },
+  "coordinate_coverage": {
+    "active_airports": 133,
+    "airports_with_coordinates": 67,
+    "missing_airports_by_traffic": {
+      "AGX": 134238,
+      "AHA": 3769,
+      "AIP": 139494,
+      "AVR": 13902,
+      "AYJ": 803212,
+      "BHJ": 290612,
+      "BHU": 14171,
+      "BKB": 46901,
+      "BUP": 10850,
+      "CDP": 65472,
+      "COH": 2707,
+      "DBR": 795286,
+      "DIU": 136867,
+      "DPP": 574,
+      "GDB": 27261,
+      "GWL": 266394,
+      "HDO": 1131577,
+      "HJR": 59433,
+      "HSR": 1176215,
+      "HSS": 7843,
+      "HWR": 15097,
+      "ISK": 420641,
+      "IXD": 502733,
+      "IXG": 298216,
+      "IXI": 12193,
+      "IXK": 2791,
+      "IXL": 973943,
+      "IXT": 5415,
+      "IXU": 618791,
+      "IXW": 5299,
+      "IXX": 27654,
+      "IXY": 25260,
+      "JGA": 167435,
+      "JGB": 61358,
+      "JLG": 142434,
+      "JRG": 444999,
+      "JSA": 239078,
+      "KJB": 19154,
+      "KLH": 181618,
+      "KQH": 128078,
+      "LUH": 136,
+      "MDA": 1942,
+      "MYQ": 90326,
+      "NDC": 200241,
+      "NNS": 9355,
+      "PAB": 28470,
+      "PBD": 8332,
+      "PGH": 73787,
+      "PNY": 100103,
+      "PXN": 254792,
+      "REW": 33538,
+      "RJA": 540596,
+      "RQY": 191111,
+      "RRK": 1391,
+      "RUP": 7686,
+      "SAG": 572678,
+      "SDW": 95509,
+      "SLV": 4027,
+      "SSE": 36653,
+      "SXV": 122374,
+      "TCR": 273469,
+      "TEI": 15412,
+      "UKE": 4616,
+      "VDY": 19572,
+      "VGA": 1321402,
+      "ZER": 348
+    },
+    "passenger_share_pct": 96.00662730355772
+  },
+  "coverage": "2015-04..2026-06",
+  "disclaimer": "This is a personal open-source analysis. It does not represent Flughafen Z\u00fcrich AG, Noida International Airport, or any affiliate.",
+  "dual_airport_analogues": [
+    {
+      "baseline_end": "2022-12",
+      "baseline_incumbent_destination_count": 18,
+      "baseline_incumbent_throughput": 7536171,
+      "baseline_start": "2022-01",
+      "combined_destination_count": 29,
+      "combined_throughput": 10736195,
+      "combined_vs_baseline_destination_change": 11,
+      "combined_vs_baseline_throughput_change_pct": 42.462199968657835,
+      "comparison_end": "2026-06",
+      "comparison_months": 12,
+      "comparison_start": "2025-07",
+      "entry_month": "2023-01",
+      "first_24m_acquisition_sequence": [
+        {
+          "destination": "AMD",
+          "first_period": "2023-01",
+          "passengers_in_first_month": 6755,
+          "ramp_month": 1
+        },
+        {
+          "destination": "BLR",
+          "first_period": "2023-01",
+          "passengers_in_first_month": 39005,
+          "ramp_month": 1
+        },
+        {
+          "destination": "BOM",
+          "first_period": "2023-01",
+          "passengers_in_first_month": 29341,
+          "ramp_month": 1
+        },
+        {
+          "destination": "DEL",
+          "first_period": "2023-01",
+          "passengers_in_first_month": 32116,
+          "ramp_month": 1
+        },
+        {
+          "destination": "HYD",
+          "first_period": "2023-01",
+          "passengers_in_first_month": 19937,
+          "ramp_month": 1
+        },
+        {
+          "destination": "IXC",
+          "first_period": "2023-01",
+          "passengers_in_first_month": 2476,
+          "ramp_month": 1
+        },
+        {
+          "destination": "JAI",
+          "first_period": "2023-01",
+          "passengers_in_first_month": 9039,
+          "ramp_month": 1
+        },
+        {
+          "destination": "MAA",
+          "first_period": "2023-01",
+          "passengers_in_first_month": 6965,
+          "ramp_month": 1
+        },
+        {
+          "destination": "NAG",
+          "first_period": "2023-01",
+          "passengers_in_first_month": 2089,
+          "ramp_month": 1
+        },
+        {
+          "destination": "PNQ",
+          "first_period": "2023-01",
+          "passengers_in_first_month": 8623,
+          "ramp_month": 1
+        },
+        {
+          "destination": "CCU",
+          "first_period": "2023-02",
+          "passengers_in_first_month": 3267,
+          "ramp_month": 2
+        },
+        {
+          "destination": "COK",
+          "first_period": "2023-02",
+          "passengers_in_first_month": 879,
+          "ramp_month": 2
+        },
+        {
+          "destination": "ATQ",
+          "first_period": "2023-03",
+          "passengers_in_first_month": 1568,
+          "ramp_month": 3
+        },
+        {
+          "destination": "BBI",
+          "first_period": "2023-03",
+          "passengers_in_first_month": 730,
+          "ramp_month": 3
+        },
+        {
+          "destination": "CJB",
+          "first_period": "2023-03",
+          "passengers_in_first_month": 563,
+          "ramp_month": 3
+        },
+        {
+          "destination": "GAU",
+          "first_period": "2023-03",
+          "passengers_in_first_month": 50,
+          "ramp_month": 3
+        },
+        {
+          "destination": "ISK",
+          "first_period": "2023-03",
+          "passengers_in_first_month": 1804,
+          "ramp_month": 3
+        },
+        {
+          "destination": "IXR",
+          "first_period": "2023-03",
+          "passengers_in_first_month": 707,
+          "ramp_month": 3
+        },
+        {
+          "destination": "LKO",
+          "first_period": "2023-03",
+          "passengers_in_first_month": 251,
+          "ramp_month": 3
+        },
+        {
+          "destination": "RAJ",
+          "first_period": "2023-03",
+          "passengers_in_first_month": 590,
+          "ramp_month": 3
+        },
+        {
+          "destination": "VNS",
+          "first_period": "2023-03",
+          "passengers_in_first_month": 356,
+          "ramp_month": 3
+        },
+        {
+          "destination": "VTZ",
+          "first_period": "2023-03",
+          "passengers_in_first_month": 327,
+          "ramp_month": 3
+        },
+        {
+          "destination": "BDQ",
+          "first_period": "2023-05",
+          "passengers_in_first_month": 1378,
+          "ramp_month": 5
+        },
+        {
+          "destination": "BHO",
+          "first_period": "2023-05",
+          "passengers_in_first_month": 1197,
+          "ramp_month": 5
+        },
+        {
+          "destination": "DED",
+          "first_period": "2023-05",
+          "passengers_in_first_month": 1352,
+          "ramp_month": 5
+        },
+        {
+          "destination": "PAT",
+          "first_period": "2023-05",
+          "passengers_in_first_month": 5887,
+          "ramp_month": 5
+        },
+        {
+          "destination": "RPR",
+          "first_period": "2023-05",
+          "passengers_in_first_month": 5836,
+          "ramp_month": 5
+        },
+        {
+          "destination": "IXM",
+          "first_period": "2023-08",
+          "passengers_in_first_month": 51,
+          "ramp_month": 8
+        },
+        {
+          "destination": "HSR",
+          "first_period": "2023-09",
+          "passengers_in_first_month": 2873,
+          "ramp_month": 9
+        },
+        {
+          "destination": "IXZ",
+          "first_period": "2023-10",
+          "passengers_in_first_month": 2,
+          "ramp_month": 10
+        },
+        {
+          "destination": "STV",
+          "first_period": "2023-10",
+          "passengers_in_first_month": 649,
+          "ramp_month": 10
+        },
+        {
+          "destination": "RQY",
+          "first_period": "2023-11",
+          "passengers_in_first_month": 666,
+          "ramp_month": 11
+        },
+        {
+          "destination": "GOI",
+          "first_period": "2024-02",
+          "passengers_in_first_month": 123,
+          "ramp_month": 14
+        },
+        {
+          "destination": "AGX",
+          "first_period": "2024-04",
+          "passengers_in_first_month": 466,
+          "ramp_month": 16
+        },
+        {
+          "destination": "JLG",
+          "first_period": "2024-04",
+          "passengers_in_first_month": 569,
+          "ramp_month": 16
+        },
+        {
+          "destination": "IXU",
+          "first_period": "2024-07",
+          "passengers_in_first_month": 1007,
+          "ramp_month": 19
+        }
+      ],
+      "incumbent": "GOI",
+      "incumbent_destinations": [
+        "AMD",
+        "BHO",
+        "BLR",
+        "BOM",
+        "CCU",
+        "CJB",
+        "COK",
+        "DEL",
+        "HYD",
+        "IDR",
+        "ISK",
+        "IXC",
+        "IXU",
+        "JAI",
+        "LKO",
+        "MAA",
+        "PNQ",
+        "RPR",
+        "STV"
+      ],
+      "incumbent_effective_destinations": 9.63823208037355,
+      "incumbent_throughput": 5815930,
+      "incumbent_unique_destinations": [
+        "BHO",
+        "CJB",
+        "COK",
+        "IDR",
+        "ISK",
+        "IXU",
+        "LKO",
+        "RPR",
+        "STV"
+      ],
+      "jaccard_similarity": 0.3448275862068966,
+      "min_market_passengers": 10000,
+      "min_persistence_months": 6,
+      "newcomer": "GOX",
+      "newcomer_destinations": [
+        "AGX",
+        "AMD",
+        "BBI",
+        "BDQ",
+        "BLR",
+        "BOM",
+        "CCU",
+        "DEL",
+        "DIU",
+        "HSR",
+        "HYD",
+        "IXC",
+        "JAI",
+        "JLG",
+        "MAA",
+        "NAG",
+        "NMIA",
+        "PNQ",
+        "RQY",
+        "SSE"
+      ],
+      "newcomer_effective_destinations": 10.118766269041338,
+      "newcomer_share_pct": 45.82875963039047,
+      "newcomer_throughput": 4920265,
+      "newcomer_unique_destinations": [
+        "AGX",
+        "BBI",
+        "BDQ",
+        "DIU",
+        "HSR",
+        "JLG",
+        "NAG",
+        "NMIA",
+        "RQY",
+        "SSE"
+      ],
+      "shared_destinations": [
+        "AMD",
+        "BLR",
+        "BOM",
+        "CCU",
+        "DEL",
+        "HYD",
+        "IXC",
+        "JAI",
+        "MAA",
+        "PNQ"
+      ]
+    },
+    {
+      "baseline_end": "2019-09",
+      "baseline_incumbent_destination_count": 69,
+      "baseline_incumbent_throughput": 50995676,
+      "baseline_start": "2018-10",
+      "combined_destination_count": 83,
+      "combined_throughput": 58170204,
+      "combined_vs_baseline_destination_change": 14,
+      "combined_vs_baseline_throughput_change_pct": 14.06889478237332,
+      "comparison_end": "2026-06",
+      "comparison_months": 12,
+      "comparison_start": "2025-07",
+      "entry_month": "2019-10",
+      "first_24m_acquisition_sequence": [
+        {
+          "destination": "NNS",
+          "first_period": "2019-10",
+          "passengers_in_first_month": 233,
+          "ramp_month": 1
+        },
+        {
+          "destination": "HBX",
+          "first_period": "2019-11",
+          "passengers_in_first_month": 1089,
+          "ramp_month": 2
+        },
+        {
+          "destination": "GBI",
+          "first_period": "2020-11",
+          "passengers_in_first_month": 330,
+          "ramp_month": 14
+        }
+      ],
+      "incumbent": "DEL",
+      "incumbent_destinations": [
+        "AJL",
+        "AMD",
+        "ATQ",
+        "AYJ",
+        "BBI",
+        "BDQ",
+        "BHJ",
+        "BHO",
+        "BKB",
+        "BLR",
+        "BOM",
+        "BUP",
+        "CCJ",
+        "CCU",
+        "CJB",
+        "COK",
+        "DBR",
+        "DED",
+        "DEP",
+        "DGH",
+        "DHM",
+        "DIB",
+        "DMU",
+        "GAU",
+        "GAY",
+        "GOI",
+        "GOP",
+        "GOX",
+        "GWL",
+        "HBX",
+        "HGI",
+        "HJR",
+        "HSR",
+        "HYD",
+        "IDR",
+        "IMF",
+        "ISK",
+        "IXA",
+        "IXB",
+        "IXC",
+        "IXD",
+        "IXE",
+        "IXG",
+        "IXJ",
+        "IXL",
+        "IXM",
+        "IXR",
+        "IXS",
+        "IXU",
+        "IXZ",
+        "JAI",
+        "JDH",
+        "JLR",
+        "JRG",
+        "JRH",
+        "JSA",
+        "KNU",
+        "LKO",
+        "MAA",
+        "MAQ",
+        "NAG",
+        "NMIA",
+        "PAT",
+        "PGH",
+        "PNQ",
+        "PXN",
+        "REW",
+        "RJA",
+        "RPR",
+        "SAG",
+        "SHL",
+        "STV",
+        "SXR",
+        "TIR",
+        "TRV",
+        "TRZ",
+        "UDR",
+        "VGA",
+        "VNS",
+        "VTZ"
+      ],
+      "incumbent_effective_destinations": 38.96337662808296,
+      "incumbent_throughput": 57038627,
+      "incumbent_unique_destinations": [
+        "AJL",
+        "ATQ",
+        "AYJ",
+        "BBI",
+        "BDQ",
+        "BHJ",
+        "BHO",
+        "BKB",
+        "BUP",
+        "CCJ",
+        "CJB",
+        "COK",
+        "DBR",
+        "DED",
+        "DEP",
+        "DGH",
+        "DHM",
+        "DIB",
+        "DMU",
+        "GAU",
+        "GAY",
+        "GOI",
+        "GOP",
+        "GOX",
+        "GWL",
+        "HBX",
+        "HGI",
+        "HJR",
+        "HSR",
+        "HYD",
+        "IDR",
+        "IMF",
+        "ISK",
+        "IXA",
+        "IXB",
+        "IXC",
+        "IXD",
+        "IXE",
+        "IXG",
+        "IXJ",
+        "IXL",
+        "IXM",
+        "IXR",
+        "IXS",
+        "IXU",
+        "IXZ",
+        "JAI",
+        "JDH",
+        "JLR",
+        "JRG",
+        "JRH",
+        "JSA",
+        "KNU",
+        "LKO",
+        "MAQ",
+        "NAG",
+        "NMIA",
+        "PGH",
+        "PNQ",
+        "PXN",
+        "REW",
+        "RJA",
+        "RPR",
+        "SAG",
+        "SHL",
+        "STV",
+        "SXR",
+        "TIR",
+        "TRV",
+        "TRZ",
+        "UDR",
+        "VGA",
+        "VTZ"
+      ],
+      "jaccard_similarity": 0.08433734939759036,
+      "min_market_passengers": 10000,
+      "min_persistence_months": 6,
+      "newcomer": "HDO",
+      "newcomer_destinations": [
+        "AIP",
+        "AMD",
+        "BLR",
+        "BOM",
+        "CCU",
+        "KQH",
+        "MAA",
+        "NDC",
+        "PAT",
+        "VNS"
+      ],
+      "newcomer_effective_destinations": 8.02979031955411,
+      "newcomer_share_pct": 1.9452862843664773,
+      "newcomer_throughput": 1131577,
+      "newcomer_unique_destinations": [
+        "AIP",
+        "KQH",
+        "NDC"
+      ],
+      "shared_destinations": [
+        "AMD",
+        "BLR",
+        "BOM",
+        "CCU",
+        "MAA",
+        "PAT",
+        "VNS"
+      ]
+    },
+    {
+      "baseline_end": "2025-12",
+      "baseline_incumbent_destination_count": 65,
+      "baseline_incumbent_throughput": 19042772,
+      "baseline_start": "2025-07",
+      "combined_destination_count": 65,
+      "combined_throughput": 20932152,
+      "combined_vs_baseline_destination_change": 0,
+      "combined_vs_baseline_throughput_change_pct": 9.92176979275916,
+      "comparison_end": "2026-06",
+      "comparison_months": 6,
+      "comparison_start": "2026-01",
+      "entry_month": "2026-01",
+      "first_24m_acquisition_sequence": [
+        {
+          "destination": "AMD",
+          "first_period": "2026-01",
+          "passengers_in_first_month": 11620,
+          "ramp_month": 1
+        },
+        {
+          "destination": "BDQ",
+          "first_period": "2026-01",
+          "passengers_in_first_month": 6527,
+          "ramp_month": 1
+        },
+        {
+          "destination": "BLR",
+          "first_period": "2026-01",
+          "passengers_in_first_month": 30324,
+          "ramp_month": 1
+        },
+        {
+          "destination": "CJB",
+          "first_period": "2026-01",
+          "passengers_in_first_month": 8720,
+          "ramp_month": 1
+        },
+        {
+          "destination": "COK",
+          "first_period": "2026-01",
+          "passengers_in_first_month": 17174,
+          "ramp_month": 1
+        },
+        {
+          "destination": "DEL",
+          "first_period": "2026-01",
+          "passengers_in_first_month": 38351,
+          "ramp_month": 1
+        },
+        {
+          "destination": "GOX",
+          "first_period": "2026-01",
+          "passengers_in_first_month": 25213,
+          "ramp_month": 1
+        },
+        {
+          "destination": "HYD",
+          "first_period": "2026-01",
+          "passengers_in_first_month": 13767,
+          "ramp_month": 1
+        },
+        {
+          "destination": "IXE",
+          "first_period": "2026-01",
+          "passengers_in_first_month": 7922,
+          "ramp_month": 1
+        },
+        {
+          "destination": "JAI",
+          "first_period": "2026-01",
+          "passengers_in_first_month": 9692,
+          "ramp_month": 1
+        },
+        {
+          "destination": "LKO",
+          "first_period": "2026-01",
+          "passengers_in_first_month": 10109,
+          "ramp_month": 1
+        },
+        {
+          "destination": "MAA",
+          "first_period": "2026-01",
+          "passengers_in_first_month": 7747,
+          "ramp_month": 1
+        },
+        {
+          "destination": "NAG",
+          "first_period": "2026-01",
+          "passengers_in_first_month": 7897,
+          "ramp_month": 1
+        },
+        {
+          "destination": "VNS",
+          "first_period": "2026-02",
+          "passengers_in_first_month": 4327,
+          "ramp_month": 2
+        },
+        {
+          "destination": "AGR",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 344,
+          "ramp_month": 3
+        },
+        {
+          "destination": "AYJ",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 912,
+          "ramp_month": 3
+        },
+        {
+          "destination": "BEK",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 305,
+          "ramp_month": 3
+        },
+        {
+          "destination": "BHO",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 543,
+          "ramp_month": 3
+        },
+        {
+          "destination": "BHU",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 441,
+          "ramp_month": 3
+        },
+        {
+          "destination": "CCU",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 1371,
+          "ramp_month": 3
+        },
+        {
+          "destination": "DED",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 563,
+          "ramp_month": 3
+        },
+        {
+          "destination": "DGH",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 396,
+          "ramp_month": 3
+        },
+        {
+          "destination": "DIU",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 255,
+          "ramp_month": 3
+        },
+        {
+          "destination": "GOI",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 1429,
+          "ramp_month": 3
+        },
+        {
+          "destination": "GOP",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 439,
+          "ramp_month": 3
+        },
+        {
+          "destination": "HBX",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 428,
+          "ramp_month": 3
+        },
+        {
+          "destination": "HDO",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 567,
+          "ramp_month": 3
+        },
+        {
+          "destination": "HSR",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 511,
+          "ramp_month": 3
+        },
+        {
+          "destination": "IDR",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 1034,
+          "ramp_month": 3
+        },
+        {
+          "destination": "IXB",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 656,
+          "ramp_month": 3
+        },
+        {
+          "destination": "IXC",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 842,
+          "ramp_month": 3
+        },
+        {
+          "destination": "IXG",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 92,
+          "ramp_month": 3
+        },
+        {
+          "destination": "IXJ",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 198,
+          "ramp_month": 3
+        },
+        {
+          "destination": "IXM",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 808,
+          "ramp_month": 3
+        },
+        {
+          "destination": "IXU",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 361,
+          "ramp_month": 3
+        },
+        {
+          "destination": "JLR",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 616,
+          "ramp_month": 3
+        },
+        {
+          "destination": "JRG",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 545,
+          "ramp_month": 3
+        },
+        {
+          "destination": "KLH",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 513,
+          "ramp_month": 3
+        },
+        {
+          "destination": "MAQ",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 104,
+          "ramp_month": 3
+        },
+        {
+          "destination": "PAT",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 647,
+          "ramp_month": 3
+        },
+        {
+          "destination": "RPR",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 453,
+          "ramp_month": 3
+        },
+        {
+          "destination": "SXR",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 1268,
+          "ramp_month": 3
+        },
+        {
+          "destination": "TIR",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 659,
+          "ramp_month": 3
+        },
+        {
+          "destination": "TRV",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 724,
+          "ramp_month": 3
+        },
+        {
+          "destination": "VTZ",
+          "first_period": "2026-03",
+          "passengers_in_first_month": 706,
+          "ramp_month": 3
+        },
+        {
+          "destination": "BOM",
+          "first_period": "2026-05",
+          "passengers_in_first_month": 123,
+          "ramp_month": 5
+        },
+        {
+          "destination": "GAU",
+          "first_period": "2026-05",
+          "passengers_in_first_month": 6033,
+          "ramp_month": 5
+        },
+        {
+          "destination": "IXD",
+          "first_period": "2026-05",
+          "passengers_in_first_month": 154,
+          "ramp_month": 5
+        },
+        {
+          "destination": "VGA",
+          "first_period": "2026-05",
+          "passengers_in_first_month": 2,
+          "ramp_month": 5
+        },
+        {
+          "destination": "DXN",
+          "first_period": "2026-06",
+          "passengers_in_first_month": 4543,
+          "ramp_month": 6
+        },
+        {
+          "destination": "STV",
+          "first_period": "2026-06",
+          "passengers_in_first_month": 74,
+          "ramp_month": 6
+        }
+      ],
+      "incumbent": "BOM",
+      "incumbent_destinations": [
+        "AGR",
+        "AIP",
+        "AMD",
+        "ATQ",
+        "AYJ",
+        "BBI",
+        "BDQ",
+        "BEK",
+        "BHJ",
+        "BHO",
+        "BLR",
+        "CCJ",
+        "CCU",
+        "CJB",
+        "COK",
+        "DBR",
+        "DED",
+        "DEL",
+        "DEP",
+        "DGH",
+        "DIU",
+        "GAU",
+        "GOI",
+        "GOP",
+        "GOX",
+        "GWL",
+        "HBX",
+        "HDO",
+        "HSR",
+        "HYD",
+        "IDR",
+        "IXB",
+        "IXC",
+        "IXD",
+        "IXE",
+        "IXJ",
+        "IXL",
+        "IXM",
+        "IXR",
+        "IXU",
+        "IXZ",
+        "JAI",
+        "JDH",
+        "JGA",
+        "JLR",
+        "JRG",
+        "JSA",
+        "KLH",
+        "KNU",
+        "LKO",
+        "MAA",
+        "MAQ",
+        "NAG",
+        "PAT",
+        "RJA",
+        "RPR",
+        "SXR",
+        "TIR",
+        "TRV",
+        "TRZ",
+        "UDR",
+        "VGA",
+        "VNS",
+        "VTZ"
+      ],
+      "incumbent_effective_destinations": 28.362086851952352,
+      "incumbent_throughput": 18693564,
+      "incumbent_unique_destinations": [
+        "AIP",
+        "ATQ",
+        "BBI",
+        "BHJ",
+        "CCJ",
+        "DBR",
+        "DEP",
+        "DGH",
+        "DIU",
+        "GAU",
+        "GWL",
+        "IXD",
+        "IXJ",
+        "IXL",
+        "IXR",
+        "IXZ",
+        "JDH",
+        "JGA",
+        "JSA",
+        "KNU",
+        "MAQ",
+        "RJA",
+        "TRZ",
+        "UDR",
+        "VGA"
+      ],
+      "jaccard_similarity": 0.6,
+      "min_market_passengers": 10000,
+      "min_persistence_months": 3,
+      "newcomer": "NMIA",
+      "newcomer_destinations": [
+        "AGR",
+        "AMD",
+        "AYJ",
+        "BDQ",
+        "BEK",
+        "BHO",
+        "BHU",
+        "BLR",
+        "CCU",
+        "CJB",
+        "COK",
+        "DED",
+        "DEL",
+        "GOI",
+        "GOP",
+        "GOX",
+        "HBX",
+        "HDO",
+        "HSR",
+        "HYD",
+        "IDR",
+        "IXB",
+        "IXC",
+        "IXE",
+        "IXM",
+        "IXU",
+        "JAI",
+        "JLR",
+        "JRG",
+        "KLH",
+        "LKO",
+        "MAA",
+        "NAG",
+        "PAT",
+        "RPR",
+        "SXR",
+        "TIR",
+        "TRV",
+        "VNS",
+        "VTZ"
+      ],
+      "newcomer_effective_destinations": 26.039683422665163,
+      "newcomer_share_pct": 10.694495243489538,
+      "newcomer_throughput": 2238588,
+      "newcomer_unique_destinations": [
+        "BHU"
+      ],
+      "shared_destinations": [
+        "AGR",
+        "AMD",
+        "AYJ",
+        "BDQ",
+        "BEK",
+        "BHO",
+        "BLR",
+        "CCU",
+        "CJB",
+        "COK",
+        "DED",
+        "DEL",
+        "GOI",
+        "GOP",
+        "GOX",
+        "HBX",
+        "HDO",
+        "HSR",
+        "HYD",
+        "IDR",
+        "IXB",
+        "IXC",
+        "IXE",
+        "IXM",
+        "IXU",
+        "JAI",
+        "JLR",
+        "JRG",
+        "KLH",
+        "LKO",
+        "MAA",
+        "NAG",
+        "PAT",
+        "RPR",
+        "SXR",
+        "TIR",
+        "TRV",
+        "VNS",
+        "VTZ"
+      ]
+    }
+  ],
+  "dual_airport_sensitivity": [
+    {
+      "incumbent": "GOI",
+      "jaccard_similarity": 0.45161290322580644,
+      "min_market_passengers": 5000,
+      "newcomer": "GOX",
+      "newcomer_markets": 23,
+      "newcomer_unique_markets": 9,
+      "persistence_fraction": 0.25,
+      "shared_markets": 14
+    },
+    {
+      "incumbent": "DEL",
+      "jaccard_similarity": 0.12643678160919541,
+      "min_market_passengers": 5000,
+      "newcomer": "HDO",
+      "newcomer_markets": 14,
+      "newcomer_unique_markets": 3,
+      "persistence_fraction": 0.25,
+      "shared_markets": 11
+    },
+    {
+      "incumbent": "BOM",
+      "jaccard_similarity": 0.6338028169014085,
+      "min_market_passengers": 5000,
+      "newcomer": "NMIA",
+      "newcomer_markets": 46,
+      "newcomer_unique_markets": 1,
+      "persistence_fraction": 0.25,
+      "shared_markets": 45
+    },
+    {
+      "incumbent": "GOI",
+      "jaccard_similarity": 0.3448275862068966,
+      "min_market_passengers": 5000,
+      "newcomer": "GOX",
+      "newcomer_markets": 20,
+      "newcomer_unique_markets": 10,
+      "persistence_fraction": 0.5,
+      "shared_markets": 10
+    },
+    {
+      "incumbent": "DEL",
+      "jaccard_similarity": 0.08045977011494253,
+      "min_market_passengers": 5000,
+      "newcomer": "HDO",
+      "newcomer_markets": 10,
+      "newcomer_unique_markets": 3,
+      "persistence_fraction": 0.5,
+      "shared_markets": 7
+    },
+    {
+      "incumbent": "BOM",
+      "jaccard_similarity": 0.6056338028169014,
+      "min_market_passengers": 5000,
+      "newcomer": "NMIA",
+      "newcomer_markets": 44,
+      "newcomer_unique_markets": 1,
+      "persistence_fraction": 0.5,
+      "shared_markets": 43
+    },
+    {
+      "incumbent": "GOI",
+      "jaccard_similarity": 0.32,
+      "min_market_passengers": 5000,
+      "newcomer": "GOX",
+      "newcomer_markets": 16,
+      "newcomer_unique_markets": 8,
+      "persistence_fraction": 0.75,
+      "shared_markets": 8
+    },
+    {
+      "incumbent": "DEL",
+      "jaccard_similarity": 0.08333333333333333,
+      "min_market_passengers": 5000,
+      "newcomer": "HDO",
+      "newcomer_markets": 10,
+      "newcomer_unique_markets": 3,
+      "persistence_fraction": 0.75,
+      "shared_markets": 7
+    },
+    {
+      "incumbent": "BOM",
+      "jaccard_similarity": 0.25,
+      "min_market_passengers": 5000,
+      "newcomer": "NMIA",
+      "newcomer_markets": 14,
+      "newcomer_unique_markets": 0,
+      "persistence_fraction": 0.75,
+      "shared_markets": 14
+    },
+    {
+      "incumbent": "GOI",
+      "jaccard_similarity": 0.43333333333333335,
+      "min_market_passengers": 10000,
+      "newcomer": "GOX",
+      "newcomer_markets": 21,
+      "newcomer_unique_markets": 8,
+      "persistence_fraction": 0.25,
+      "shared_markets": 13
+    },
+    {
+      "incumbent": "DEL",
+      "jaccard_similarity": 0.13253012048192772,
+      "min_market_passengers": 10000,
+      "newcomer": "HDO",
+      "newcomer_markets": 14,
+      "newcomer_unique_markets": 3,
+      "persistence_fraction": 0.25,
+      "shared_markets": 11
+    },
+    {
+      "incumbent": "BOM",
+      "jaccard_similarity": 0.6,
+      "min_market_passengers": 10000,
+      "newcomer": "NMIA",
+      "newcomer_markets": 40,
+      "newcomer_unique_markets": 1,
+      "persistence_fraction": 0.25,
+      "shared_markets": 39
+    },
+    {
+      "incumbent": "GOI",
+      "jaccard_similarity": 0.3448275862068966,
+      "min_market_passengers": 10000,
+      "newcomer": "GOX",
+      "newcomer_markets": 20,
+      "newcomer_unique_markets": 10,
+      "persistence_fraction": 0.5,
+      "shared_markets": 10
+    },
+    {
+      "incumbent": "DEL",
+      "jaccard_similarity": 0.08433734939759036,
+      "min_market_passengers": 10000,
+      "newcomer": "HDO",
+      "newcomer_markets": 10,
+      "newcomer_unique_markets": 3,
+      "persistence_fraction": 0.5,
+      "shared_markets": 7
+    },
+    {
+      "incumbent": "BOM",
+      "jaccard_similarity": 0.6,
+      "min_market_passengers": 10000,
+      "newcomer": "NMIA",
+      "newcomer_markets": 40,
+      "newcomer_unique_markets": 1,
+      "persistence_fraction": 0.5,
+      "shared_markets": 39
+    },
+    {
+      "incumbent": "GOI",
+      "jaccard_similarity": 0.32,
+      "min_market_passengers": 10000,
+      "newcomer": "GOX",
+      "newcomer_markets": 16,
+      "newcomer_unique_markets": 8,
+      "persistence_fraction": 0.75,
+      "shared_markets": 8
+    },
+    {
+      "incumbent": "DEL",
+      "jaccard_similarity": 0.0875,
+      "min_market_passengers": 10000,
+      "newcomer": "HDO",
+      "newcomer_markets": 10,
+      "newcomer_unique_markets": 3,
+      "persistence_fraction": 0.75,
+      "shared_markets": 7
+    },
+    {
+      "incumbent": "BOM",
+      "jaccard_similarity": 0.2692307692307692,
+      "min_market_passengers": 10000,
+      "newcomer": "NMIA",
+      "newcomer_markets": 14,
+      "newcomer_unique_markets": 0,
+      "persistence_fraction": 0.75,
+      "shared_markets": 14
+    },
+    {
+      "incumbent": "GOI",
+      "jaccard_similarity": 0.48,
+      "min_market_passengers": 25000,
+      "newcomer": "GOX",
+      "newcomer_markets": 18,
+      "newcomer_unique_markets": 6,
+      "persistence_fraction": 0.25,
+      "shared_markets": 12
+    },
+    {
+      "incumbent": "DEL",
+      "jaccard_similarity": 0.11538461538461539,
+      "min_market_passengers": 25000,
+      "newcomer": "HDO",
+      "newcomer_markets": 11,
+      "newcomer_unique_markets": 2,
+      "persistence_fraction": 0.25,
+      "shared_markets": 9
+    },
+    {
+      "incumbent": "BOM",
+      "jaccard_similarity": 0.423728813559322,
+      "min_market_passengers": 25000,
+      "newcomer": "NMIA",
+      "newcomer_markets": 25,
+      "newcomer_unique_markets": 0,
+      "persistence_fraction": 0.25,
+      "shared_markets": 25
+    },
+    {
+      "incumbent": "GOI",
+      "jaccard_similarity": 0.4166666666666667,
+      "min_market_passengers": 25000,
+      "newcomer": "GOX",
+      "newcomer_markets": 17,
+      "newcomer_unique_markets": 7,
+      "persistence_fraction": 0.5,
+      "shared_markets": 10
+    },
+    {
+      "incumbent": "DEL",
+      "jaccard_similarity": 0.08974358974358974,
+      "min_market_passengers": 25000,
+      "newcomer": "HDO",
+      "newcomer_markets": 9,
+      "newcomer_unique_markets": 2,
+      "persistence_fraction": 0.5,
+      "shared_markets": 7
+    },
+    {
+      "incumbent": "BOM",
+      "jaccard_similarity": 0.423728813559322,
+      "min_market_passengers": 25000,
+      "newcomer": "NMIA",
+      "newcomer_markets": 25,
+      "newcomer_unique_markets": 0,
+      "persistence_fraction": 0.5,
+      "shared_markets": 25
+    },
+    {
+      "incumbent": "GOI",
+      "jaccard_similarity": 0.38095238095238093,
+      "min_market_passengers": 25000,
+      "newcomer": "GOX",
+      "newcomer_markets": 14,
+      "newcomer_unique_markets": 6,
+      "persistence_fraction": 0.75,
+      "shared_markets": 8
+    },
+    {
+      "incumbent": "DEL",
+      "jaccard_similarity": 0.09210526315789473,
+      "min_market_passengers": 25000,
+      "newcomer": "HDO",
+      "newcomer_markets": 9,
+      "newcomer_unique_markets": 2,
+      "persistence_fraction": 0.75,
+      "shared_markets": 7
+    },
+    {
+      "incumbent": "BOM",
+      "jaccard_similarity": 0.2857142857142857,
+      "min_market_passengers": 25000,
+      "newcomer": "NMIA",
+      "newcomer_markets": 14,
+      "newcomer_unique_markets": 0,
+      "persistence_fraction": 0.75,
+      "shared_markets": 14
+    },
+    {
+      "incumbent": "GOI",
+      "jaccard_similarity": 0.36363636363636365,
+      "min_market_passengers": 50000,
+      "newcomer": "GOX",
+      "newcomer_markets": 13,
+      "newcomer_unique_markets": 5,
+      "persistence_fraction": 0.25,
+      "shared_markets": 8
+    },
+    {
+      "incumbent": "DEL",
+      "jaccard_similarity": 0.10666666666666667,
+      "min_market_passengers": 50000,
+      "newcomer": "HDO",
+      "newcomer_markets": 9,
+      "newcomer_unique_markets": 1,
+      "persistence_fraction": 0.25,
+      "shared_markets": 8
+    },
+    {
+      "incumbent": "BOM",
+      "jaccard_similarity": 0.29545454545454547,
+      "min_market_passengers": 50000,
+      "newcomer": "NMIA",
+      "newcomer_markets": 13,
+      "newcomer_unique_markets": 0,
+      "persistence_fraction": 0.25,
+      "shared_markets": 13
+    },
+    {
+      "incumbent": "GOI",
+      "jaccard_similarity": 0.38095238095238093,
+      "min_market_passengers": 50000,
+      "newcomer": "GOX",
+      "newcomer_markets": 13,
+      "newcomer_unique_markets": 5,
+      "persistence_fraction": 0.5,
+      "shared_markets": 8
+    },
+    {
+      "incumbent": "DEL",
+      "jaccard_similarity": 0.09333333333333334,
+      "min_market_passengers": 50000,
+      "newcomer": "HDO",
+      "newcomer_markets": 8,
+      "newcomer_unique_markets": 1,
+      "persistence_fraction": 0.5,
+      "shared_markets": 7
+    },
+    {
+      "incumbent": "BOM",
+      "jaccard_similarity": 0.29545454545454547,
+      "min_market_passengers": 50000,
+      "newcomer": "NMIA",
+      "newcomer_markets": 13,
+      "newcomer_unique_markets": 0,
+      "persistence_fraction": 0.5,
+      "shared_markets": 13
+    },
+    {
+      "incumbent": "GOI",
+      "jaccard_similarity": 0.4444444444444444,
+      "min_market_passengers": 50000,
+      "newcomer": "GOX",
+      "newcomer_markets": 11,
+      "newcomer_unique_markets": 3,
+      "persistence_fraction": 0.75,
+      "shared_markets": 8
+    },
+    {
+      "incumbent": "DEL",
+      "jaccard_similarity": 0.0958904109589041,
+      "min_market_passengers": 50000,
+      "newcomer": "HDO",
+      "newcomer_markets": 8,
+      "newcomer_unique_markets": 1,
+      "persistence_fraction": 0.75,
+      "shared_markets": 7
+    },
+    {
+      "incumbent": "BOM",
+      "jaccard_similarity": 0.2727272727272727,
+      "min_market_passengers": 50000,
+      "newcomer": "NMIA",
+      "newcomer_markets": 12,
+      "newcomer_unique_markets": 0,
+      "persistence_fraction": 0.75,
+      "shared_markets": 12
+    }
+  ],
+  "dxn_observation": {
+    "first_positive_month": "2026-06",
+    "interpretation": "partial opening-month observation; insufficient for steady-state NIA performance analysis",
+    "observed_airport_throughput": 20058,
+    "observed_months": 1
+  },
+  "executive_finding": "Observable route-market volume and persistent growth provide the strongest actionable evidence. Dual-airport analogues support a complementary origin/destination role; the segment data does not support a transfer-hub claim.",
+  "generated_date": "2026-07-30",
+  "national_decentralisation": {
+    "first_year": 2016,
+    "first_year_metrics": {
+      "active_airports": 78.0,
+      "active_routes": 339.0,
+      "effective_traffic_centres": 10.609362494843598,
+      "median_direct_destinations": 5.0,
+      "median_effective_destinations": 2.516705793685996,
+      "route_births": null,
+      "route_deaths": null,
+      "route_survival_pct": null,
+      "top_five_airport_share_pct": 58.89966218417334,
+      "traffic_hhi": 0.09425637030368447
+    },
+    "last_year": 2025,
+    "last_year_metrics": {
+      "active_airports": 129.0,
+      "active_routes": 731.0,
+      "effective_traffic_centres": 14.45552046436943,
+      "median_direct_destinations": 6.0,
+      "median_effective_destinations": 3.9360156756622566,
+      "route_births": 117.0,
+      "route_deaths": 90.0,
+      "route_survival_pct": 87.2159090909091,
+      "top_five_airport_share_pct": 51.94574552631842,
+      "traffic_hhi": 0.06917772365684388
+    },
+    "min_route_persistence_months": 3
+  },
+  "route_market_frontier": {
+    "focal_airport": "DEL",
+    "interpretation": "observable DEL market / NCR demand proxy",
+    "market_metrics": {
+      "AMD": {
+        "absolute_yoy_change": -176215.0,
+        "cagr_3y_pct": 2.325128320776093,
+        "destination_direct_markets": 57,
+        "destination_effective_markets": 17.463511301455583,
+        "destination_t12_throughput": 11213995,
+        "distance_km": 752.0361709858606,
+        "hdo_persistence_months": 9,
+        "hdo_t12_passengers": 71287,
+        "latest_monthly_cv": 0.0687734045076552,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 2374565,
+        "previous_t12_passengers": 2550780.0,
+        "yoy_change_pct": -6.908279036216369
+      },
+      "BLR": {
+        "absolute_yoy_change": 283741.0,
+        "cagr_3y_pct": 1.9472883308960798,
+        "destination_direct_markets": 84,
+        "destination_effective_markets": 34.286965660244434,
+        "destination_t12_throughput": 36669606,
+        "distance_km": 1664.2724698309655,
+        "hdo_persistence_months": 12,
+        "hdo_t12_passengers": 267074,
+        "latest_monthly_cv": 0.06609453698726084,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 4876134,
+        "previous_t12_passengers": 4592393.0,
+        "yoy_change_pct": 6.178499967228412
+      },
+      "BOM": {
+        "absolute_yoy_change": -256509.0,
+        "cagr_3y_pct": 3.2452831456674547,
+        "destination_direct_markets": 81,
+        "destination_effective_markets": 29.316397639297115,
+        "destination_t12_throughput": 37736336,
+        "distance_km": 1117.211957627802,
+        "hdo_persistence_months": 9,
+        "hdo_t12_passengers": 135461,
+        "latest_monthly_cv": 0.06616483762211962,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 6450472,
+        "previous_t12_passengers": 6706981.0,
+        "yoy_change_pct": -3.8245076286931523
+      },
+      "CCU": {
+        "absolute_yoy_change": 95428.0,
+        "cagr_3y_pct": 1.6555902881729923,
+        "destination_direct_markets": 62,
+        "destination_effective_markets": 22.121430081099987,
+        "destination_t12_throughput": 18399049,
+        "distance_km": 1250.7480546120382,
+        "hdo_persistence_months": 12,
+        "hdo_t12_passengers": 139332,
+        "latest_monthly_cv": 0.11281152976636878,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 2888465,
+        "previous_t12_passengers": 2793037.0,
+        "yoy_change_pct": 3.416639306962277
+      },
+      "GAU": {
+        "absolute_yoy_change": 47731.0,
+        "cagr_3y_pct": 0.3786993318287024,
+        "destination_direct_markets": 36,
+        "destination_effective_markets": 12.720421137968385,
+        "destination_t12_throughput": 6601493,
+        "distance_km": 1403.8871694084528,
+        "hdo_persistence_months": 0,
+        "hdo_t12_passengers": 0,
+        "latest_monthly_cv": 0.08103024340902969,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 1579180,
+        "previous_t12_passengers": 1531449.0,
+        "yoy_change_pct": 3.1167214840324364
+      },
+      "GOP": {
+        "absolute_yoy_change": 32549.0,
+        "cagr_3y_pct": 14.38542872415034,
+        "destination_direct_markets": 11,
+        "destination_effective_markets": 4.540475474323833,
+        "destination_t12_throughput": 1166413,
+        "distance_km": 600.3795617722925,
+        "hdo_persistence_months": 0,
+        "hdo_t12_passengers": 0,
+        "latest_monthly_cv": 0.07677773241520255,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 450576,
+        "previous_t12_passengers": 418027.0,
+        "yoy_change_pct": 7.786339159910716
+      },
+      "HYD": {
+        "absolute_yoy_change": -155741.0,
+        "cagr_3y_pct": 4.651182174472046,
+        "destination_direct_markets": 77,
+        "destination_effective_markets": 33.958750180573816,
+        "destination_t12_throughput": 24094131,
+        "distance_km": 1217.8324879060344,
+        "hdo_persistence_months": 0,
+        "hdo_t12_passengers": 0,
+        "latest_monthly_cv": 0.05813194912178943,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 3101054,
+        "previous_t12_passengers": 3256795.0,
+        "yoy_change_pct": -4.78203264252125
+      },
+      "IDR": {
+        "absolute_yoy_change": 144111.0,
+        "cagr_3y_pct": 12.854995816466342,
+        "destination_direct_markets": 37,
+        "destination_effective_markets": 11.319361744118163,
+        "destination_t12_throughput": 4187641,
+        "distance_km": 630.9905993155018,
+        "hdo_persistence_months": 3,
+        "hdo_t12_passengers": 14102,
+        "latest_monthly_cv": 0.06716679163916092,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 1132548,
+        "previous_t12_passengers": 988437.0,
+        "yoy_change_pct": 14.579684896457735
+      },
+      "IXB": {
+        "absolute_yoy_change": 214373.0,
+        "cagr_3y_pct": 5.7883798213292925,
+        "destination_direct_markets": 21,
+        "destination_effective_markets": 7.472069888603594,
+        "destination_t12_throughput": 3853472,
+        "distance_km": 1073.2446597000128,
+        "hdo_persistence_months": 0,
+        "hdo_t12_passengers": 0,
+        "latest_monthly_cv": 0.17747380970004317,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 1234930,
+        "previous_t12_passengers": 1020557.0,
+        "yoy_change_pct": 21.005490139208295
+      },
+      "IXU": {
+        "absolute_yoy_change": 27125.0,
+        "cagr_3y_pct": 13.464599089038165,
+        "destination_direct_markets": 10,
+        "destination_effective_markets": 3.8208027430752978,
+        "destination_t12_throughput": 618791,
+        "distance_km": null,
+        "hdo_persistence_months": 0,
+        "hdo_t12_passengers": 0,
+        "latest_monthly_cv": 0.15821806535769023,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 292583,
+        "previous_t12_passengers": 265458.0,
+        "yoy_change_pct": 10.218188941376782
+      },
+      "JAI": {
+        "absolute_yoy_change": 68341.0,
+        "cagr_3y_pct": -1.7159761379610838,
+        "destination_direct_markets": 44,
+        "destination_effective_markets": 13.053636113771063,
+        "destination_t12_throughput": 5072152,
+        "distance_km": 229.38952166081242,
+        "hdo_persistence_months": 1,
+        "hdo_t12_passengers": 1483,
+        "latest_monthly_cv": 0.18092422369371705,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 644397,
+        "previous_t12_passengers": 576056.0,
+        "yoy_change_pct": 11.863603538544854
+      },
+      "JDH": {
+        "absolute_yoy_change": 20036.0,
+        "cagr_3y_pct": 3.319456122809461,
+        "destination_direct_markets": 9,
+        "destination_effective_markets": 5.4289743802879675,
+        "destination_t12_throughput": 1016580,
+        "distance_km": 495.99186069395074,
+        "hdo_persistence_months": 0,
+        "hdo_t12_passengers": 0,
+        "latest_monthly_cv": 0.41833076608028874,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 298283,
+        "previous_t12_passengers": 278247.0,
+        "yoy_change_pct": 7.200796414696287
+      },
+      "MAA": {
+        "absolute_yoy_change": -232141.0,
+        "cagr_3y_pct": 0.9769794904763041,
+        "destination_direct_markets": 55,
+        "destination_effective_markets": 21.5293134207484,
+        "destination_t12_throughput": 16325975,
+        "distance_km": 1708.128624100934,
+        "hdo_persistence_months": 12,
+        "hdo_t12_passengers": 121082,
+        "latest_monthly_cv": 0.05367167837431228,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 2196906,
+        "previous_t12_passengers": 2429047.0,
+        "yoy_change_pct": -9.556875597713832
+      },
+      "NAG": {
+        "absolute_yoy_change": 64285.0,
+        "cagr_3y_pct": 13.74262356388709,
+        "destination_direct_markets": 22,
+        "destination_effective_markets": 7.283995945352322,
+        "destination_t12_throughput": 2969657,
+        "distance_km": 800.2460938273589,
+        "hdo_persistence_months": 1,
+        "hdo_t12_passengers": 168,
+        "latest_monthly_cv": 0.1637349051277594,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 750680,
+        "previous_t12_passengers": 686395.0,
+        "yoy_change_pct": 9.365598525630281
+      },
+      "PAT": {
+        "absolute_yoy_change": 161345.0,
+        "cagr_3y_pct": 1.0507630248784983,
+        "destination_direct_markets": 22,
+        "destination_effective_markets": 8.151573422307345,
+        "destination_t12_throughput": 4233855,
+        "distance_km": 797.5317211817217,
+        "hdo_persistence_months": 9,
+        "hdo_t12_passengers": 86810,
+        "latest_monthly_cv": 0.11112213838697817,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 1526925,
+        "previous_t12_passengers": 1365580.0,
+        "yoy_change_pct": 11.81512617349405
+      },
+      "PNQ": {
+        "absolute_yoy_change": -22091.0,
+        "cagr_3y_pct": 2.5640836156654245,
+        "destination_direct_markets": 43,
+        "destination_effective_markets": 15.14629322646488,
+        "destination_t12_throughput": 10881099,
+        "distance_km": 1128.8910274403381,
+        "hdo_persistence_months": 0,
+        "hdo_t12_passengers": 0,
+        "latest_monthly_cv": 0.05749945416561366,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 2863545,
+        "previous_t12_passengers": 2885636.0,
+        "yoy_change_pct": -0.7655504713692252
+      },
+      "SXR": {
+        "absolute_yoy_change": -73732.0,
+        "cagr_3y_pct": -11.616035156705806,
+        "destination_direct_markets": 16,
+        "destination_effective_markets": 4.774625730763679,
+        "destination_t12_throughput": 3309246,
+        "distance_km": 700.3182150893742,
+        "hdo_persistence_months": 0,
+        "hdo_t12_passengers": 0,
+        "latest_monthly_cv": 0.11949755772548437,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 1866962,
+        "previous_t12_passengers": 1940694.0,
+        "yoy_change_pct": -3.7992594401796476
+      },
+      "UDR": {
+        "absolute_yoy_change": 102059.0,
+        "cagr_3y_pct": 5.852859864372495,
+        "destination_direct_markets": 12,
+        "destination_effective_markets": 4.037340534463606,
+        "destination_t12_throughput": 1802657,
+        "distance_km": 538.6252095716872,
+        "hdo_persistence_months": 0,
+        "hdo_t12_passengers": 0,
+        "latest_monthly_cv": 0.3957363854561214,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 699132,
+        "previous_t12_passengers": 597073.0,
+        "yoy_change_pct": 17.09321975704814
+      },
+      "VNS": {
+        "absolute_yoy_change": 119380.0,
+        "cagr_3y_pct": 8.977337695979038,
+        "destination_direct_markets": 24,
+        "destination_effective_markets": 7.9666476058869,
+        "destination_t12_throughput": 4113939,
+        "distance_km": 604.4181753104323,
+        "hdo_persistence_months": 11,
+        "hdo_t12_passengers": 97085,
+        "latest_monthly_cv": 0.2317205394366399,
+        "latest_persistence_months": 12,
+        "latest_t12_passengers": 985305,
+        "previous_t12_passengers": 865925.0,
+        "yoy_change_pct": 13.786413372982654
+      }
+    },
+    "not_interpretation": "NIA demand, diversion, forecast, or recommendation",
+    "pareto_dimensions": [
+      "latest_t12_passengers (maximize)",
+      "yoy_change_pct (maximize)"
+    ],
+    "pareto_markets": [
+      "BLR",
+      "BOM",
+      "IXB",
+      "PAT"
+    ],
+    "proxy_demonstration_thresholds": {
+      "airport": "HDO",
+      "min_persistence_months": 6,
+      "min_t12_passengers": 10000
+    },
+    "selection": {
+      "eligible_markets": 39,
+      "min_latest_persistence_months": 9,
+      "min_t12_passengers_each_window": 250000
+    },
+    "sensitivity": [
+      {
+        "eligible_markets": 59,
+        "min_persistence_months": 6,
+        "min_t12_passengers": 100000,
+        "pareto_markets": [
+          "BLR",
+          "BOM",
+          "DBR",
+          "HSR",
+          "IXB",
+          "PAT"
+        ]
+      },
+      {
+        "eligible_markets": 59,
+        "min_persistence_months": 9,
+        "min_t12_passengers": 100000,
+        "pareto_markets": [
+          "BLR",
+          "BOM",
+          "DBR",
+          "HSR",
+          "IXB",
+          "PAT"
+        ]
+      },
+      {
+        "eligible_markets": 58,
+        "min_persistence_months": 12,
+        "min_t12_passengers": 100000,
+        "pareto_markets": [
+          "BLR",
+          "BOM",
+          "DBR",
+          "IMF",
+          "IXB",
+          "IXE",
+          "PAT"
+        ]
+      },
+      {
+        "eligible_markets": 39,
+        "min_persistence_months": 6,
+        "min_t12_passengers": 250000,
+        "pareto_markets": [
+          "BLR",
+          "BOM",
+          "IXB",
+          "PAT"
+        ]
+      },
+      {
+        "eligible_markets": 39,
+        "min_persistence_months": 9,
+        "min_t12_passengers": 250000,
+        "pareto_markets": [
+          "BLR",
+          "BOM",
+          "IXB",
+          "PAT"
+        ]
+      },
+      {
+        "eligible_markets": 39,
+        "min_persistence_months": 12,
+        "min_t12_passengers": 250000,
+        "pareto_markets": [
+          "BLR",
+          "BOM",
+          "IXB",
+          "PAT"
+        ]
+      },
+      {
+        "eligible_markets": 31,
+        "min_persistence_months": 6,
+        "min_t12_passengers": 500000,
+        "pareto_markets": [
+          "BLR",
+          "BOM",
+          "IXB",
+          "PAT"
+        ]
+      },
+      {
+        "eligible_markets": 31,
+        "min_persistence_months": 9,
+        "min_t12_passengers": 500000,
+        "pareto_markets": [
+          "BLR",
+          "BOM",
+          "IXB",
+          "PAT"
+        ]
+      },
+      {
+        "eligible_markets": 31,
+        "min_persistence_months": 12,
+        "min_t12_passengers": 500000,
+        "pareto_markets": [
+          "BLR",
+          "BOM",
+          "IXB",
+          "PAT"
+        ]
+      }
+    ],
+    "total_observed_latest_markets": 92
+  },
+  "source_table": "data/processed/domestic_route_monthly.csv",
+  "tests_not_selected_as_headline_charts": {
+    "structural_two_leg_paths": {
+      "conclusion": "DXN has no persistent qualifying legs. DEL proxy paths are topological and cannot establish NIA transfer demand.",
+      "del_proxy_paths_with_known_detour": 205,
+      "del_proxy_paths_without_known_detour": 48,
+      "del_proxy_qualifying_paths": 253,
+      "del_proxy_thresholds": {
+        "direct_persistence_months": 6,
+        "max_known_coordinate_detour_ratio": 1.5,
+        "min_leg_passengers": 250000,
+        "min_leg_persistence_months": 9,
+        "min_leg_yoy_pct": -10
+      },
+      "dxn_qualifying_paths": 0,
+      "dxn_thresholds": {
+        "direct_persistence_months": 6,
+        "max_known_coordinate_detour_ratio": 1.5,
+        "min_leg_passengers": 100000,
+        "min_leg_persistence_months": 6,
+        "min_leg_yoy_pct": -10
+      }
+    },
+    "traffic_scale_vs_network_diversity": {
+      "conclusion": "Strongly correlated with traffic scale and cannot identify transfer passengers; useful context, weak standalone thesis.",
+      "spearman_rank_correlation": 0.8642002105717953
+    },
+    "triangle_closures": {
+      "conclusion": "Qualifying routes disappear at the 100,000-passenger floor; the result is too threshold-sensitive for a headline.",
+      "sensitivity": [
+        {
+          "min_direct_passengers": 50000,
+          "qualifying_closures": 6
+        },
+        {
+          "min_direct_passengers": 100000,
+          "qualifying_closures": 0
+        }
+      ]
+    }
+  }
+}

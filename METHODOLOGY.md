@@ -39,6 +39,8 @@ normalization, entity resolution, and validation.
 
 - **Scope:** Scheduled passenger traffic reported in DGCA public aviation
   statistics.
+- **Domestic route rows:** Monthly directed segment passengers, with both
+  endpoints resolved to canonical airports.
 - **Domestic airport rows:** Monthly city-pair passenger flows aggregated to
   airport arrivals, departures, and total passengers.
 - **International airport rows:** Quarterly city-pair passenger flows filtered
@@ -62,6 +64,13 @@ airport (an arrival). This is correct for airport-traffic charts and airport
 market-share charts, but **national domestic demand must not be computed by
 summing airport endpoints** — doing so double-counts every domestic journey
 (nationally, airport throughput ≈ 2× journeys).
+
+Domestic route rows are **directed-segment** rows. A passenger appears once on
+the observed segment direction in `domestic_route_monthly.csv`. The national
+directed route sum equals national airport departures and national airport
+arrivals separately; summing airport `passengers` still counts both endpoints.
+Segment rows do not reveal the passenger's true origin/final destination or
+whether the segment was part of a connection.
 
 National domestic demand uses `carrier_monthly.csv` filtered to
 `service_type == scheduled_domestic`, which counts **passengers carried** once per
@@ -89,6 +98,8 @@ recorded per chart in `charts/manifest.json` (`primary_source_table`,
 
 Source rows contain `City1`, `City2`, `PaxToCity2`, and `PaxFromCity2`.
 
+- Directed route `City1 → City2 = PaxToCity2`
+- Directed route `City2 → City1 = PaxFromCity2`
 - For `City1`: departures = `PaxToCity2`, arrivals = `PaxFromCity2`
 - For `City2`: arrivals = `PaxToCity2`, departures = `PaxFromCity2`
 - Airport total = arrivals + departures across all routes
@@ -96,6 +107,31 @@ Source rows contain `City1`, `City2`, `PaxToCity2`, and `PaxFromCity2`.
   some routes in one direction only, leaving the reverse passenger cell blank;
   counting it as zero (rather than dropping the row) keeps one-direction airport
   totals correct. Locked by a test in `tests/test_clean.py`.
+
+### Canonical domestic route layer
+
+`scripts/routes.py` builds `data/processed/domestic_route_monthly.csv` before
+deriving the domestic airport table from those same directed records. Both
+endpoints pass through the period-aware table resolver. Duplicate canonical
+route-months are summed deterministically; zero-direction observations remain
+published but are excluded from weighted graph calculations.
+
+An unresolved domestic endpoint is a hard failure. A source row whose two labels
+resolve to the same airport may be excluded only through an exact,
+period-specific `domestic_route_exclusions` entry in `mappings.yaml` backed by a
+falsifiable assumption. There is no chart-side cleanup.
+
+The route layer must reconcile exactly for every airport-month:
+
+```text
+sum(outgoing route passengers) = airport_monthly.departures
+sum(incoming route passengers) = airport_monthly.arrivals
+```
+
+Validation also requires a unique `(year, month, origin, destination)` key,
+canonical distinct endpoints, non-negative integer passengers, national
+conservation, and no unexplained disappearance of a previously published
+route-month key.
 
 ### Entity resolution (the cleanup model)
 
@@ -134,14 +170,16 @@ industry-standard classifications.
 
 ## Charts
 
-The visible dashboard charts are generated only from the published tables in
-`data/processed/`. The domestic demand pulse uses `carrier_monthly.csv`
-(passengers carried); the airport-level domestic charts use `airport_monthly.csv`
-(airport throughput); the international gateway chart uses
-`airport_international_quarterly.csv`. The script writes `charts/manifest.json`
-with input hashes, output hashes, chart parameters, and the per-chart source table
-and metric semantics, plus `data/processed/dashboard_summary.json` for the
-dashboard cards.
+Charts are generated only from the published tables in `data/processed/`. The
+domestic demand pulse uses `carrier_monthly.csv` (passengers carried);
+airport-level domestic charts use `airport_monthly.csv` (airport throughput);
+the international gateway chart uses `airport_international_quarterly.csv`; and
+route/network charts use `domestic_route_monthly.csv`, with `airport_monthly.csv`
+only for reconciled airport throughput. The script writes `charts/manifest.json`
+with input hashes, output hashes, chart parameters, exact periods, selection
+rules, shown/eligible counts, and per-chart metric semantics. It also writes
+`data/processed/dashboard_summary.json` and
+`data/processed/route_analysis_summary.json`.
 
 ### India Domestic Demand Pulse
 
@@ -190,6 +228,40 @@ years are used; airports need at least 3 complete years and 100,000 latest
 trailing 12-month domestic passengers. The heatmap uses a fixed 60/100/140 color
 scale.
 
+### Observable DEL Route-Market Frontier
+
+`ncr_route_opportunity_frontier.png` — every DEL market with at least 250,000
+bidirectional segment passengers in both the latest and prior trailing-12-month
+windows and positive traffic in at least 9 latest-window months. All eligible
+markets are shown. Labels identify the markets not dominated on latest volume
+and year-over-year growth; no composite score is computed. DEL is an observable
+NCR demand proxy, not NIA demand, diversion, a forecast, or a recommendation.
+
+### Dual-Airport Network Roles
+
+`dual_airport_network_roles.png` — parameterised comparison of GOI/GOX, DEL/HDO,
+and BOM/NMIA. A persistent market has at least 10,000 bidirectional passengers
+and positive traffic in at least half the comparison months. The chart reports
+newcomer share of pair throughput, shared/unique destinations, effective
+destinations, and combined breadth versus an equal-length pre-entry incumbent
+baseline. Comparisons are observational, not causal.
+
+### Domestic Network Decentralisation
+
+`domestic_network_decentralisation.png` — every complete calendar year from
+2016 onward. It shows top-five airport throughput share, effective traffic
+centres (`1 / HHI`), active airports, and bidirectional routes observed in at
+least three months. The chart describes national structure; it does not
+establish demand or route economics for an individual airport.
+
+The accompanying
+[`docs/noida-route-network-analysis.md`](docs/noida-route-network-analysis.md)
+documents the competing theses, sensitivity checks, discarded tests, and claim
+boundaries. Structural two-leg paths use the balanced-leg proxy
+`min(first-leg passengers, second-leg passengers)` only as a topology
+diagnostic; it is never described as transfer demand or summed as reusable
+capacity.
+
 ### Optional Animation
 
 `airport_passenger_race.gif` — optional trailing 12-month domestic passenger
@@ -208,6 +280,8 @@ emits `validation_report.json` (machine) and `warnings.log` (human).
 | Cadence integrity | BLOCKING | one row per key; the quarterly table's `quarter ∈ 1..4`; no cross-table cadence mixing |
 | Definitional | BLOCKING | `passengers == departures + arrivals`; non-negative integers |
 | Schema conformance | BLOCKING | columns/dtypes match the data dictionary; `schema_version` present |
+| Directed route integrity | BLOCKING | canonical distinct endpoints, unique keys, non-negative integers, exact airport-month and national reconciliation |
+| Route-history continuity | BLOCKING | no previously published route-month key disappears without an explicit override and review |
 | Conservation | TRIPWIRE | per month `sum(departures) == sum(arrivals)` — true by construction; catches a future refactor only |
 | Carrier value-domain | BLOCKING / ADVISORY | one row per key; load factors 0–100 and metrics ≥ 0 |
 | Assumptions ledger | BLOCKING | re-test each `assumptions/<id>.md` falsification → HOLDS/TRIGGERED/STALE/ORPHANED |
@@ -237,6 +311,10 @@ confirmed, cited assumption ever reaches `mappings.yaml`.
 3. Passenger charts show passenger flow, not aircraft movement count.
 4. Airport/airline mapping is only as complete as the reviewed entity tables in
    `mappings.yaml`; an unmapped high-volume label is surfaced as advisory.
+5. Domestic segments do not identify passenger origin/final destination,
+   transfers, schedules, seats, fares, yields, or profitability.
+6. DEL traffic is an observable NCR proxy only; the data does not estimate DXN
+   catchment share or diversion.
 
 ---
 
@@ -252,6 +330,7 @@ Methodology changes should preserve review integrity: evaluate a chart or projec
 
 | Date | Version | Change |
 |------|---------|--------|
+| 2026-07 | 0.2.0 | Added the canonical directed domestic route layer with exact airport reconciliation and history continuity; added transparent route-market, dual-airport, and national-decentralisation analyses; documented why transfer-path and triangle-closure hypotheses were not selected. |
 | 2026-06 | 0.1.0 | Canonical multi-table dataset: cadence split, table-driven entity resolution with validity windows, falsifiable assumptions ledger + overlap gate, carrier link-not-collapse, tiers moved to presentation-only, six-chart dashboard surface |
 | 2026-06 | 0.1.0 | Review correction (release QC): Share Movers charts now disclose their top-N-of-total selection and name the explicit comparison windows on the chart. Evidence — a reviewer read the ~20-bar chart as the full airport field and could only infer the comparison period (latest published quarter ≠ current quarter) from the footer. |
 | 2026-06 | 0.1.x | Corrected domestic national dashboard metric. The prior dashboard summed domestic airport endpoint throughput, producing May 2026 = 30,779,402, exactly 2× the scheduled-domestic carrier passenger count of 15,389,701. National domestic demand now uses `carrier_monthly.csv` (`service_type == scheduled_domestic`) passengers carried; airport-level charts remain on endpoint throughput and were relabelled accordingly. Added the passenger-metric-semantics advisory check, manifest `metric_semantics`/`primary_source_table`, and regression tests. |
