@@ -2014,6 +2014,7 @@ def generate_route_analysis_summary(
         previous_periods=windows.previous,
         min_leg_passengers=100_000,
         min_leg_persistence_months=6,
+        min_leg_yoy_pct=0,
         coordinates=coords,
         max_detour_ratio=1.5,
     )
@@ -2024,6 +2025,7 @@ def generate_route_analysis_summary(
         previous_periods=windows.previous,
         min_leg_passengers=250_000,
         min_leg_persistence_months=9,
+        min_leg_yoy_pct=0,
         coordinates=coords,
         max_detour_ratio=1.5,
     )
@@ -2148,7 +2150,7 @@ def generate_route_analysis_summary(
                 "dxn_thresholds": {
                     "min_leg_passengers": 100_000,
                     "min_leg_persistence_months": 6,
-                    "min_leg_yoy_pct": -10,
+                    "min_leg_yoy_pct": 0,
                     "direct_persistence_months": 6,
                     "max_known_coordinate_detour_ratio": 1.5,
                 },
@@ -2162,7 +2164,7 @@ def generate_route_analysis_summary(
                 "del_proxy_thresholds": {
                     "min_leg_passengers": 250_000,
                     "min_leg_persistence_months": 9,
-                    "min_leg_yoy_pct": -10,
+                    "min_leg_yoy_pct": 0,
                     "direct_persistence_months": 6,
                     "max_known_coordinate_detour_ratio": 1.5,
                 },

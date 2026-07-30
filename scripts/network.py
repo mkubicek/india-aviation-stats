@@ -773,7 +773,7 @@ def structural_two_leg_opportunities(
     previous_periods: pd.PeriodIndex | None = None,
     min_leg_passengers: int = 100_000,
     min_leg_persistence_months: int = 6,
-    min_leg_yoy_pct: float = -10.0,
+    min_leg_yoy_pct: float = 0.0,
     direct_persistence_months: int = 6,
     coordinates: dict[str, tuple[float, float]] | None = None,
     max_detour_ratio: float | None = None,

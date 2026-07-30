@@ -3429,15 +3429,15 @@
   "tests_not_selected_as_headline_charts": {
     "structural_two_leg_paths": {
       "conclusion": "DXN has no persistent qualifying legs. DEL proxy paths are topological and cannot establish NIA transfer demand.",
-      "del_proxy_paths_with_known_detour": 205,
-      "del_proxy_paths_without_known_detour": 48,
-      "del_proxy_qualifying_paths": 253,
+      "del_proxy_paths_with_known_detour": 71,
+      "del_proxy_paths_without_known_detour": 15,
+      "del_proxy_qualifying_paths": 86,
       "del_proxy_thresholds": {
         "direct_persistence_months": 6,
         "max_known_coordinate_detour_ratio": 1.5,
         "min_leg_passengers": 250000,
         "min_leg_persistence_months": 9,
-        "min_leg_yoy_pct": -10
+        "min_leg_yoy_pct": 0
       },
       "dxn_qualifying_paths": 0,
       "dxn_thresholds": {
@@ -3445,7 +3445,7 @@
         "max_known_coordinate_detour_ratio": 1.5,
         "min_leg_passengers": 100000,
         "min_leg_persistence_months": 6,
-        "min_leg_yoy_pct": -10
+        "min_leg_yoy_pct": 0
       }
     },
     "traffic_scale_vs_network_diversity": {

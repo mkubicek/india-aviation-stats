@@ -296,6 +296,39 @@ def test_structural_two_leg_opportunity_excludes_persistent_direct_route():
     assert result.iloc[0]["balanced_leg_passengers"] == 1320
 
 
+def test_structural_two_leg_opportunity_requires_non_declining_legs_by_default():
+    rows = []
+    rows += _route_rows(
+        "2024-01",
+        12,
+        {
+            ("AAA", "HUB"): 100,
+            ("HUB", "BBB"): 100,
+        },
+    )
+    rows += _route_rows(
+        "2025-01",
+        12,
+        {
+            ("AAA", "HUB"): 90,
+            ("HUB", "BBB"): 110,
+        },
+    )
+    routes = pd.DataFrame(rows)
+    windows = comparison_windows(routes)
+
+    result = structural_two_leg_opportunities(
+        routes,
+        hub="HUB",
+        periods=windows.latest,
+        previous_periods=windows.previous,
+        min_leg_passengers=1_000,
+        min_leg_persistence_months=6,
+    )
+
+    assert result.empty
+
+
 def test_structural_two_leg_opportunity_applies_known_geographic_detour():
     rows = []
     for start, value in (("2024-01", 100), ("2025-01", 110)):

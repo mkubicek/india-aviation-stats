@@ -205,7 +205,7 @@ not improve the headline interpretation.
 | Growth and portfolio diversification | **Retained within the frontier** | Growth and persistence distinguish markets that a pure volume ranking would hide; no composite score is needed. |
 | Complementary secondary-airport role | **Retained as observational context** | The three analogues show shared trunk markets plus varying differentiation, but do not identify causality or NIA diversion. |
 | Traffic hub vs network hub | Not retained as a headline | Latest-window traffic and effective destinations have a Spearman rank correlation of 0.864; the view mostly relabels scale and cannot identify transfers. |
-| Structural one-stop opportunities | Not retained | DXN has no qualifying persistent legs. DEL produces 253 directional topological paths at the tested proxy threshold (205 with known coordinates and a detour ratio no greater than 1.5; 48 geographically unassessed), but they do not reveal transfer demand, schedules, or reusable leg capacity. |
+| Structural one-stop opportunities | Not retained | DXN has no qualifying persistent legs. DEL produces 86 directional topological paths whose two legs are non-declining at the tested proxy threshold (71 with known coordinates and a detour ratio no greater than 1.5; 15 geographically unassessed), but they do not reveal transfer demand, schedules, or reusable leg capacity. |
 | Network decentralisation | **Retained as context** | The long-run change is strong and readable, but less actionable than individual route markets. |
 | Triangle closure / hub bypass | Not retained | Six routes qualify at a 50,000-passenger floor and none at 100,000, making the result too threshold-sensitive for a headline. |
 
