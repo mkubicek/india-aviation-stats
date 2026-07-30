@@ -1158,29 +1158,32 @@ airline_groups:
 # Color palettes
 # ─────────────────────────────────────────────────────────────
 
+# Light "manager" theme: hues come from the CVD-validated categorical set
+# (blue, orange, aqua, yellow, magenta, green, violet, red). Color follows the
+# entity — an airport keeps its hue in every chart, regardless of rank.
 tier_colors:
-  metro: "#3b82f6"
-  tier1: "#14b8a6"
-  tier2: "#22c55e"
-  tier3: "#94a3b8"
-  greenfield: "#fbbf24"
+  metro: "#2a78d6"
+  tier1: "#1baf7a"
+  tier2: "#008300"
+  tier3: "#898781"
+  greenfield: "#eda100"
 
 airport_colors:
-  DEL: "#f72585"
-  BOM: "#4cc9f0"
-  BLR: "#4ade80"
-  HYD: "#a78bfa"
-  MAA: "#fb923c"
-  CCU: "#f87171"
+  DEL: "#2a78d6"
+  BOM: "#eb6834"
+  BLR: "#1baf7a"
+  HYD: "#4a3aa7"
+  MAA: "#eda100"
+  CCU: "#e87ba4"
 
 airline_colors:
-  IndiGo: "#3b82f6"
-  Air India Group: "#f72585"
-  SpiceJet: "#fbbf24"
-  Akasa Air: "#fb923c"
-  Vistara: "#a78bfa"
-  Go First: "#22c55e"
-  Alliance Air: "#14b8a6"
+  IndiGo: "#2a78d6"
+  Air India Group: "#e34948"
+  SpiceJet: "#eda100"
+  Akasa Air: "#eb6834"
+  Vistara: "#4a3aa7"
+  Go First: "#1baf7a"
+  Alliance Air: "#008300"
 
 # Alternate source spellings whose label differs from the airport entry city.
 # Flat (not per-entry variants) because they are pure period-invariant spellings.

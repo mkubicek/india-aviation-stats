@@ -52,35 +52,34 @@ FIGSIZE_WIDE = (14, 8)
 FIGSIZE_TALL = (14, 10)
 FIGSIZE_HEATMAP = (14, 12)
 
-BG = "#0d1117"
-PANEL_BG = "#0d1117"
-TEXT = "#e6edf3"
-TITLE = "#f0f6fc"
-SUBTLE = "#94a3b8"
-MUTED = "#64748b"
-GRID = "#334155"
+# Light "manager" theme. Categorical slots are CVD-validated as an ordered
+# set (adjacent-pair ΔE gates) — assign in order, never cycle past the list.
+BG = "#fcfcfb"
+PANEL_BG = "#fcfcfb"
+TEXT = "#0b0b0b"
+TITLE = "#0b0b0b"
+SUBTLE = "#52514e"
+MUTED = "#898781"
+GRID = "#e1e0d9"
+BASELINE = "#c3c2b7"
 
-POSITIVE = "#4ade80"
-NEGATIVE = "#f87171"
-ACCENT = "#fbbf24"
-PRIMARY = "#58a6ff"
+# Diverging pair (gain/decline): warm/cool poles, never green/red.
+POSITIVE = "#2a78d6"
+NEGATIVE = "#e34948"
+ACCENT = "#2a78d6"
+PRIMARY = "#2a78d6"
+NEUTRAL_MID = "#f0efec"
+DEEMPH = "#a9a7a0"
 
 FALLBACK_COLORS = [
-    "#4cc9f0",
-    "#f72585",
-    "#4ade80",
-    "#fbbf24",
-    "#a78bfa",
-    "#fb923c",
-    "#22d3ee",
-    "#f87171",
-    "#34d399",
-    "#e879f9",
-    "#60a5fa",
-    "#2dd4bf",
-    "#facc15",
-    "#c084fc",
-    "#fb7185",
+    "#2a78d6",
+    "#eb6834",
+    "#1baf7a",
+    "#eda100",
+    "#e87ba4",
+    "#008300",
+    "#4a3aa7",
+    "#e34948",
 ]
 
 MONTH_ABBR = {
@@ -134,7 +133,7 @@ PASSENGER_RACE_LAST_FRAME_MS = 3000
 
 plt.rcParams.update(
     {
-        "font.family": "DejaVu Sans",
+        "font.family": ["Helvetica Neue", "Arial", "DejaVu Sans"],
         "figure.dpi": DPI,
         "savefig.dpi": DPI,
         "axes.unicode_minus": False,
@@ -233,54 +232,55 @@ def carrier_domestic_coverage(carrier: pd.DataFrame) -> str:
     return f"{national.index.min()}..{national.index.max()}"
 
 
-def add_footer(fig: plt.Figure, *, coverage: str, fingerprint: str) -> None:
+def add_footer(
+    fig: plt.Figure,
+    *,
+    coverage: str,
+    fingerprint: str,
+    caveat: str = "",
+) -> None:
     meta = load_metadata()
     data_str = "Data: DGCA"
     if meta.get("data_date"):
         data_str += f" (as of {meta['data_date']})"
     footer = f"{repo_url()} | {data_str} | Generated {date.today()} | Coverage: {coverage}"
+    if caveat:
+        fig.text(0.015, 0.045, caveat, ha="left", va="bottom", fontsize=8.5, color=SUBTLE)
     fig.text(0.985, 0.018, footer, ha="right", va="bottom", fontsize=8, color=MUTED)
 
 
 def style_axis(ax, title: str, subtitle: str = "", ylabel: str = "") -> None:
+    # Takeaway convention: the title states the computed finding, left-aligned;
+    # the subtitle carries definition, selection, and comparison windows.
     ax.set_facecolor(BG)
     ax.set_title(
         title,
         fontsize=16,
         fontweight="bold",
         color=TITLE,
-        pad=24 if subtitle else 16,
+        loc="left",
+        pad=26 if subtitle else 16,
     )
     if subtitle:
         ax.text(
-            0.5,
-            1.01,
+            0.0,
+            1.012,
             subtitle,
             transform=ax.transAxes,
-            ha="center",
+            ha="left",
             va="bottom",
-            fontsize=9,
+            fontsize=9.5,
             color=SUBTLE,
         )
     if ylabel:
-        ax.set_ylabel(ylabel, fontsize=11, color=TEXT)
-    ax.tick_params(colors=TEXT, labelsize=9)
+        ax.set_ylabel(ylabel, fontsize=11, color=SUBTLE)
+    ax.tick_params(colors=SUBTLE, labelsize=9, length=0)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.spines["bottom"].set_color(GRID)
-    ax.spines["left"].set_color(GRID)
-    ax.grid(axis="y", alpha=0.2, color=GRID, linestyle="--")
-
-
-def style_secondary_axis(ax, ylabel: str) -> None:
-    ax.set_facecolor(BG)
-    ax.set_ylabel(ylabel, fontsize=11, color=TEXT)
-    ax.tick_params(colors=TEXT, labelsize=9)
-    ax.spines["top"].set_visible(False)
     ax.spines["left"].set_visible(False)
-    ax.spines["right"].set_color(GRID)
-    ax.spines["bottom"].set_color(GRID)
-    ax.grid(False)
+    ax.spines["bottom"].set_color(BASELINE)
+    ax.grid(axis="y", color=GRID, linewidth=0.6)
+    ax.set_axisbelow(True)
 
 
 def fmt_millions(x, pos=None) -> str:
@@ -693,46 +693,42 @@ def chart_india_domestic_demand_pulse(
 
     x = national.index.to_timestamp()
     fig, ax = plt.subplots(figsize=FIGSIZE_WIDE, facecolor=BG)
-    ax2 = ax.twinx()
-    bars = ax2.bar(
-        x,
-        national.values,
-        width=25,
-        color=PRIMARY,
-        alpha=0.22,
-        edgecolor="none",
-        label="Monthly passengers carried",
-    )
-    line = ax.plot(
-        t12.index.to_timestamp(),
-        t12.values,
+    t12_clean = t12.dropna()
+    tx = t12_clean.index.to_timestamp()
+    ax.plot(
+        tx,
+        t12_clean.values,
         color=ACCENT,
-        linewidth=3,
-        label="Trailing 12-month total",
-    )[0]
+        linewidth=2.2,
+        solid_capstyle="round",
+        solid_joinstyle="round",
+    )
+    ax.fill_between(tx, t12_clean.values, color=ACCENT, alpha=0.10, linewidth=0)
+    ax.plot(
+        [tx[-1]],
+        [float(t12_clean.iloc[-1])],
+        marker="o",
+        markersize=5.5,
+        color=ACCENT,
+        markeredgewidth=1.2,
+        markeredgecolor=BG,
+        linestyle="none",
+    )
 
     style_axis(
         ax,
-        "India Domestic Aviation Demand Pulse",
-        "Scheduled domestic passengers carried by month and trailing 12-month total",
+        "India domestic demand: "
+        f"{fmt_optional_millions(latest_t12)} passengers carried in 12 months "
+        f"({fmt_optional_pct(latest_t12_yoy)} year-on-year)",
+        "Scheduled domestic passengers carried, trailing 12-month total"
+        " — counted once per journey, not airport throughput",
         "Trailing 12-month passengers carried",
     )
-    style_secondary_axis(ax2, "Monthly passengers carried")
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(fmt_millions))
-    ax2.yaxis.set_major_formatter(mticker.FuncFormatter(fmt_millions))
     ax.xaxis.set_major_locator(mdates.YearLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-    ax.set_xlim(x.min(), x.max())
-    ax.set_ylim(0, clean_upper_bound(float(t12.max()) * 1.08))
-    ax2.set_ylim(0, clean_upper_bound(float(national.max()) * 1.20))
-    ax.legend(
-        [line, bars],
-        ["Trailing 12-month total", "Monthly passengers carried"],
-        loc="upper left",
-        frameon=False,
-        labelcolor=TEXT,
-        fontsize=9,
-    )
+    ax.set_xlim(x.min(), x.max() + pd.DateOffset(months=2))
+    ax.set_ylim(0, clean_upper_bound(float(t12_clean.max()) * 1.08))
 
     kpi = (
         f"Latest month: {fmt_optional_millions(latest_month_carried)}"
@@ -742,11 +738,11 @@ def chart_india_domestic_demand_pulse(
     )
     ax.text(
         0.985,
-        0.94,
+        0.06,
         kpi,
         transform=ax.transAxes,
         ha="right",
-        va="top",
+        va="bottom",
         fontsize=10,
         color=TEXT,
         linespacing=1.5,
@@ -758,8 +754,13 @@ def chart_india_domestic_demand_pulse(
         },
     )
 
-    add_footer(fig, coverage=coverage, fingerprint=fingerprint)
-    fig.subplots_adjust(left=0.08, right=0.96, top=0.86, bottom=0.12)
+    add_footer(
+        fig,
+        coverage=coverage,
+        fingerprint=fingerprint,
+        caveat="Monthly passengers carried is reported in the KPI panel; the plotted line is the trailing 12-month total.",
+    )
+    fig.subplots_adjust(left=0.08, right=0.96, top=0.84, bottom=0.14)
     return save_chart(fig, "india_domestic_demand_pulse")
 
 
@@ -789,23 +790,30 @@ def chart_top_airport_traffic_trends(
     x = t12.index.to_timestamp()
     max_value = 0.0
     endpoints: list[tuple[str, float]] = []
+    # Emphasis form: airports with a fixed entity hue keep it; the rest are
+    # de-emphasis gray context (identity carried by the ink end-label), so hues
+    # are never cycled past the validated set.
     for airport in selected:
         values = t12[airport]
         max_value = max(max_value, float(values.max()))
-        color = stable_color(airport)
+        explicit = AIRPORT_COLORS.get(airport)
         ax.plot(
             x,
             values.values,
-            color=color,
-            linewidth=2.5,
-            alpha=0.92,
+            color=explicit or DEEMPH,
+            linewidth=2.2 if explicit else 1.4,
+            alpha=0.95 if explicit else 0.7,
         )
         endpoints.append((airport, float(values.iloc[-1])))
 
+    leader = max(endpoints, key=lambda item: item[1])
+    active = int((t12.iloc[-1] > 0).sum())
     style_axis(
         ax,
-        "Top Airport Traffic Trends",
-        "Trailing 12-month domestic airport passenger movements, arrivals + departures",
+        f"{airport_label(leader[0])} leads India's airports at "
+        f"{fmt_context_millions(leader[1])} passengers a year",
+        "Trailing 12-month domestic airport passenger movements (arrivals + departures)"
+        f" · top {len(selected)} of {active} active airports shown",
         "Domestic airport passenger movements",
     )
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(fmt_millions))
@@ -821,7 +829,7 @@ def chart_top_airport_traffic_trends(
         min_gap=y_upper * 0.035,
     )
     for airport, value in endpoints:
-        color = stable_color(airport)
+        color = AIRPORT_COLORS.get(airport) or DEEMPH
         label_y = adjusted[airport]
         ax.plot(
             [x[-1], label_x],
@@ -838,12 +846,17 @@ def chart_top_airport_traffic_trends(
             ha="left",
             fontsize=9,
             fontweight="bold",
-            color=color,
+            color=TEXT,
             clip_on=False,
         )
     ax.set_xlim(x.min(), x.max() + pd.DateOffset(months=5))
-    add_footer(fig, coverage=coverage, fingerprint=fingerprint)
-    fig.subplots_adjust(left=0.08, right=0.88, top=0.86, bottom=0.12)
+    add_footer(
+        fig,
+        coverage=coverage,
+        fingerprint=fingerprint,
+        caveat="Airport throughput counts each passenger at both endpoint airports; national passengers-carried totals are lower.",
+    )
+    fig.subplots_adjust(left=0.08, right=0.88, top=0.84, bottom=0.14)
     return save_chart(fig, "top_airport_traffic_trends")
 
 
@@ -876,18 +889,26 @@ def chart_newcomer_airport_rampup(
         )
         label_airports = set(airport_order.head(RAMP_MAX_LABELS)["airport"])
         max_value = float(ramps["passengers"].max())
+        # Fixed-order hue assignment by cumulative rank — the validated slots are
+        # never cycled; airports past the palette fold to de-emphasis gray.
+        ramp_colors: dict[str, str] = {}
+        for rank, airport in enumerate(airport_order["airport"]):
+            if airport in label_airports and rank < len(FALLBACK_COLORS):
+                ramp_colors[airport] = FALLBACK_COLORS[rank]
+            else:
+                ramp_colors[airport] = DEEMPH
         endpoints: list[tuple[str, float]] = []
         endpoint_rows: dict[str, pd.Series] = {}
         for airport in airport_order["airport"]:
             series = ramps[ramps["airport"] == airport].sort_values("month_index")
-            color = stable_color(airport)
+            color = ramp_colors[airport]
             should_label = airport in label_airports
             ax.plot(
                 series["month_index"],
                 series["passengers"],
                 color=color,
-                linewidth=2.4 if should_label else 1.3,
-                alpha=0.9 if should_label else 0.25,
+                linewidth=2.2 if should_label else 1.3,
+                alpha=0.9 if should_label else 0.35,
                 marker="o" if should_label else None,
                 markersize=3,
             )
@@ -896,14 +917,25 @@ def chart_newcomer_airport_rampup(
                 endpoints.append((airport, float(endpoint["passengers"])))
                 endpoint_rows[airport] = endpoint
 
+    if ramps.empty:
+        ramp_title = "Newcomer airport ramp-ups"
+    else:
+        lead = ramps.sort_values(
+            ["cumulative_available", "airport"], ascending=[False, True]
+        ).iloc[0]
+        ramp_title = (
+            f"Newcomer ramp-ups: {airport_label(str(lead['airport']))} reached "
+            f"{fmt_context_millions(float(lead['cumulative_available']))} passengers "
+            "in its first 24 months"
+        )
     style_axis(
         ax,
-        "Newcomer Airport Ramp-up",
+        ramp_title,
         "Monthly domestic airport passenger movements during each airport's "
         "first 24 DGCA-observed months",
         "Airport passenger movements",
     )
-    ax.set_xlabel("Months since first DGCA-observed month", color=TEXT, fontsize=11)
+    ax.set_xlabel("Months since first DGCA-observed month", color=SUBTLE, fontsize=11)
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(fmt_thousands))
     ax.set_xlim(-0.5, RAMP_MONTHS + 2.2)
     ax.set_xticks(range(0, RAMP_MONTHS, 3))
@@ -918,7 +950,7 @@ def chart_newcomer_airport_rampup(
         )
         for airport, value in endpoints:
             endpoint = endpoint_rows[airport]
-            color = stable_color(airport)
+            color = ramp_colors[airport]
             label_y = adjusted[airport]
             label_x = min(float(endpoint["month_index"]) + 0.7, RAMP_MONTHS + 0.15)
             ax.plot(
@@ -936,11 +968,16 @@ def chart_newcomer_airport_rampup(
                 ha="left",
                 fontsize=9,
                 fontweight="bold",
-                color=color,
+                color=TEXT,
                 clip_on=False,
             )
-    add_footer(fig, coverage=coverage, fingerprint=fingerprint)
-    fig.subplots_adjust(left=0.08, right=0.90, top=0.86, bottom=0.13)
+    add_footer(
+        fig,
+        coverage=coverage,
+        fingerprint=fingerprint,
+        caveat="First observed month may be partial (opening mid-month); airports opened before the dataset start are excluded as left-censored.",
+    )
+    fig.subplots_adjust(left=0.08, right=0.90, top=0.84, bottom=0.14)
     return save_chart(fig, "newcomer_airport_rampup_24m")
 
 
@@ -954,6 +991,7 @@ def chart_share_movers(
     latest_pax_header: str,
     coverage: str,
     fingerprint: str,
+    caveat: str = "",
 ) -> Path:
     fig, ax = plt.subplots(figsize=FIGSIZE_WIDE, facecolor=BG)
 
@@ -1029,17 +1067,17 @@ def chart_share_movers(
             )
         ax.set_ylim(-0.75, len(movers) + 0.75)
 
-    ax.axvline(0, color=SUBTLE, linewidth=1, alpha=0.75)
+    ax.axvline(0, color=BASELINE, linewidth=1)
     ax.set_yticks(range(len(airports)))
     ax.set_yticklabels(airports, fontsize=10, color=TEXT, fontweight="bold")
     ax.set_xlim(-x_limit, x_limit)
     ax.xaxis.set_major_formatter(mticker.FuncFormatter(fmt_axis_pp))
-    ax.set_xlabel("Percentage-point share change", color=TEXT, fontsize=11)
+    ax.set_xlabel("Percentage-point share change", color=SUBTLE, fontsize=11)
     style_axis(ax, title, subtitle, "")
-    ax.grid(axis="x", alpha=0.2, color=GRID, linestyle="--")
+    ax.grid(axis="x", color=GRID, linewidth=0.6)
     ax.grid(axis="y", visible=False)
-    add_footer(fig, coverage=coverage, fingerprint=fingerprint)
-    fig.subplots_adjust(left=0.10, right=0.72, top=0.86, bottom=0.13)
+    add_footer(fig, coverage=coverage, fingerprint=fingerprint, caveat=caveat)
+    fig.subplots_adjust(left=0.10, right=0.72, top=0.84, bottom=0.14)
     return save_chart(fig, chart_id)
 
 
@@ -1069,15 +1107,24 @@ def chart_domestic_market_share_gainers(
         scope="Share of domestic airport throughput",
         fmt=format_month_period,
     )
+    if movers.empty:
+        title = "Domestic airport throughput share movers"
+    else:
+        top = movers.iloc[-1]
+        title = (
+            f"{airport_label(str(top['airport']))} gained the most domestic share "
+            f"({fmt_pp(float(top['delta_pp']))})"
+        )
     return chart_share_movers(
         movers,
         chart_id="domestic_market_share_gainers",
-        title="Domestic Airport Throughput Share Movers",
+        title=title,
         subtitle=subtitle,
         pax_change_header="Throughput change",
         latest_pax_header="Latest 12M throughput",
         coverage=coverage,
         fingerprint=fingerprint,
+        caveat="Share of combined throughput across all active domestic airports; a share loss can coincide with growing absolute traffic.",
     )
 
 
@@ -1107,15 +1154,24 @@ def chart_international_gateway_share_gainers(
         scope="Indian airport gateway throughput",
         fmt=format_quarter_period,
     )
+    if movers.empty:
+        title = "International gateway throughput share movers"
+    else:
+        top = movers.iloc[-1]
+        title = (
+            f"{airport_label(str(top['airport']))} gained the most international share "
+            f"({fmt_pp(float(top['delta_pp']))})"
+        )
     return chart_share_movers(
         movers,
         chart_id="international_gateway_share_gainers",
-        title="International Gateway Throughput Share Movers",
+        title=title,
         subtitle=subtitle,
         pax_change_header="Throughput change",
         latest_pax_header="Latest 4Q throughput",
         coverage=coverage,
         fingerprint=fingerprint,
+        caveat="Share of combined throughput across Indian international gateways; a share loss can coincide with growing absolute traffic.",
     )
 
 
@@ -1128,11 +1184,13 @@ def chart_airport_seasonality_fingerprint(
     matrix = seasonality_fingerprint_matrix(monthly)
     fig, ax = plt.subplots(figsize=FIGSIZE_HEATMAP, facecolor=BG)
 
+    # Diverging: cool blue below the airport's average month, warm red above,
+    # neutral (near-surface) at exactly 100.
     cmap = mcolors.LinearSegmentedColormap.from_list(
-        "seasonality_dark",
-        [PRIMARY, BG, ACCENT],
+        "seasonality_light",
+        [PRIMARY, NEUTRAL_MID, NEGATIVE],
     )
-    cmap.set_bad("#161b22")
+    cmap.set_bad(GRID)
     norm = mcolors.TwoSlopeNorm(
         vmin=SEASONALITY_VMIN,
         vcenter=SEASONALITY_VCENTER,
@@ -1156,25 +1214,36 @@ def chart_airport_seasonality_fingerprint(
         im = ax.imshow(values, aspect="auto", cmap=cmap, norm=norm)
 
     ax.set_facecolor(BG)
+    if matrix.empty:
+        season_title = "Airport seasonality fingerprint"
+    else:
+        month_means = matrix.mean(axis=0)
+        peak_month = int(month_means.idxmax())
+        season_title = (
+            f"{MONTH_ABBR[peak_month]} is the busiest month across "
+            f"{len(matrix.index)} major airports"
+        )
     ax.set_title(
-        "Airport Seasonality Fingerprint",
+        season_title,
         fontsize=16,
         fontweight="bold",
         color=TITLE,
-        pad=24,
+        loc="left",
+        pad=26,
     )
     ax.text(
-        0.5,
-        1.01,
-        "Monthly airport-throughput index by airport; 100 = that airport's average month",
+        0.0,
+        1.012,
+        "Monthly airport-throughput index by airport; 100 = that airport's average month"
+        " · red above average, blue below",
         transform=ax.transAxes,
-        ha="center",
+        ha="left",
         va="bottom",
-        fontsize=9,
+        fontsize=9.5,
         color=SUBTLE,
     )
     ax.set_xticks(range(12))
-    ax.set_xticklabels([MONTH_ABBR[i] for i in range(1, 13)], color=TEXT)
+    ax.set_xticklabels([MONTH_ABBR[i] for i in range(1, 13)], color=SUBTLE)
     ax.set_yticks(range(len(matrix.index)))
     ax.set_yticklabels(matrix.index.tolist(), color=TEXT, fontsize=8)
     ax.tick_params(axis="both", length=0)
@@ -1182,12 +1251,17 @@ def chart_airport_seasonality_fingerprint(
         spine.set_visible(False)
 
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.015)
-    cbar.set_label("Index, 100 = airport average month", color=TEXT, fontsize=10)
-    cbar.ax.tick_params(colors=TEXT, labelsize=8)
+    cbar.set_label("Index, 100 = airport average month", color=SUBTLE, fontsize=10)
+    cbar.ax.tick_params(colors=SUBTLE, labelsize=8)
     cbar.outline.set_edgecolor(GRID)
 
-    add_footer(fig, coverage=coverage, fingerprint=fingerprint)
-    fig.subplots_adjust(left=0.10, right=0.94, top=0.88, bottom=0.08)
+    add_footer(
+        fig,
+        coverage=coverage,
+        fingerprint=fingerprint,
+        caveat="Averaged over each airport's complete calendar years; a new airport's index reflects fewer years.",
+    )
+    fig.subplots_adjust(left=0.10, right=0.94, top=0.86, bottom=0.10)
     return save_chart(fig, "airport_seasonality_fingerprint")
 
 

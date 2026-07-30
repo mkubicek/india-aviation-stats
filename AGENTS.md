@@ -61,6 +61,12 @@ Default chart generation creates the six static dashboard charts:
 - `international_gateway_share_gainers.png`
 - `airport_seasonality_fingerprint.png`
 
+`scripts/noida.py` additionally generates the Noida focus set into
+`charts/noida/` and writes `noida.html` (run with `PYTHONPATH=scripts`).
+Exhibits whose inputs are not yet published (the route layer, DXN airport rows)
+are skipped and appear automatically once the data lands — never annotate a
+chart with data that isn't there.
+
 The optional `airport_passenger_race.gif` is generated only with
 `uv run python scripts/chart.py --include-gifs`.
 
@@ -68,8 +74,28 @@ Domestic charts source `airport_monthly.csv`; the international gateway chart
 sources `airport_international_quarterly.csv`. Do not mix monthly and quarterly
 cadences in one chart.
 
-**Dark theme:** background `#0d1117`, text `#e6edf3`, subtle `#94a3b8`, grid
-`#334155` dashed alpha 0.2. **Attribution line** (bottom-right on the figure):
+**Light "manager" theme:** surface `#fcfcfb`, ink `#0b0b0b`, secondary
+`#52514e`, muted `#898781`, grid `#e1e0d9` (solid hairline, never dashed),
+baseline `#c3c2b7`. The page chrome (`index.html`, `noida.html`) uses the same
+tokens on ground `#f9f9f7`.
+
+**Takeaway convention:** the title states the computed finding in one sentence
+(numbers computed from the data at generation time, never hardcoded); the
+subtitle carries the definition, selection disclosure, and comparison windows;
+one plain-language caveat sits bottom-left via `add_footer(..., caveat=...)`.
+Titles never editorialise beyond what the plotted table shows.
+
+**Colour rules:** the categorical palette is the CVD-validated ordered set
+blue `#2a78d6` · orange `#eb6834` · aqua `#1baf7a` · yellow `#eda100` ·
+magenta `#e87ba4` · green `#008300` · violet `#4a3aa7` · red `#e34948`
+(`FALLBACK_COLORS`). Assign hues in fixed order or by fixed entity mapping —
+never cycle past the set; fold the tail into de-emphasis gray `#a9a7a0` with
+ink labels. Gain/decline is always the diverging pair blue `#2a78d6` / red
+`#e34948` (never green/red); sequential/diverging heatmaps put a neutral
+`#f0efec` at the midpoint. One y-axis per chart — never a dual-axis plot.
+Direct labels are ink (`#0b0b0b`), not the series colour.
+
+**Attribution line** (bottom-right on the figure):
 
 ```
 {repo_url} | Data: DGCA (as of {data_date}) | Generated {today} | Coverage: {coverage}
@@ -81,11 +107,12 @@ comes from `data/processed/metadata.json`; `today` is the chart generation date;
 `repo_url` comes from `GITHUB_REPOSITORY` or `git remote`.
 
 **Highlight colours** (`mappings.yaml: airport_colors` / `airline_colors`):
-DEL `#f72585` · BOM `#4cc9f0` · BLR `#4ade80` · HYD `#a78bfa`
-· MAA `#fb923c` · CCU `#f87171`; IndiGo `#3b82f6` · Air India `#f72585` · SpiceJet
-`#fbbf24` · Akasa `#fb923c` · Vistara `#a78bfa`. Tier bands (presentation only):
-Metro `#3b82f6`, Tier 1 `#14b8a6`, Tier 2 `#22c55e`, Tier 3 `#94a3b8`, Greenfield
-`#fbbf24`.
+DEL `#2a78d6` · BOM `#eb6834` · BLR `#1baf7a` · HYD `#4a3aa7`
+· MAA `#eda100` · CCU `#e87ba4`; IndiGo `#2a78d6` · Air India `#e34948` ·
+SpiceJet `#eda100` · Akasa `#eb6834` · Vistara `#4a3aa7`. Tier bands
+(presentation only): Metro `#2a78d6`, Tier 1 `#1baf7a`, Tier 2 `#008300`,
+Tier 3 `#898781`, Greenfield `#eda100`. Colour follows the entity across every
+chart, never its rank in the current view.
 
 **GIF frames:** 300 ms/frame (last 3000 ms), fixed x/y limits across frames, bar
 labels never clipped.

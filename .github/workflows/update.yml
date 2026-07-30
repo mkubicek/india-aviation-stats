@@ -122,12 +122,16 @@ jobs:
             uv run python scripts/chart.py
           fi
 
+      - name: Generate Noida focus page
+        if: steps.download.outputs.timed_out != 'true' && steps.validate.outcome == 'success'
+        run: PYTHONPATH=scripts uv run python scripts/noida.py
+
       - name: Commit and push
         if: steps.download.outputs.timed_out != 'true' && steps.validate.outcome == 'success'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/processed/ charts/ index.html .nojekyll assumptions/index.md
+          git add data/processed/ charts/ index.html noida.html .nojekyll assumptions/index.md
           [ -f data/sources_manifest.csv ] && git add data/sources_manifest.csv || true
           if [ -s warnings.log ]; then
             git add -f warnings.log
