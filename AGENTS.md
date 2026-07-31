@@ -85,6 +85,14 @@ subtitle carries the definition, selection disclosure, and comparison windows;
 one plain-language caveat sits bottom-left via `add_footer(..., caveat=...)`.
 Titles never editorialise beyond what the plotted table shows.
 
+**Computed reference paths:** a title claim about a trend or counterfactual
+path may be drawn as a thin solid MUTED line with an ink label, but only when
+computed from the plotted series itself (e.g. the growth-pause chart's
+trend-path segment). Never a hand-placed guide line.
+
+**Right-margin padding for end labels** must not fabricate empty periods:
+clip x-ticks to the last data point (`clip_xticks_to_data()` in `noida.py`).
+
 **Colour rules:** the categorical palette is the CVD-validated ordered set
 blue `#2a78d6` · orange `#eb6834` · aqua `#1baf7a` · yellow `#eda100` ·
 magenta `#e87ba4` · green `#008300` · violet `#4a3aa7` · red `#e34948`
@@ -93,7 +101,22 @@ never cycle past the set; fold the tail into de-emphasis gray `#a9a7a0` with
 ink labels. Gain/decline is always the diverging pair blue `#2a78d6` / red
 `#e34948` (never green/red); sequential/diverging heatmaps put a neutral
 `#f0efec` at the midpoint. One y-axis per chart, never a dual-axis plot.
-Direct labels are ink (`#0b0b0b`), not the series colour.
+Direct labels are ink (`#0b0b0b`), not the series colour. Every co-occurring
+colour set in a chart must pass the CVD validator before it ships; the
+`tier_colors` band hues failed adjacent-pair validation as chart series and
+stay presentation-only for bands/maps; tier splits inside one chart use
+validated categorical slots with a BG-colour hairline edge between stacked
+segments. Seasonality above/below-average encoding is red above, blue below,
+matching the fingerprint heatmap. Entity hues bind wherever two or more
+entities co-occur in one chart; a single-entity exhibit uses `PRIMARY` for
+legibility (the title names the entity). Aggregates ("rest of India") take
+palette slots, never an entity's hue.
+
+**Generated verdict language:** any published verdict or growth sentence
+derives its verb and verdict word from the computed sign (`pct_phrase()`,
+`register_entries()` in `noida.py`), never hardcoded, and never asserts a
+cause the chart's own caveat rules out. Comparison-window strings name both
+endpoints (start AND end period).
 
 **Attribution line** (bottom-right on the figure):
 

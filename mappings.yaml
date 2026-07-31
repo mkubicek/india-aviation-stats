@@ -1,5 +1,5 @@
 # Airport classifications, airline groups, and color palettes
-# This file drives all classification — edit mappings, not code.
+# This file drives all classification - edit mappings, not code.
 
 # ─────────────────────────────────────────────────────────────
 # Airport definitions
@@ -496,7 +496,7 @@ airports:
     tier: tier2
     opened_year: 1958
 
-  # ── Tier 3 (<1M annual passengers — selected) ──
+  # ── Tier 3 (<1M annual passengers - selected) ──
   AJL:
     name: Lengpui Airport
     city: Aizawl
@@ -781,6 +781,7 @@ airports:
   IXD:
     name: Prayagraj Airport (formerly Allahabad Airport)
     city: Prayagraj (Allahabad)
+    state: Uttar Pradesh
     variants:
       - label: ALLAHABAD
       - label: PRAYAGRAJ
@@ -837,6 +838,7 @@ airports:
   HDO:
     name: Hindon Airport (Civil Enclave, Hindan Air Force Station)
     city: Ghaziabad
+    state: Uttar Pradesh
     variants:
       - label: HINDON AIRPORT
       - label: GHAZIABAD
@@ -1012,6 +1014,7 @@ airports:
   KBK:
     name: Kushinagar International Airport
     city: Kushinagar
+    state: Uttar Pradesh
     variants:
       - label: KUSHINAGAR INTERNATIONAL AIRPORT
       - label: KUSHINAGAR
@@ -1154,13 +1157,30 @@ airline_groups:
   Fly91:
     - Fly91
 
+# Retrospective consolidation for share-of-market charts: each group lists the
+# carrier labels of its constituents AS CONSTITUTED TODAY, applied across the
+# full history, so a merger (Vistara into Air India, Nov 2024) or rename
+# (AirAsia India to AIX Connect, 2023) never shows as an artificial share step.
+# Presentation-level only; `airline_groups` above stays the brand-identity view.
+airline_groups_retrospective:
+  IndiGo:
+    - IndiGo
+    - InterGlobe Aviation
+  Air India Group:
+    - Air India
+    - Air India Express
+    - AIX Connect
+    - AirAsia India
+    - Vistara
+    - Air India (erstwhile Vistara)
+
 # ─────────────────────────────────────────────────────────────
 # Color palettes
 # ─────────────────────────────────────────────────────────────
 
 # Light "manager" theme: hues come from the CVD-validated categorical set
 # (blue, orange, aqua, yellow, magenta, green, violet, red). Color follows the
-# entity — an airport keeps its hue in every chart, regardless of rank.
+# entity - an airport keeps its hue in every chart, regardless of rank.
 tier_colors:
   metro: "#2a78d6"
   tier1: "#1baf7a"
@@ -1184,6 +1204,10 @@ airport_colors:
   NMIA: "#4a3aa7"
   HDO: "#eda100"
   DXN: "#2a78d6"
+  # UP catchment exhibit entities (validated pair on the light surface with
+  # the de-emphasis gray context lines):
+  LKO: "#2a78d6"
+  VNS: "#eb6834"
 
 airline_colors:
   IndiGo: "#2a78d6"
