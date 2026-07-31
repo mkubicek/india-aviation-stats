@@ -614,6 +614,15 @@ airports:
     tier: greenfield
     opened_year: 2026
     opening_date: "2026-04"
+    # NOTE: declaring `variants` REPLACES the implicit city/name labels, so the
+    # city and airport name are listed explicitly here to keep resolving if
+    # DGCA switches to either of them.
+    variants:
+      - label: JEWAR
+      - label: NOIDA INTERNATIONAL AIRPORT
+      # DGCA publishes the airport under its district (Gautam Buddh Nagar,
+      # which contains Jewar), first observed 2026-06. See assumptions/DXN-001.md.
+      - {label: GAUTAM BUDDHA NAGAR, valid_from: "2026-06"}
     phase1_capacity: 12000000
     ultimate_capacity: 70000000
 
@@ -701,6 +710,10 @@ airports:
     variants:
       - label: KALABURAGI
       - label: KALABURAGI KARNATAKA
+      # Pre-2014 city name; DGCA used it for the Jun 2026 row. Bounded to the
+      # airport's operating era so a pre-2019 revision fails loud instead of
+      # being misattributed to an airport that did not exist yet.
+      - {label: GULBARGA, valid_from: "2019-01"}
   KLH:
     name: Chhatrapati Rajaram Maharaj Airport
     city: Kolhapur

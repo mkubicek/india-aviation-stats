@@ -32,6 +32,10 @@ EXPECTED_SCHEMAS = {
     "airport_yearly": {
         "year": "int", "airport": "str", "category": "str", "passengers": "int",
     },
+    "domestic_route_monthly": {
+        "year": "int", "month": "int", "origin": "str", "destination": "str",
+        "passengers": "int",
+    },
 }
 
 
@@ -294,4 +298,144 @@ def check_coverage(monthly: pd.DataFrame, quarterly: pd.DataFrame | None) -> lis
             out.append(_warn("coverage.intl_quarters",
                              f"missing {len(gaps)} international quarter(s): {', '.join(gaps[:6])}"
                              + ("..." if len(gaps) > 6 else "")))
+    return out
+
+
+# -- route table invariants ----------------------------------
+
+
+def check_route_source(raw_domestic_path) -> list[Finding]:
+    """Advisory visibility on duplicate city-pair rows in the SOURCE workbook.
+
+    DGCA sometimes splits one pair across two rows in the same month (observed
+    2015-09 and 2025-12). ``clean.py`` SUMS them, which the monthly totals
+    support: the summed month tracks its neighbours while a deduplicated one
+    falls well below. This check exists so a future change in that pattern is
+    visible instead of silently doubling or halving a month.
+    """
+    raw = pd.read_csv(raw_domestic_path)
+    needed = {"Year", "Month", "City1", "City2"}
+    if not needed <= set(raw.columns):
+        return [_warn("routes.source_duplicates", "source city-pair columns absent")]
+    lo = raw[["City1", "City2"]].min(axis=1)
+    hi = raw[["City1", "City2"]].max(axis=1)
+    keyed = raw.assign(_lo=lo, _hi=hi)
+    dup_mask = keyed.duplicated(["Year", "Month", "_lo", "_hi"], keep=False)
+    dup = keyed[dup_mask]
+    if dup.empty:
+        return [_ok("routes.source_duplicates", "ADVISORY",
+                    "no duplicate city-pair rows in the source month-pairs")]
+    months = sorted({(int(y), int(m)) for y, m in zip(dup["Year"], dup["Month"])})
+    shown = ", ".join(f"{y}-{m:02d}" for y, m in months[:4])
+    return [_warn("routes.source_duplicates",
+                  f"{len(dup)} duplicate city-pair row(s) across {len(months)} month(s) "
+                  f"({shown}); clean.py sums them as partial figures")]
+
+
+def check_routes(routes: pd.DataFrame, monthly: pd.DataFrame, mappings: dict) -> list[Finding]:
+    """Structural invariants of domestic_route_monthly (schema v1.0).
+
+    Severity is honest about what each can catch. Key uniqueness, distinct
+    endpoints and canonical endpoints are TRIPWIRE: they hold by construction
+    of ``build_domestic_routes`` and only fail if that function is refactored
+    wrongly. Endpoint containment is BLOCKING and is a REAL check: the route
+    and airport tables are built by two independent attribution rules, so a
+    bug in either (double counting, dropped traffic) breaks it.
+    """
+    out: list[Finding] = []
+    if routes.empty:
+        return [_fail("routes.present", "BLOCKING",
+                      "domestic_route_monthly.csv has no rows")]
+    key = ["year", "month", "origin", "destination"]
+
+    dups = int(routes.duplicated(key).sum())
+    out.append((_fail if dups else _ok)(
+        "routes.key_unique", "TRIPWIRE",
+        f"{dups} duplicate (year, month, origin, destination) key(s)"
+        if dups else f"{len(routes):,} rows with a unique route-month key"))
+
+    self_pairs = int((routes["origin"] == routes["destination"]).sum())
+    out.append((_fail if self_pairs else _ok)(
+        "routes.distinct_endpoints", "TRIPWIRE",
+        f"{self_pairs} self-pair row(s)" if self_pairs
+        else "all rows have distinct origin/destination"))
+
+    known = set((mappings.get("airports") or {}).keys())
+    endpoints = set(routes["origin"]) | set(routes["destination"])
+    unknown = sorted(endpoints - known)
+    out.append((_fail if unknown else _ok)(
+        "routes.canonical_endpoints", "TRIPWIRE",
+        f"non-canonical endpoint(s): {', '.join(unknown[:5])}" if unknown
+        else f"{len(endpoints)} endpoints all canonical mappings.yaml airports"))
+
+    negative = int((routes["passengers"] < 0).sum())
+    non_int = 0 if routes["passengers"].dtype.kind == "i" else int(
+        (routes["passengers"] % 1 != 0).sum())
+    bad_vals = negative + non_int
+    out.append((_fail if bad_vals else _ok)(
+        "routes.nonneg_int", "BLOCKING",
+        f"{negative} negative / {non_int} non-integer passenger value(s)"
+        if bad_vals else "passengers are non-negative integers"))
+
+    # Endpoint containment (REAL): airport_monthly attributes every resolved
+    # endpoint; the route table additionally requires the counterpart to
+    # resolve and differ. So route endpoint sums must never EXCEED airport
+    # endpoint sums, for any airport-month. Exceeding means double counting;
+    # a shortfall is expected and reported (unmapped counterparts, self-pairs).
+    dep = routes.groupby(["year", "month", "origin"])["passengers"].sum()
+    arr = routes.groupby(["year", "month", "destination"])["passengers"].sum()
+    dep.index.names = arr.index.names = ["year", "month", "airport"]
+    m = monthly.set_index(["year", "month", "airport"])[["departures", "arrivals"]]
+    joined = m.join(dep.rename("route_dep"), how="outer").join(
+        arr.rename("route_arr"), how="outer").fillna(0)
+    over_dep = int((joined["route_dep"] > joined["departures"]).sum())
+    over_arr = int((joined["route_arr"] > joined["arrivals"]).sum())
+    over = over_dep + over_arr
+    gap = int((joined["departures"] - joined["route_dep"]).clip(lower=0).sum()
+              + (joined["arrivals"] - joined["route_arr"]).clip(lower=0).sum())
+    out.append((_fail if over else _ok)(
+        "routes.endpoint_containment", "BLOCKING",
+        f"{over_dep} departure / {over_arr} arrival airport-month(s) where route "
+        "endpoints EXCEED airport endpoints (double counting)" if over else
+        f"route endpoints within airport endpoints across {len(joined):,} "
+        f"airport-months ({gap:,} pax attributed to airports but not routable)"))
+
+    # Advisory: substantial route history vanishing while both endpoints stay
+    # active. Skipped when the latest month looks partially published, which
+    # would otherwise flood this with false positives.
+    latest = routes.sort_values(["year", "month"]).iloc[-1]
+    latest_y, latest_m = int(latest["year"]), int(latest["month"])
+    latest_ord = latest_y * 12 + latest_m
+    rows_by_month = routes.groupby(["year", "month"]).size()
+    prior_counts = rows_by_month[
+        [(y, mm) for (y, mm) in rows_by_month.index
+         if latest_ord - 12 <= y * 12 + mm < latest_ord]
+    ]
+    median_prior = float(prior_counts.median()) if len(prior_counts) else 0.0
+    latest_rows = int(rows_by_month.loc[(latest_y, latest_m)])
+    if median_prior and latest_rows < 0.7 * median_prior:
+        out.append(_warn("routes.history_disappearance",
+                         f"{latest_y}-{latest_m:02d} looks partially published "
+                         f"({latest_rows:,} route rows vs a {median_prior:,.0f} prior-12M "
+                         "median); disappearance check skipped"))
+        return out
+
+    latest_rows_df = routes[(routes["year"] == latest_y) & (routes["month"] == latest_m)]
+    latest_pairs = set(zip(latest_rows_df["origin"], latest_rows_df["destination"]))
+    active = set(monthly.loc[(monthly["year"] == latest_y)
+                             & (monthly["month"] == latest_m), "airport"])
+    ordinals = routes["year"] * 12 + routes["month"]
+    prior12 = routes[(ordinals >= latest_ord - 12) & (ordinals < latest_ord)]
+    hist = prior12.groupby(["origin", "destination"]).agg(
+        months=("passengers", "size"), pax=("passengers", "sum"))
+    big = hist[(hist["months"] >= 9) & (hist["pax"] >= 100_000)]
+    gone = [p for p in big.index
+            if p not in latest_pairs and p[0] in active and p[1] in active]
+    if gone:
+        out.append(_warn("routes.history_disappearance",
+                         f"{len(gone)} substantial route(s) absent in {latest_y}-{latest_m:02d} "
+                         f"despite active endpoints (e.g. {gone[0][0]}-{gone[0][1]})"))
+    else:
+        out.append(_ok("routes.history_disappearance", "ADVISORY",
+                       "no substantial route history vanished in the latest month"))
     return out

@@ -25,6 +25,15 @@ Each step is idempotent and re-runnable. Run validate with `PYTHONPATH=scripts`.
 - Resolution is 100% table-driven (entity tables + validity windows +
   `airport_aliases`); a high-volume unmapped domestic label is surfaced as an
   advisory, never silently kept as a raw code
+- **Declaring `variants` on an airport REPLACES its implicit `city`/`name`
+  labels.** When adding a first variant to an entry, list the city and airport
+  name explicitly too, or they stop resolving (104 entries rely on this
+  deliberately, e.g. GOI's "Goa" resolving to GOX per GOA-001, so it is not
+  globally checkable; it is a per-edit obligation)
+- `airport_monthly` attributes each endpoint independently, so one unmapped
+  label never deletes a known counterpart's traffic; `domestic_route_monthly`
+  requires both endpoints. Validation asserts route endpoints never exceed
+  airport endpoints
 - Every non-trivial cleanup decision is a falsifiable `assumptions/<id>.md` file
 - Raw data is gitignored; only processed CSVs and charts are committed
 - IATA codes uppercase (DEL, BOM); airport names title case; airline names as

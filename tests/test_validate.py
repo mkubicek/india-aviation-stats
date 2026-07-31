@@ -223,7 +223,8 @@ def test_published_layers_conform_to_schema():
     proc = ROOT / "data" / "processed"
     layers = {
         n: pd.read_csv(proc / f"{n}.csv")
-        for n in ("airport_monthly", "airport_international_quarterly", "airport_yearly")
+        for n in ("airport_monthly", "airport_international_quarterly", "airport_yearly",
+                  "domestic_route_monthly")
         if (proc / f"{n}.csv").exists()
     }
     meta = json.loads((proc / "metadata.json").read_text())

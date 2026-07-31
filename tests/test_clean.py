@@ -120,3 +120,75 @@ def test_no_category_or_tier_in_layer1():
     m = _layer1()
     assert "category" not in m.columns and "tier" not in m.columns
     assert m.passengers.dtype == "int64"
+
+
+def test_build_domestic_routes_directed_split_and_self_pair_drop():
+    from clean import build_domestic_routes, monthly_from_pairs, resolve_pair_endpoints
+
+    df = pd.DataFrame([
+        {"Year": 2024, "Month": 1, "City1": "DELHI", "City2": "BOMBAY",
+         "PaxToCity2": 100, "PaxFromCity2": 80},
+        {"Year": 2024, "Month": 1, "City1": "DELHI", "City2": "Bengaluru",
+         "PaxToCity2": 50, "PaxFromCity2": 0},   # explicit zero direction kept
+        {"Year": 2024, "Month": 1, "City1": "HYDERABAD", "City2": "HYDERABAD",
+         "PaxToCity2": 0, "PaxFromCity2": 2},    # self-pair dropped
+    ])
+    resolved = resolve_pair_endpoints(df)
+    routes = build_domestic_routes(resolved)
+    assert list(routes.columns) == ["year", "month", "origin", "destination", "passengers"]
+    as_dict = {(r.origin, r.destination): r.passengers for r in routes.itertuples()}
+    assert as_dict[("DEL", "BOM")] == 100
+    assert as_dict[("BOM", "DEL")] == 80
+    assert as_dict[("DEL", "BLR")] == 50
+    assert as_dict[("BLR", "DEL")] == 0          # zero direction preserved
+    assert ("HYD", "HYD") not in as_dict
+
+    monthly = monthly_from_pairs(resolved)
+    row = monthly[monthly.airport == "DEL"].iloc[0]
+    assert row.departures == 150 and row.arrivals == 80 and row.passengers == 230
+    # The self-pair stays in airport_monthly but not in routes, so airport
+    # endpoints are a superset of route endpoints (never smaller).
+    assert monthly.departures.sum() >= routes.passengers.sum()
+    assert monthly.arrivals.sum() >= routes.passengers.sum()
+    # 2 self-pair passengers = 2 departures + 2 arrivals at the same airport,
+    # the same endpoint accounting every other pair gets (and the exact 4-pax
+    # gap routes.endpoint_containment reports on real data).
+    assert monthly[monthly.airport == "HYD"].iloc[0].passengers == 4
+
+
+def test_unmapped_counterpart_never_deletes_a_mapped_airports_traffic():
+    """Regression guard: airport_monthly attributes endpoints independently."""
+    from clean import monthly_from_pairs, resolve_pair_endpoints, build_domestic_routes
+
+    df = pd.DataFrame([
+        {"Year": 2026, "Month": 1, "City1": "DELHI", "City2": "BOMBAY",
+         "PaxToCity2": 100, "PaxFromCity2": 90},
+        {"Year": 2026, "Month": 1, "City1": "DELHI", "City2": "WAKANDA",
+         "PaxToCity2": 500, "PaxFromCity2": 400},
+    ])
+    resolved = resolve_pair_endpoints(df)
+    monthly = monthly_from_pairs(resolved)
+    row = monthly[monthly.airport == "DEL"].iloc[0]
+    assert row.departures == 600 and row.arrivals == 490  # not 100/90
+    # the route table still needs both endpoints
+    routes = build_domestic_routes(resolved)
+    assert set(zip(routes.origin, routes.destination)) == {("DEL", "BOM"), ("BOM", "DEL")}
+
+
+def test_dxn_labels_all_resolve_including_city_and_name():
+    """Adding `variants` must not silently drop the implicit city/name labels."""
+    for label in ("GAUTAM BUDDHA NAGAR", "JEWAR", "NOIDA INTERNATIONAL AIRPORT"):
+        assert resolve_airport(label, 2026, 7) == "DXN", label
+    assert resolve_airport("GAUTAM BUDDHA NAGAR", 2026, 5) is None  # pre-opening
+    assert resolve_airport("GULBARGA", 2026, 6) == "GBI"
+    assert resolve_airport("GULBARGA", 2010, 6) is None  # pre-opening
+
+
+def test_empty_source_frame_does_not_crash():
+    from clean import build_domestic_routes, monthly_from_pairs, resolve_pair_endpoints
+
+    empty = pd.DataFrame(columns=["Year", "Month", "City1", "City2",
+                                  "PaxToCity2", "PaxFromCity2"])
+    resolved = resolve_pair_endpoints(empty)
+    assert build_domestic_routes(resolved).empty
+    assert monthly_from_pairs(resolved).empty

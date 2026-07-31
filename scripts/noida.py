@@ -194,7 +194,8 @@ def chart_ramp_benchmark(monthly: pd.DataFrame, *, coverage: str, fingerprint: s
             clauses.append((peak, f"{airport} under {math.ceil(peak / 1000)}K throughout"))
         else:
             clauses.append(
-                (float(observed.iloc[-1]), f"{airport} at {observed.iloc[-1] / 1e3:.0f}K by month {last_pos}")
+                (float(observed.iloc[-1]),
+                 f"{airport} at {label_scale(float(observed.iloc[-1]))} by month {last_pos}")
             )
 
     has_newcomer = NEWCOMER in series
@@ -224,12 +225,16 @@ def chart_ramp_benchmark(monthly: pd.DataFrame, *, coverage: str, fingerprint: s
             arrowprops={"arrowstyle": "-", "color": c.MUTED, "lw": 0.8},
         )
 
+    if has_newcomer:
+        dxn_observed = series[NEWCOMER].dropna()
+        dxn_pos = int(series[NEWCOMER].index.get_loc(dxn_observed.index[-1])) + 1
+        clauses.append(
+            (float(dxn_observed.iloc[-1]),
+             f"{NEWCOMER} {label_scale(float(dxn_observed.iloc[-1]))} in month {dxn_pos}")
+        )
     title = "Newcomer ramp-ups: " + "; ".join(
         text for _, text in sorted(clauses, key=lambda item: -item[0])
     )
-    if has_newcomer:
-        n_new = int(series[NEWCOMER].notna().sum())
-        title += f", and {c.airport_label(NEWCOMER)}'s first {n_new} month{'s' if n_new != 1 else ''}"
     windows = ", ".join(
         f"{a} from {series[a].index[0].strftime('%b %Y')}"
         for a in ANALOGUES + [NEWCOMER]
@@ -623,6 +628,58 @@ def chart_supply_demand(carrier: pd.DataFrame, *, coverage: str, fingerprint: st
     return "noida_supply_demand"
 
 
+# Candidate floor for the white-space test: annual route passenger movements
+# an airport must show (across all its pairs) to count as a market an airline
+# demonstrably serves. Disclosed in the register sentence.
+WHITE_SPACE_FLOOR = 100_000
+# DEL's observed market count is the test's baseline; below this the baseline
+# itself is broken (DEL serves ~90 markets), so no verdict is published.
+WHITE_SPACE_MIN_DEL_MARKETS = 30
+
+
+def white_space_stats(routes: pd.DataFrame) -> None:
+    """Deposit the white-space test result: domestic airports above the floor
+    with no observed DEL route in the latest 12 contiguous months.
+
+    Tests the claim "Noida opens into empty white space no airline serves":
+    if every meaningful domestic market already appears in Delhi's observed
+    menu, a Noida network is competition for served demand, not white space.
+    NCR airports are excluded as candidates (no self-routes by definition).
+    """
+    periods = sorted(routes["period"].unique())
+    if len(periods) < 12:
+        return
+    window = list(pd.period_range(periods[-12], periods[-1], freq="M"))
+    if periods[-12:] != window:
+        return
+    w = routes[routes["period"].isin(window)]
+    vol = (
+        w.groupby("origin")["passengers"].sum()
+        .add(w.groupby("destination")["passengers"].sum(), fill_value=0)
+    )
+    candidates = vol[vol >= WHITE_SPACE_FLOOR].drop(labels=NCR_AIRPORTS, errors="ignore")
+    # A published row with zero passengers all window is not a served market.
+    del_rows = w[((w["origin"] == "DEL") | (w["destination"] == "DEL")) & (w["passengers"] > 0)]
+    del_partners = set(np.where(del_rows["origin"] == "DEL", del_rows["destination"], del_rows["origin"]))
+    # Sanity floor: DEL serves ~90 markets. A collapsed baseline means DEL's
+    # rows are missing or relabelled, not that the country lost its Delhi
+    # routes; publishing a verdict off that would be absurd. Same for an empty
+    # candidate set, which would make the claim vacuously "rejected".
+    if len(del_partners) < WHITE_SPACE_MIN_DEL_MARKETS or candidates.empty:
+        print(f"  Skipped white-space verdict: {len(del_partners)} DEL markets, "
+              f"{len(candidates)} candidates (baseline implausible)", flush=True)
+        return
+    white = candidates.drop(labels=sorted(del_partners), errors="ignore").sort_values(ascending=False)
+    REGISTER["white_space"] = dict(
+        floor=WHITE_SPACE_FLOOR,
+        n_candidates=int(len(candidates)),
+        n_del_markets=int(len(del_partners)),
+        n_white=int(len(white)),
+        top_white=(white.index[0], float(white.iloc[0])) if len(white) else None,
+        window=f"{window[0].strftime('%b %Y')}-{window[-1].strftime('%b %Y')}",
+    )
+
+
 def load_routes() -> pd.DataFrame | None:
     if not ROUTE_MONTHLY_PATH.exists():
         return None
@@ -732,7 +789,13 @@ def chart_delhi_menu(routes: pd.DataFrame, *, coverage: str, fingerprint: str) -
     grower = max(yoy, key=yoy.get) if yoy else None
     title = f"Delhi's {len(top)} largest route markets"
     if grower is not None:
-        title += f": {c.airport_label(grower)} grew fastest ({yoy[grower]:+.0f}%)"
+        best = yoy[grower]
+        if best >= 0.5:
+            title += f": {c.airport_label(grower)} grew fastest ({best:+.0f}%)"
+        elif best > -0.5:
+            title += f": the fastest ({c.airport_label(grower)}) was flat"
+        else:
+            title += ": every market with a prior-year base declined"
     ax.set_title(title, fontsize=16, fontweight="bold", color=c.TITLE, loc="left", pad=26)
     ax.text(
         0.0,
@@ -1523,11 +1586,11 @@ def chart_small_city_share(monthly: pd.DataFrame, *, coverage: str, fingerprint:
 EXHIBIT_COPY = {
     "noida_growth_pause": (
         "The market Noida enters",
-        "Every early Noida number reads against the national baseline. State it before someone else does.",
+        "Every early Noida number reads against this national baseline.",
     ),
     "noida_supply_demand": (
         "The market Noida enters",
-        "Whether the pause is a seat problem or a passenger problem decides how it ends.",
+        "Capacity-led and demand-led pauses have different implications for a market entrant; the two series separate them.",
     ),
     "noida_beyond_trunk": (
         "The market Noida enters",
@@ -1559,7 +1622,7 @@ EXHIBIT_COPY = {
     ),
     "noida_up_catchment": (
         "The region",
-        "The catchment argument in numbers: what Uttar Pradesh's own airports already carry.",
+        "Catchment context: the traffic Uttar Pradesh's own airports already handle.",
     ),
     "noida_delhi_menu": (
         "The region",
@@ -1571,7 +1634,7 @@ EXHIBIT_COPY = {
     ),
     "noida_nmia_tracker": (
         "The playbook",
-        "Navi Mumbai is the live dress rehearsal: one number to watch every month.",
+        "Navi Mumbai is the closest live analogue; its monthly share of the Mumbai system is the leading indicator.",
     ),
     "noida_relief_valve": (
         "The playbook",
@@ -1707,18 +1770,58 @@ def register_entries(generated: list[str]) -> tuple[list[tuple[str, str]], list[
             f"{verb} from {d['combined_first']:.0f}% in {d['first_year']} to "
             f"{d['combined']:.0f}% in {d['last_year']}.",
         ))
-    route_live = any(cid in generated for cid in ("noida_beyond_trunk", "noida_delhi_menu"))
-    if not route_live:
+    if "white_space" in REGISTER:
+        ws = REGISTER["white_space"]
+        claim = "Noida opens into empty white space no airline serves."
+        if ws["n_white"] == 0:
+            tested.append((
+                claim,
+                f"Rejected: all {ws['n_candidates']} domestic airports above "
+                f"{ws['floor'] / 1e3:.0f}K annual route passenger movements already "
+                f"appear in Delhi's observed route menu ({ws['n_del_markets']} markets, "
+                f"{ws['window']}). The opportunity is served demand, not empty space.",
+            ))
+        else:
+            code, vol = ws["top_white"]
+            ratio = ws["n_white"] / ws["n_candidates"] if ws["n_candidates"] else 0
+            grade = "Largely rejected: only" if ratio < 0.15 else "Partly supported:"
+            tested.append((
+                claim,
+                f"{grade} {ws['n_white']} of {ws['n_candidates']} domestic "
+                f"airports above {ws['floor'] / 1e3:.0f}K annual route passenger "
+                f"movements have no observed DEL route ({ws['window']}), led by "
+                f"{c.airport_label(code)} at {label_scale(vol)}.",
+            ))
+    else:
         untestable.append((
             "Noida opens into empty white space no airline serves.",
-            "Not yet testable: the test needs the route-level table this repo "
-            "derives from DGCA's city-pair source; its verdict computes here "
-            "once that table is published.",
+            "Not yet testable on current data: the test needs 12 contiguous "
+            "months of the route table derived from DGCA's city-pair source; "
+            "its verdict computes here automatically.",
         ))
     return tested, untestable
 
 
-def write_page(generated: list[str], data_date: str | None) -> Path:
+def dxn_status_item(monthly: pd.DataFrame) -> str:
+    """The page's DXN limitation entry, computed from the published rows so a
+    refresh that lands DXN's first months can never leave a false sentence."""
+    dxn = month_series(monthly, NEWCOMER)
+    if dxn.empty:
+        return (
+            "<li><strong>Noida itself.</strong> DGCA has published no DXN airport rows yet; every "
+            "exhibit here is the market around the airport, not the airport. DXN joins the ramp "
+            "benchmark automatically once rows land.</li>"
+        )
+    n = int(len(dxn))
+    first = dxn.index[0].strftime("%b %Y")
+    return (
+        f"<li><strong>Noida itself.</strong> DGCA has published {n} DXN month{'s' if n != 1 else ''} "
+        f"so far (from {first}, shown on the ramp benchmark); an opening month is a partial "
+        "observation, and nothing here is steady-state NIA performance.</li>"
+    )
+
+
+def write_page(generated: list[str], data_date: str | None, *, monthly: pd.DataFrame) -> Path:
     sections: list[str] = []
     current_section = None
     for chart_id in PAGE_ORDER:
@@ -1751,8 +1854,8 @@ def write_page(generated: list[str], data_date: str | None) -> Path:
     sections.append(
         f"""      <h2 class="section-rule"><span>Claims tested against the data</span></h2>
       <section class="exhibit">
-        <p class="standfirst">Narratives colleagues will hear, checked against the tables behind the
-        exhibits above. Verdict wording is derived from the computed numbers on every refresh.</p>
+        <p class="standfirst">Common counter-narratives, checked against the same tables as the exhibits.
+        Verdict wording derives from the computed numbers on every refresh.</p>
         <ul class="register">
 {tested_items}
         </ul>
@@ -1772,13 +1875,12 @@ def write_page(generated: list[str], data_date: str | None) -> Path:
       </section>"""
         )
     sections.append(
-        """      <h2 class="section-rule"><span>What this data cannot tell you</span></h2>
+        f"""      <h2 class="section-rule"><span>What this data cannot tell you</span></h2>
       <section class="exhibit">
-        <p class="standfirst">The questions a route developer or network planner will ask next, and why
-        this page stops where it does.</p>
+        <p class="standfirst">Limits of the source data. None of the following is observable in DGCA's
+        published tables.</p>
         <ul class="register">
-      <li><strong>Noida itself.</strong> DGCA has published no DXN airport rows; every exhibit here is the
-      market around the airport, not the airport. DXN joins the ramp benchmark automatically once rows land.</li>
+      {dxn_status_item(monthly)}
       <li><strong>Airline commitments.</strong> DGCA reports flown traffic, not schedules, fleet plans, or
       base decisions; the single biggest ramp-up driver is invisible here until it flies.</li>
       <li><strong>True origin&ndash;destination demand.</strong> Airport rows are endpoint throughput and route rows
@@ -1964,6 +2066,7 @@ def main() -> None:
         route_inputs = [str(ROUTE_MONTHLY_PATH.relative_to(ROOT))]
         run(chart_beyond_trunk, routes, route_cov, route_fp, route_inputs)
         run(chart_delhi_menu, routes, route_cov, route_fp, route_inputs)
+        white_space_stats(routes)
     else:
         print("  Skipped route-level exhibits (data/processed/domestic_route_monthly.csv not published)", flush=True)
 
@@ -1971,7 +2074,7 @@ def main() -> None:
     manifest_path = write_manifest(records)
     print(f"  Saved: {manifest_path.relative_to(ROOT)}", flush=True)
     meta = c.load_metadata()
-    page = write_page(generated, meta.get("data_date"))
+    page = write_page(generated, meta.get("data_date"), monthly=monthly)
     print(f"  Saved: {page.relative_to(ROOT)} ({len(generated)} exhibits)", flush=True)
     if failures:
         # Exit 0 on purpose: the page's visible "pending" placeholder is the

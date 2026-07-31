@@ -20,6 +20,28 @@ when one exists, else a stable `name:<slug>` - never a raw source label.
 
 ---
 
+## `domestic_route_monthly.csv` - directed domestic routes (schema v1.0)
+
+One row per `(year, month, origin, destination)`: directed monthly route
+passengers between two Indian airports. Each normalized DGCA city-pair row
+splits into `City1 -> City2 = PaxToCity2` and `City2 -> City1 = PaxFromCity2`
+(explicit zero directions kept); both endpoints resolve through the
+validity-window resolver, and self-pairs are dropped.
+
+| column | type | meaning |
+|---|---|---|
+| `year` | int | calendar year |
+| `month` | int | 1-12 |
+| `origin` | str | IATA code of the origin airport (canonical `mappings.yaml` key) |
+| `destination` | str | IATA code of the destination airport |
+| `passengers` | int | passengers flown origin -> destination that month (segment count) |
+
+`airport_monthly.csv` is derived from these rows (origin side = departures,
+destination side = arrivals), so endpoint conservation between the two tables
+is exact and enforced by a blocking validation check. Segment semantics: a
+connecting itinerary appears once per flown segment; this is not true
+origin-destination demand.
+
 ## `airport_monthly.csv` - domestic monthly (canonical core)
 
 Domestic, monthly. The crown-jewel series. **Schema v2.0.**
