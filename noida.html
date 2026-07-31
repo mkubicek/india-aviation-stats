@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Noida International Airport | india-aviation-stats</title>
+  <meta name="description" content="What published DGCA data says about the market Noida International Airport (DXN) enters.">
+  <meta property="og:title" content="Noida International Airport: DGCA data in charts">
+  <meta property="og:image" content="https://mkubicek.github.io/india-aviation-stats/charts/noida/noida_ramp_benchmark.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #f9f9f7;
+      color: #0b0b0b;
+      font-family: "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1rem 4rem; }
+    header.mast { border-bottom: 2px solid #0b0b0b; padding-bottom: 1.2rem; margin-bottom: 0.6rem; }
+    .kicker { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: #2a78d6; font-weight: 600; margin-bottom: 0.6rem; }
+    h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); line-height: 1.15; margin-bottom: 0.6rem; }
+    .lede { font-family: Georgia, "Times New Roman", serif; font-size: 1.05rem; color: #52514e; max-width: 62ch; }
+    .meta { font-size: 0.8rem; color: #898781; margin-top: 0.9rem; }
+    .meta a { color: #2a78d6; }
+    .section-rule { margin: 2.8rem 0 0.4rem; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: #52514e; display: flex; align-items: center; gap: 0.9rem; }
+    .section-rule::after { content: ""; flex: 1; border-top: 1px solid #e1e0d9; }
+    .exhibit { margin-top: 1.6rem; }
+    .standfirst { font-family: Georgia, "Times New Roman", serif; font-size: 0.95rem; color: #52514e; max-width: 72ch; margin-bottom: 0.7rem; }
+    .chart-img { display: block; width: 100%; height: auto; background: #fcfcfb; border: 1px solid #e1e0d9; border-radius: 6px; padding: 4px; }
+    .pending { border: 1px solid #e1e0d9; background: #fcfcfb; border-radius: 6px; padding: 1.1rem 1.3rem; font-size: 0.9rem; color: #52514e; }
+    .register { list-style: none; max-width: 78ch; }
+    .register li { font-size: 0.92rem; color: #52514e; padding: 0.55rem 0; border-bottom: 1px solid #e1e0d9; }
+    .register li:last-child { border-bottom: none; }
+    .register strong { color: #0b0b0b; }
+    footer { margin-top: 3rem; font-size: 0.8rem; color: #898781; border-top: 1px solid #e1e0d9; padding-top: 1rem; }
+    footer a { color: #2a78d6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="mast">
+      <p class="kicker">Noida International Airport (DXN) · DGCA data</p>
+      <h1>The market Noida enters, in charts</h1>
+      <p class="lede">The national market a new Delhi-region airport joins, the region it serves, and the
+      ramp-up playbook written by India's other dual-airport systems. Every number is computed from
+      published DGCA tables, every chart carrying its own caveat.</p>
+      <p class="meta">Delhi (DEL) data is used throughout as an observable NCR proxy; nothing here is a
+      Noida forecast. <a href="index.html">&larr; Main dashboard</a></p>
+    </header>
+      <h2 class="section-rule"><span>The market Noida enters</span></h2>
+      <section class="exhibit">
+        <p class="standfirst">Every early Noida number reads against the national baseline. State it before someone else does.</p>
+        <img class="chart-img" src="charts/noida/noida_growth_pause.png" alt="noida growth pause" loading="lazy">
+      </section>
+      <section class="exhibit">
+        <p class="standfirst">Whether the pause is a seat problem or a passenger problem decides how it ends.</p>
+        <img class="chart-img" src="charts/noida/noida_supply_demand.png" alt="noida supply demand" loading="lazy">
+      </section>
+      <section class="exhibit">
+        <p class="standfirst">The realistic opportunity for a new airport is the middle market, not the metro trunk.</p>
+        <div class="pending"><strong>Pending exhibit.</strong> Generates once this repo publishes the route table (data/processed/domestic_route_monthly.csv), derived from DGCA's city-pair source, with enough qualifying months.</div>
+      </section>
+      <section class="exhibit">
+        <p class="standfirst">How much demand sits beyond the metros, and beyond the Tier-1 cities, frames what a second NCR airport can serve directly.</p>
+        <img class="chart-img" src="charts/noida/noida_small_city_share.png" alt="noida small city share" loading="lazy">
+      </section>
+      <section class="exhibit">
+        <p class="standfirst">Two groups carry most of India's domestic passengers; that is the counterparty structure any new airport faces.</p>
+        <img class="chart-img" src="charts/noida/noida_airline_groups.png" alt="noida airline groups" loading="lazy">
+      </section>
+      <h2 class="section-rule"><span>The region</span></h2>
+      <section class="exhibit">
+        <p class="standfirst">The capital region's depth is the structural case for a third airport.</p>
+        <img class="chart-img" src="charts/noida/noida_ncr_vs_mmr.png" alt="noida ncr vs mmr" loading="lazy">
+      </section>
+      <section class="exhibit">
+        <p class="standfirst">How fast the incumbent grows against the rest of the country frames the spillover case.</p>
+        <img class="chart-img" src="charts/noida/noida_del_vs_rest.png" alt="noida del vs rest" loading="lazy">
+      </section>
+      <section class="exhibit">
+        <p class="standfirst">Delhi is the international benchmark a second NCR airport gets measured against.</p>
+        <img class="chart-img" src="charts/noida/noida_del_international.png" alt="noida del international" loading="lazy">
+      </section>
+      <section class="exhibit">
+        <p class="standfirst">Slot planning starts with the shape of a Delhi year, not its size.</p>
+        <img class="chart-img" src="charts/noida/noida_del_seasonality.png" alt="noida del seasonality" loading="lazy">
+      </section>
+      <section class="exhibit">
+        <p class="standfirst">The catchment argument in numbers: what Uttar Pradesh's own airports already carry.</p>
+        <img class="chart-img" src="charts/noida/noida_up_catchment.png" alt="noida up catchment" loading="lazy">
+      </section>
+      <section class="exhibit">
+        <p class="standfirst">Delhi's observable markets are the research queue for Noida's route development.</p>
+        <div class="pending"><strong>Pending exhibit.</strong> Generates once this repo publishes the route table (data/processed/domestic_route_monthly.csv), derived from DGCA's city-pair source, with enough qualifying months.</div>
+      </section>
+      <h2 class="section-rule"><span>The playbook</span></h2>
+      <section class="exhibit">
+        <p class="standfirst">The bounding curves (scale-up, replication, flatline) frame first-24-month expectations.</p>
+        <img class="chart-img" src="charts/noida/noida_ramp_benchmark.png" alt="noida ramp benchmark" loading="lazy">
+      </section>
+      <section class="exhibit">
+        <p class="standfirst">Navi Mumbai is the live dress rehearsal: one number to watch every month.</p>
+        <img class="chart-img" src="charts/noida/noida_nmia_tracker.png" alt="noida nmia tracker" loading="lazy">
+      </section>
+      <section class="exhibit">
+        <p class="standfirst">Incumbent versus system is the relief-valve question; Navi Mumbai gives the first observed read.</p>
+        <img class="chart-img" src="charts/noida/noida_relief_valve.png" alt="noida relief valve" loading="lazy">
+      </section>
+      <section class="exhibit">
+        <p class="standfirst">Ramp-ups move in steps, not with time, and the steps can reverse.</p>
+        <img class="chart-img" src="charts/noida/noida_hindon_lesson.png" alt="noida hindon lesson" loading="lazy">
+      </section>
+      <h2 class="section-rule"><span>Claims tested against the data</span></h2>
+      <section class="exhibit">
+        <p class="standfirst">Narratives colleagues will hear, checked against the tables behind the
+        exhibits above. Verdict wording is derived from the computed numbers on every refresh.</p>
+        <ul class="register">
+      <li><strong>&ldquo;A second airport mostly cannibalizes the incumbent.&rdquo;</strong> Not supported so far (5 published months): BOM moved -2.5% and the two-airport system +8.2% against the same months a year earlier; BOM's shortfall equals 24% of NMIA's volume.</li>
+      <li><strong>&ldquo;Hindon proves the Delhi region cannot fill a second airport.&rdquo;</strong> Rejected: Hindon never topped 3K in a published month for 4 years (38 of 48 months published), then reached 159K in Aug 2025; by May 2026 it was back to 46K.</li>
+      <li><strong>&ldquo;Growth is re-concentrating into the metros.&rdquo;</strong> Rejected: the non-metro share of national throughput rose from 35% in 2016 to 43% in 2025.</li>
+      <li><strong>&ldquo;Airlines have stopped adding domestic capacity.&rdquo;</strong> Rejected: seat-km capacity grew +3.1% in the latest 12 months, while passenger-km demand grew +1.9%.</li>
+      <li><strong>&ldquo;The domestic market is fragmenting across many carriers.&rdquo;</strong> Rejected: the two leading groups' combined share of passengers carried rose from 56% in 2015 to 91% in 2025.</li>
+        </ul>
+      </section>
+      <h2 class="section-rule"><span>Not yet testable</span></h2>
+      <section class="exhibit">
+        <ul class="register">
+      <li><strong>&ldquo;Noida opens into empty white space no airline serves.&rdquo;</strong> Not yet testable: the test needs the route-level table this repo derives from DGCA's city-pair source; its verdict computes here once that table is published.</li>
+        </ul>
+      </section>
+      <h2 class="section-rule"><span>What this data cannot tell you</span></h2>
+      <section class="exhibit">
+        <p class="standfirst">The questions a route developer or network planner will ask next, and why
+        this page stops where it does.</p>
+        <ul class="register">
+      <li><strong>Noida itself.</strong> DGCA has published no DXN airport rows; every exhibit here is the
+      market around the airport, not the airport. DXN joins the ramp benchmark automatically once rows land.</li>
+      <li><strong>Airline commitments.</strong> DGCA reports flown traffic, not schedules, fleet plans, or
+      base decisions; the single biggest ramp-up driver is invisible here until it flies.</li>
+      <li><strong>True origin&ndash;destination demand.</strong> Airport rows are endpoint throughput and route rows
+      are segments; connecting itineraries cannot be separated from local demand.</li>
+      <li><strong>Fares and yields.</strong> No public Indian fare series is published at a granularity that
+      joins to these tables.</li>
+      <li><strong>Capacity ceilings.</strong> Aircraft movements, slots, and terminal limits are operator and AAI
+      data; DGCA passenger tables cannot show how full DEL's runways are.</li>
+      <li><strong>Surface catchment.</strong> Who drives to which airport is not aviation data; UP airport traffic
+      shows regional demand, not DXN's future share of it.</li>
+      <li><strong>Cargo by airport.</strong> DGCA carrier freight is airline-level; airport-wise cargo volumes are
+      published by AAI, not here.</li>
+        </ul>
+      </section>
+    <footer>
+      <p>Data: DGCA public aviation statistics (as of 2026-07-19). Charts regenerate from the published CSV tables in
+      <a href="https://github.com/mkubicek/india-aviation-stats">india-aviation-stats</a>;
+      pending exhibits render in place automatically once their inputs qualify.
+      See the <a href="https://github.com/mkubicek/india-aviation-stats/blob/main/docs/noida-theses.md">thesis register</a>,
+      <a href="https://github.com/mkubicek/india-aviation-stats/blob/main/METHODOLOGY.md">methodology</a>, and
+      <a href="https://github.com/mkubicek/india-aviation-stats/blob/main/docs/data-dictionary.md">data dictionary</a>.</p>
+    </footer>
+  </div>
+</body>
+</html>

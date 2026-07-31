@@ -1,6 +1,6 @@
 """Revision log: which published values moved since the last data commit.
 
-Git *is* the snapshot store — the processed CSVs are committed, so we diff the
+Git *is* the snapshot store - the processed CSVs are committed, so we diff the
 freshly-regenerated working-tree CSV against the version in the last commit
 (``git show HEAD:<path>``) keyed on the table's natural key. A restated past value
 then reads as a disclosed restatement in ``REVISIONS.md``, not a silent edit.
@@ -72,7 +72,7 @@ def diff_layer(name: str, key: list[str]) -> dict:
 
 def _fmt_pct(old, new) -> str:
     if not old:
-        return "—"
+        return " - "
     return f"{(new - old) / old * 100:+.1f}%"
 
 
@@ -88,7 +88,7 @@ def run_revisions(write: bool = True) -> dict:
     for r in results:
         lines.append(f"## {r['layer']}")
         if r["status"] == "baseline":
-            lines.append(f"\nBaseline — first committed version ({r['rows']:,} rows).\n")
+            lines.append(f"\nBaseline - first committed version ({r['rows']:,} rows).\n")
             continue
         if r["status"] == "absent":
             lines.append("\n(not generated)\n")
@@ -103,7 +103,7 @@ def run_revisions(write: bool = True) -> dict:
         for period, airport, old_p, new_p, kind in changes[:200]:
             op = "" if old_p is None else f"{old_p:,}"
             np_ = "" if new_p is None else f"{new_p:,}"
-            pct = _fmt_pct(old_p, new_p) if (old_p and new_p) else "—"
+            pct = _fmt_pct(old_p, new_p) if (old_p and new_p) else " - "
             lines.append(f"| {period} | {airport} | {op} | {np_} | {pct} | {kind} |")
         if len(changes) > 200:
             lines.append(f"\n…and {len(changes) - 200} more.")

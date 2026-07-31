@@ -1,10 +1,10 @@
 """Mechanical validation checks over the published canonical tables.
 
 Each check returns a list of :class:`Finding`. Severity:
-  - ``BLOCKING``  — a structural invariant; a failure should red CI.
-  - ``TRIPWIRE``  — true by construction; only catches a future refactor that
+  - ``BLOCKING``  - a structural invariant; a failure should red CI.
+  - ``TRIPWIRE``  - true by construction; only catches a future refactor that
                     breaks it (honestly labelled, not a correctness proof).
-  - ``ADVISORY``  — visibility only, never blocks.
+  - ``ADVISORY``  - visibility only, never blocks.
 
 The headline check is the month-grain overlap-classification gate (``overlap.py``):
 it refuses to silently sum two concurrent source labels into one airport unless a
@@ -171,7 +171,7 @@ def check_conservation_tripwire(monthly: pd.DataFrame) -> list[Finding]:
     if len(broken):
         return [_fail("conservation.tripwire", "TRIPWIRE",
                       f"{len(broken)} month(s) where sum(departures) != sum(arrivals) "
-                      "— a refactor broke the symmetric endpoint split")]
+                      " -  a refactor broke the symmetric endpoint split")]
     return [_ok("conservation.tripwire", "TRIPWIRE",
                "per month sum(departures) == sum(arrivals) "
                "(true by construction; tripwire only)")]
@@ -225,7 +225,7 @@ def check_metric_semantics(
     and guards against ever reusing airport endpoint throughput as a national
     "passengers carried" figure. It is intentionally advisory, not blocking: the
     DGCA city-pair and carrier workbooks are independent, so a few historic months
-    (notably 2017) diverge a few percent — a ±10% band tolerates that without
+    (notably 2017) diverge a few percent - a ±10% band tolerates that without
     redding CI on a benign data revision, while still flagging a real layer break.
     """
     check = "semantics.domestic_airport_throughput_vs_carrier"

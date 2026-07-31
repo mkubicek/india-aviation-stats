@@ -1,0 +1,148 @@
+{
+  "generated": "2026-07-31",
+  "charts": {
+    "noida_growth_pause": {
+      "file": "charts/noida/noida_growth_pause.png",
+      "sha256": "36a24719c0201ea90f9fa125bc227b3d082c52716977bd77f535db19d0dc4ffd",
+      "inputs": [
+        "data/processed/carrier_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:a7d1b266874030fc137beb3472aec737a534803f292dd78a92ec5d133c4f01de",
+      "coverage": "2015-01..2026-05",
+      "primary_source_table": "carrier_monthly",
+      "metric_semantics": "scheduled_domestic_passengers_carried"
+    },
+    "noida_supply_demand": {
+      "file": "charts/noida/noida_supply_demand.png",
+      "sha256": "ab7ab4b7cf6c9ffee8b5bee338d88ac354178b13c76e4f0790c41f749449371d",
+      "inputs": [
+        "data/processed/carrier_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:a7d1b266874030fc137beb3472aec737a534803f292dd78a92ec5d133c4f01de",
+      "coverage": "2015-01..2026-05",
+      "primary_source_table": "carrier_monthly",
+      "metric_semantics": "scheduled_domestic_seat_km_vs_passenger_km"
+    },
+    "noida_airline_groups": {
+      "file": "charts/noida/noida_airline_groups.png",
+      "sha256": "8e8e2b9e897f04f8bbe98648bf0eee6bda63788568584e98f1e6315d37371515",
+      "inputs": [
+        "data/processed/carrier_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:a7d1b266874030fc137beb3472aec737a534803f292dd78a92ec5d133c4f01de",
+      "coverage": "2015-01..2026-05",
+      "primary_source_table": "carrier_monthly",
+      "metric_semantics": "scheduled_domestic_passengers_carried_share"
+    },
+    "noida_small_city_share": {
+      "file": "charts/noida/noida_small_city_share.png",
+      "sha256": "6c2ae0f10a4a305c8133046ccf302392fc72c2e5f236821d6a5cb9485e094b03",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05",
+      "primary_source_table": "airport_monthly",
+      "metric_semantics": "domestic_airport_throughput_share"
+    },
+    "noida_ncr_vs_mmr": {
+      "file": "charts/noida/noida_ncr_vs_mmr.png",
+      "sha256": "8e799ce109c9599c27cad697c235cf7d9809f98f739f40349adafffda673d83a",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05",
+      "primary_source_table": "airport_monthly",
+      "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures"
+    },
+    "noida_del_vs_rest": {
+      "file": "charts/noida/noida_del_vs_rest.png",
+      "sha256": "900320ba166aee5a95681943c0658753defd6fbede40e1a5b3daf920c4f02615",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05",
+      "primary_source_table": "airport_monthly",
+      "metric_semantics": "domestic_airport_throughput_index"
+    },
+    "noida_del_international": {
+      "file": "charts/noida/noida_del_international.png",
+      "sha256": "2f042beefb03886d2913b17c7bd167386009b22ffe1ec52607e42e84079ecd5d",
+      "inputs": [
+        "data/processed/airport_international_quarterly.csv"
+      ],
+      "input_fingerprint": "sha256:e4ec3c6c50fd1eb7750c0c96b48eeeee6f4b99f6b71999dd3d41f02fecb588c5",
+      "coverage": "2015Q1..2026Q1",
+      "primary_source_table": "airport_international_quarterly",
+      "metric_semantics": "indian_international_gateway_throughput_share"
+    },
+    "noida_del_seasonality": {
+      "file": "charts/noida/noida_del_seasonality.png",
+      "sha256": "5fa6e7a9a001c012a3cb39faa7a028980f829ebeafbeed8fc6a0b038d5b3f4b3",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05",
+      "primary_source_table": "airport_monthly",
+      "metric_semantics": "domestic_airport_throughput_index"
+    },
+    "noida_up_catchment": {
+      "file": "charts/noida/noida_up_catchment.png",
+      "sha256": "7c099a0e8dd4e9a7461f5e3b39d4be57b51a652b67c523fecefcd8241ea207f3",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05",
+      "primary_source_table": "airport_monthly",
+      "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures"
+    },
+    "noida_ramp_benchmark": {
+      "file": "charts/noida/noida_ramp_benchmark.png",
+      "sha256": "6982d9a9813850cf6dbdf85d6882af94f5f60e2ebf59184e1cab7b77280288dd",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05",
+      "primary_source_table": "airport_monthly",
+      "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures"
+    },
+    "noida_nmia_tracker": {
+      "file": "charts/noida/noida_nmia_tracker.png",
+      "sha256": "2d17aadc7eedef978a16f015424cdcd1ac92f3de50b6614696f3cfc1337802d1",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05",
+      "primary_source_table": "airport_monthly",
+      "metric_semantics": "domestic_airport_throughput_share"
+    },
+    "noida_relief_valve": {
+      "file": "charts/noida/noida_relief_valve.png",
+      "sha256": "239d062c570f2549b4563b779ce9ffde9b03235981eb571d62a692d9aeb32179",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05",
+      "primary_source_table": "airport_monthly",
+      "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures"
+    },
+    "noida_hindon_lesson": {
+      "file": "charts/noida/noida_hindon_lesson.png",
+      "sha256": "c3480f996bc1f0744d0e7843f9d60c99cd9ac5f960af6d4664ee310641219258",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05",
+      "primary_source_table": "airport_monthly",
+      "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures"
+    }
+  }
+}

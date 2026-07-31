@@ -189,7 +189,7 @@ def test_metric_semantics_warns_when_no_overlapping_months():
 
 
 def test_metric_semantics_flags_zero_carried_with_throughput():
-    # 2026-05 reports airport throughput but zero carried — a conservation break
+    # 2026-05 reports airport throughput but zero carried - a conservation break
     # that must be flagged, not silently dropped (no inf ratio either). 2026-06
     # holds the clean 2× identity.
     monthly = pd.DataFrame([

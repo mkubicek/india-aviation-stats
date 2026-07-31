@@ -43,7 +43,7 @@ normalization, entity resolution, and validation.
   airport arrivals, departures, and total passengers.
 - **International airport rows:** Quarterly city-pair passenger flows filtered
   to known Indian airports, published with a **real `quarter` column** in
-  `airport_international_quarterly.csv` (no midpoint-month hack — domestic and
+  `airport_international_quarterly.csv` (no midpoint-month hack - domestic and
   international never share a cadence).
 - **Unit:** Passengers (whole-person integers). Charted passenger totals are not
   flight/movement counts.
@@ -60,7 +60,7 @@ Domestic airport rows are **endpoint-throughput** rows: each domestic passenger
 appears once at the origin airport (a departure) and once at the destination
 airport (an arrival). This is correct for airport-traffic charts and airport
 market-share charts, but **national domestic demand must not be computed by
-summing airport endpoints** — doing so double-counts every domestic journey
+summing airport endpoints** - doing so double-counts every domestic journey
 (nationally, airport throughput ≈ 2× journeys).
 
 National domestic demand uses `carrier_monthly.csv` filtered to
@@ -70,7 +70,7 @@ dashboard cards (latest month, trailing-12-month total, and their YoY).
 
 International gateway charts use `airport_international_quarterly.csv`, where
 foreign counterpart cities are dropped and only Indian airport gateway endpoints
-are retained — so the metric is **Indian gateway throughput**, not airline-carried
+are retained - so the metric is **Indian gateway throughput**, not airline-carried
 international passengers.
 
 The conservation relationship (national airport throughput ≈ 2× scheduled-domestic
@@ -100,13 +100,13 @@ Source rows contain `City1`, `City2`, `PaxToCity2`, and `PaxFromCity2`.
 ### Entity resolution (the cleanup model)
 
 All source labels are mapped to canonical airports through a single **reviewed
-entity table** in `mappings.yaml` — never fuzzy matching. A label may carry a
+entity table** in `mappings.yaml` - never fuzzy matching. A label may carry a
 **validity window** (`valid_from`/`valid_to`) because a label's meaning can
 change over time: the bare `GOA` label is Dabolim (`GOI`) through 2018 and Mopa
 (`GOX`) from 2023. The resolver refuses to build if a label maps to two airports
 with overlapping windows. Alternate spellings (BOMBAY→BOM) live in a flat
 `airport_aliases` map; every airport label that previously needed code-side
-aliases is now in the table. Resolution is 100% table-driven — there is no
+aliases is now in the table. Resolution is 100% table-driven - there is no
 hardcoded fallback.
 
 ### International City-Pair Data
@@ -126,7 +126,7 @@ series with a `succeeded_by` link, so standalone series survive.
 ## Airport tiers are presentation-only
 
 The metro/tier bands are a project-defined editorial opinion, **not data**. They
-do not appear in any published CSV — they live only in chart-coloring config
+do not appear in any published CSV - they live only in chart-coloring config
 (`mappings.yaml: airport_colors`). They are not official DGCA/AAI or
 industry-standard classifications.
 
@@ -145,7 +145,7 @@ dashboard cards.
 
 ### India Domestic Demand Pulse
 
-`india_domestic_demand_pulse.png` — national monthly **scheduled domestic
+`india_domestic_demand_pulse.png` - national monthly **scheduled domestic
 passengers carried** (from `carrier_monthly.csv`) plus a trailing 12-month carried
 total. The KPI block reports the latest month, latest month YoY, latest trailing
 12-month total, and trailing 12-month YoY. This is passengers carried (counted
@@ -153,13 +153,13 @@ once per journey), not summed airport endpoint throughput.
 
 ### Top Airport Traffic Trends
 
-`top_airport_traffic_trends.png` — trailing 12-month domestic **airport passenger
+`top_airport_traffic_trends.png` - trailing 12-month domestic **airport passenger
 movements** (arrivals + departures) for the union of the current and previous top
 10 airports, capped at 12 lines with deterministic airport-code tie-breaks.
 
 ### Newcomer Airport Ramp-up
 
-`newcomer_airport_rampup_24m.png` — monthly domestic **airport passenger
+`newcomer_airport_rampup_24m.png` - monthly domestic **airport passenger
 movements** during each airport's first 24 DGCA-observed months. Airports first
 seen in the first 12 months of the dataset are excluded to avoid left-censoring.
 An airport qualifies with at least 3 observed months and either 100,000 cumulative
@@ -167,7 +167,7 @@ ramp movements or a 20,000-movement peak month.
 
 ### Market Share Movers
 
-`domestic_market_share_gainers.png` — change in each airport's share of domestic
+`domestic_market_share_gainers.png` - change in each airport's share of domestic
 **airport throughput** between the latest trailing 12 months and the previous
 trailing 12 months, requiring at least 100,000 throughput in either window. The
 chart shows the top 10 share gainers and top 10 decliners; the subtitle states the
@@ -175,7 +175,7 @@ selection (how many of the total airports), the metric scope (share of domestic
 airport throughput), and the explicit comparison windows so the subset is never
 read as the full field or as passengers carried.
 
-`international_gateway_share_gainers.png` — change in each gateway's share of
+`international_gateway_share_gainers.png` - change in each gateway's share of
 Indian **gateway throughput** between the latest 4 quarters and the previous 4
 quarters, requiring at least 50,000 throughput in either window. The chart shows
 the top 8 gainers and top 8 decliners, with the same on-chart disclosure of
@@ -184,7 +184,7 @@ selection, scope, and windows. The latest 4 quarters end at the latest
 
 ### Airport Seasonality Fingerprint
 
-`airport_seasonality_fingerprint.png` — airport-month **throughput** seasonality
+`airport_seasonality_fingerprint.png` - airport-month **throughput** seasonality
 indexed to each airport's own average month (`100 = average month`). Only complete calendar
 years are used; airports need at least 3 complete years and 100,000 latest
 trailing 12-month domestic passengers. The heatmap uses a fixed 60/100/140 color
@@ -192,7 +192,7 @@ scale.
 
 ### Optional Animation
 
-`airport_passenger_race.gif` — optional trailing 12-month domestic passenger
+`airport_passenger_race.gif` - optional trailing 12-month domestic passenger
 race, generated only with `uv run python scripts/chart.py --include-gifs`.
 
 ---
@@ -208,19 +208,19 @@ emits `validation_report.json` (machine) and `warnings.log` (human).
 | Cadence integrity | BLOCKING | one row per key; the quarterly table's `quarter ∈ 1..4`; no cross-table cadence mixing |
 | Definitional | BLOCKING | `passengers == departures + arrivals`; non-negative integers |
 | Schema conformance | BLOCKING | columns/dtypes match the data dictionary; `schema_version` present |
-| Conservation | TRIPWIRE | per month `sum(departures) == sum(arrivals)` — true by construction; catches a future refactor only |
+| Conservation | TRIPWIRE | per month `sum(departures) == sum(arrivals)` - true by construction; catches a future refactor only |
 | Carrier value-domain | BLOCKING / ADVISORY | one row per key; load factors 0–100 and metrics ≥ 0 |
 | Assumptions ledger | BLOCKING | re-test each `assumptions/<id>.md` falsification → HOLDS/TRIGGERED/STALE/ORPHANED |
 | Reverse gate | BLOCKING | any anomaly with no covering assumption file is an undocumented quirk |
 | High-volume unmapped name | ADVISORY | a real airport we failed to map is silent loss |
 | Coverage continuity | ADVISORY | missing months/quarters |
-| Passenger metric semantics | ADVISORY | national airport throughput ≈ 2× scheduled-domestic passengers carried — endpoint throughput must not be reused as national passengers carried |
+| Passenger metric semantics | ADVISORY | national airport throughput ≈ 2× scheduled-domestic passengers carried - endpoint throughput must not be reused as national passengers carried |
 
 The cleanup knowledge base lives in `assumptions/` (Open Knowledge Format) and is
 re-tested by the `validate-assumptions` skill. Restated published values are
 disclosed in `data/processed/REVISIONS.md` (diffed against the last data commit).
 
-The ledger's tests are **internal** — the data re-checked against itself — so the
+The ledger's tests are **internal** - the data re-checked against itself - so the
 gate stays deterministic. Classifying a *new* label (is it a new airport, a
 rename, or a distinct airport sharing a code?) needs world knowledge, so it is
 handled off the blocking path by an advisory `validate --triage` mode: it turns
@@ -253,5 +253,5 @@ Methodology changes should preserve review integrity: evaluate a chart or projec
 | Date | Version | Change |
 |------|---------|--------|
 | 2026-06 | 0.1.0 | Canonical multi-table dataset: cadence split, table-driven entity resolution with validity windows, falsifiable assumptions ledger + overlap gate, carrier link-not-collapse, tiers moved to presentation-only, six-chart dashboard surface |
-| 2026-06 | 0.1.0 | Review correction (release QC): Share Movers charts now disclose their top-N-of-total selection and name the explicit comparison windows on the chart. Evidence — a reviewer read the ~20-bar chart as the full airport field and could only infer the comparison period (latest published quarter ≠ current quarter) from the footer. |
+| 2026-06 | 0.1.0 | Review correction (release QC): Share Movers charts now disclose their top-N-of-total selection and name the explicit comparison windows on the chart. Evidence - a reviewer read the ~20-bar chart as the full airport field and could only infer the comparison period (latest published quarter ≠ current quarter) from the footer. |
 | 2026-06 | 0.1.x | Corrected domestic national dashboard metric. The prior dashboard summed domestic airport endpoint throughput, producing May 2026 = 30,779,402, exactly 2× the scheduled-domestic carrier passenger count of 15,389,701. National domestic demand now uses `carrier_monthly.csv` (`service_type == scheduled_domestic`) passengers carried; airport-level charts remain on endpoint throughput and were relabelled accordingly. Added the passenger-metric-semantics advisory check, manifest `metric_semantics`/`primary_source_table`, and regression tests. |

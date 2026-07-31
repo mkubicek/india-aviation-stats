@@ -8,7 +8,7 @@ canonical airport in the same month** and BLOCKS unless that merge is declared i
 ``mappings.yaml: concurrent_labels``. A future DGCA refresh that lands a new label
 on an existing airport reds CI until a human classifies it.
 
-It also emits the advisory "high-volume unmapped name" check — a real Indian
+It also emits the advisory "high-volume unmapped name" check - a real Indian
 airport we failed to map would be silent passenger loss.
 """
 
@@ -78,7 +78,7 @@ def overlap_gate(mappings: dict, raw_domestic: Path) -> list[Finding]:
             findings.append(_fail(
                 f"overlap.concurrent.{canon}", "BLOCKING",
                 f"{canon} sums concurrent labels {sorted(labels)} in the same month(s) "
-                f"but {sorted(undeclared)} are not declared in concurrent_labels — "
+                f"but {sorted(undeclared)} are not declared in concurrent_labels - "
                 "classify (same airport? distinct airports?) before merging"))
         else:
             findings.append(_ok(
