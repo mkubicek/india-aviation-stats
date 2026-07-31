@@ -868,8 +868,8 @@ def chart_del_vs_rest(monthly: pd.DataFrame, *, coverage: str, fingerprint: str)
     fig, ax = new_fig()
     x = del_idx.index.to_timestamp()
     series = [
-        (f"All other airports  {rest_g:+.0f}%", rest_idx, "#eb6834"),
-        (f"{c.airport_label('DEL')}  {del_g:+.0f}%", del_idx, c.AIRPORT_COLORS["DEL"]),
+        (f"All other airports  {rest_g:+.1f}%", rest_idx, "#eb6834"),
+        (f"{c.airport_label('DEL')}  {del_g:+.1f}%", del_idx, c.AIRPORT_COLORS["DEL"]),
     ]
     for label, values, color in series:
         ax.plot(x, values.values, color=color, **LINE)

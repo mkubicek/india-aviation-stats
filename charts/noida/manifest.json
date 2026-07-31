@@ -58,7 +58,7 @@
     },
     "noida_del_vs_rest": {
       "file": "charts/noida/noida_del_vs_rest.png",
-      "sha256": "aa5758be82c3904d0b32b89493ff19080127e810306c89f729a430cb6a8c504f",
+      "sha256": "900320ba166aee5a95681943c0658753defd6fbede40e1a5b3daf920c4f02615",
       "inputs": [
         "data/processed/airport_monthly.csv"
       ],
