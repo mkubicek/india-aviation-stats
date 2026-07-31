@@ -26,7 +26,7 @@ generated page and are never copied here, so they cannot go stale.
 |---|---|---|
 | National growth is paused against its long-run trend | `noida_growth_pause` | passengers carried (carrier table) |
 | Seat-km capacity and passenger-km demand moved together through the pause | `noida_supply_demand` | seat-km vs passenger-km (carrier table) |
-| The middle market, not the metro trunk, is the realistic opportunity | `noida_beyond_trunk` (pending route table) | route-segment passengers |
+| The middle market, not the metro trunk, is the realistic opportunity | `noida_beyond_trunk` | route-segment passengers |
 | Non-metro airports' share of throughput is structurally higher than a decade ago | `noida_small_city_share` | airport throughput share |
 | Two airline groups carry most domestic passengers | `noida_airline_groups` | passengers-carried share |
 | Delhi-region vs Mumbai-region scale | `noida_ncr_vs_mmr` | airport passenger movements |
@@ -34,7 +34,7 @@ generated page and are never copied here, so they cannot go stale.
 | Delhi is the international gateway benchmark | `noida_del_international` | Indian gateway throughput share |
 | An NCR year has a repeatable seasonal shape | `noida_del_seasonality` | airport throughput index |
 | UP's own airports already handle a measurable regional market | `noida_up_catchment` | airport passenger movements |
-| Delhi's observable route markets are the route-development research queue | `noida_delhi_menu` (pending route table) | route-segment passengers |
+| Delhi's observable route markets are the route-development research queue | `noida_delhi_menu` | route-segment passengers |
 | Observed ramp-ups bound expectations; they do not predict | `noida_ramp_benchmark` | airport passenger movements |
 | Navi Mumbai is the live monthly leading indicator | `noida_nmia_tracker` | Mumbai-system throughput share |
 | Incumbent vs system since a newcomer's entry | `noida_relief_valve` | airport passenger movements |
@@ -52,13 +52,16 @@ Verdicts and numbers live on the page; the claims are:
 - "Growth is re-concentrating into the metros."
 - "Airlines have stopped adding domestic capacity."
 - "The domestic market is fragmenting across many carriers."
+- "Noida opens into empty white space no airline serves."
 
-## Not yet testable
+## White space
 
-- "Noida opens into empty white space no airline serves." Needs the
-  route-level table this repo derives from DGCA's city-pair source
-  (`data/processed/domestic_route_monthly.csv`); the verdict computes
-  automatically once it is published.
+"Noida opens into empty white space no airline serves." is now computed on
+every refresh from `data/processed/domestic_route_monthly.csv`: candidates
+are domestic airports above a disclosed annual route-movement floor outside
+the NCR set, and the verdict counts those absent from Delhi's observed menu.
+The grading (rejected / largely rejected / partly supported) derives from
+the computed ratio.
 
 ## Provenance note
 

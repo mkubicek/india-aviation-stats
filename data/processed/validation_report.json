@@ -1,8 +1,8 @@
 {
   "blocking_failures": 0,
   "tripwire_failures": 0,
-  "advisories": 1,
-  "passed": 17,
+  "advisories": 2,
+  "passed": 24,
   "findings": [
     {
       "check": "cadence.layer1_unique",
@@ -77,6 +77,12 @@
       "message": "airport_yearly: schema v2.0 conforms"
     },
     {
+      "check": "schema.domestic_route_monthly",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "domestic_route_monthly: schema v1.0 conforms"
+    },
+    {
       "check": "conservation.tripwire",
       "status": "pass",
       "severity": "TRIPWIRE",
@@ -98,7 +104,7 @@
       "check": "semantics.domestic_airport_throughput_vs_carrier",
       "status": "pass",
       "severity": "ADVISORY",
-      "message": "domestic airport throughput == ~2x scheduled-domestic passengers carried for all 133 overlapping month(s) (max deviation 0.092); endpoint throughput is not national passengers carried"
+      "message": "domestic airport throughput == ~2x scheduled-domestic passengers carried for all 134 overlapping month(s) (max deviation 0.092); endpoint throughput is not national passengers carried"
     },
     {
       "check": "overlap.concurrent.COK",
@@ -111,6 +117,48 @@
       "status": "pass",
       "severity": "ADVISORY",
       "message": "no high-volume unmapped domestic labels"
+    },
+    {
+      "check": "routes.key_unique",
+      "status": "pass",
+      "severity": "TRIPWIRE",
+      "message": "133,694 rows with a unique route-month key"
+    },
+    {
+      "check": "routes.distinct_endpoints",
+      "status": "pass",
+      "severity": "TRIPWIRE",
+      "message": "all rows have distinct origin/destination"
+    },
+    {
+      "check": "routes.canonical_endpoints",
+      "status": "pass",
+      "severity": "TRIPWIRE",
+      "message": "143 endpoints all canonical mappings.yaml airports"
+    },
+    {
+      "check": "routes.nonneg_int",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "passengers are non-negative integers"
+    },
+    {
+      "check": "routes.endpoint_containment",
+      "status": "pass",
+      "severity": "BLOCKING",
+      "message": "route endpoints within airport endpoints across 13,350 airport-months (4 pax attributed to airports but not routable)"
+    },
+    {
+      "check": "routes.history_disappearance",
+      "status": "pass",
+      "severity": "ADVISORY",
+      "message": "no substantial route history vanished in the latest month"
+    },
+    {
+      "check": "routes.source_duplicates",
+      "status": "warn",
+      "severity": "ADVISORY",
+      "message": "62 duplicate city-pair row(s) across 2 month(s) (2015-09, 2025-12); clean.py sums them as partial figures"
     }
   ],
   "assumptions": [
@@ -135,12 +183,23 @@
       ]
     },
     {
+      "id": "DXN-001",
+      "title": "GAUTAM BUDDHA NAGAR is Noida International (DXN), a new airport, not a relabel",
+      "category": "new-airport",
+      "test": "distinct-airports-not-merged",
+      "verdict": "HOLDS",
+      "detail": "['DEL', 'HDO', 'DXN'] all present and distinct",
+      "covers": [
+        "DXN"
+      ]
+    },
+    {
       "id": "GOA-001",
       "title": "Goa is two airports - Dabolim (GOI) and Mopa (GOX) - and the DGCA \"GOI\" label is Mopa from 2023",
       "category": "deduplication",
       "test": "size-ordering-holds",
       "verdict": "HOLDS",
-      "detail": "GOI (69,062,871) >= GOX (15,065,993)",
+      "detail": "GOI (69,527,664) >= GOX (15,396,278)",
       "covers": [
         "GOI",
         "GOX"

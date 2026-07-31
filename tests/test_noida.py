@@ -43,18 +43,46 @@ def test_page_order_matches_copy_and_semantics():
 
 def test_write_page_with_nothing_generated_renders_placeholders(tmp_path, monkeypatch):
     monkeypatch.setattr(noida, "PAGE_PATH", tmp_path / "noida.html")
-    page = noida.write_page([], "2026-07-19")
+    page = noida.write_page([], "2026-07-19", monthly=month_frame([(2024, 1, "DEL", 100)]))
     html = page.read_text(encoding="utf-8")
     assert html.count("Pending exhibit.") == len(noida.PAGE_ORDER)
     assert "\u2014" not in html  # no em-dashes anywhere on the page
     assert "Not yet testable" in html
+    assert "published no DXN airport rows yet" in html
 
 
-def test_white_space_entry_dropped_once_route_exhibits_generate():
+def test_dxn_status_item_flips_when_rows_land():
+    no_rows = noida.dxn_status_item(month_frame([(2024, 1, "DEL", 100)]))
+    assert "no DXN airport rows yet" in no_rows
+    with_rows = noida.dxn_status_item(
+        month_frame([(2026, 6, "DXN", 20_058), (2026, 7, "DXN", 30_000)])
+    )
+    assert "published 2 DXN months so far (from Jun 2026" in with_rows
+    assert "no DXN airport rows" not in with_rows
+
+
+def test_white_space_moves_from_untestable_to_tested_with_stats():
     tested, untestable = noida.register_entries([])
     assert any("white space" in claim for claim, _ in untestable)
-    tested, untestable = noida.register_entries(["noida_delhi_menu"])
+
+    noida.REGISTER["white_space"] = dict(
+        floor=100_000, n_candidates=60, n_del_markets=92, n_white=0,
+        top_white=None, window="Jul 2025-Jun 2026",
+    )
+    tested, untestable = noida.register_entries([])
     assert not any("white space" in claim for claim, _ in untestable)
+    verdict = dict(tested)["Noida opens into empty white space no airline serves."]
+    assert verdict.startswith("Rejected")
+
+    noida.REGISTER["white_space"].update(n_white=3, top_white=("IXZ", 250_000.0))
+    tested, _ = noida.register_entries([])
+    verdict = dict(tested)["Noida opens into empty white space no airline serves."]
+    assert verdict.startswith("Largely rejected: only") and "3 of 60" in verdict
+
+    noida.REGISTER["white_space"].update(n_white=20)
+    tested, _ = noida.register_entries([])
+    verdict = dict(tested)["Noida opens into empty white space no airline serves."]
+    assert verdict.startswith("Partly supported") and "20 of 60" in verdict
 
 
 # ---------------------------------------------------------------------------
@@ -183,3 +211,42 @@ def test_relief_valve_complete_windows_generates(tmp_path, monkeypatch):
         month_frame(rows), coverage="x", fingerprint="y"
     ) == "noida_relief_valve"
     assert noida.REGISTER["relief"]["months"] == 5
+
+
+def test_white_space_refuses_to_publish_on_a_broken_del_baseline(capsys):
+    """A collapsed DEL baseline means DEL's rows are missing, not that the
+    country lost its Delhi routes; no verdict may be published from it."""
+    rows = []
+    for m in range(1, 13):
+        for other in ("BLR", "HYD", "MAA"):
+            rows.append({"year": 2026, "month": m, "origin": other,
+                         "destination": "BOM", "passengers": 50_000})
+    routes = pd.DataFrame(rows)
+    routes["period"] = pd.PeriodIndex(
+        pd.to_datetime(dict(year=routes.year, month=routes.month, day=1)), freq="M")
+    noida.white_space_stats(routes)
+    assert "white_space" not in noida.REGISTER
+    tested, untestable = noida.register_entries([])
+    assert any("white space" in claim for claim, _ in untestable)
+
+
+def test_white_space_ignores_zero_passenger_del_rows():
+    rows = []
+    partners = [f"A{i:02d}" for i in range(40)]
+    for m in range(1, 13):
+        for p in partners:
+            rows.append({"year": 2026, "month": m, "origin": "DEL",
+                         "destination": p, "passengers": 20_000})
+        # a published but empty DEL market: must NOT count as served
+        rows.append({"year": 2026, "month": m, "origin": "DEL",
+                     "destination": "ZZZ", "passengers": 0})
+        rows.append({"year": 2026, "month": m, "origin": "ZZZ",
+                     "destination": "A00", "passengers": 20_000})
+    routes = pd.DataFrame(rows)
+    routes["period"] = pd.PeriodIndex(
+        pd.to_datetime(dict(year=routes.year, month=routes.month, day=1)), freq="M")
+    noida.white_space_stats(routes)
+    ws = noida.REGISTER["white_space"]
+    assert ws["n_del_markets"] == len(partners)  # ZZZ's 0-pax rows do not count
+    assert ws["n_white"] == 1
+    assert ws["top_white"] is not None and ws["top_white"][0] == "ZZZ"

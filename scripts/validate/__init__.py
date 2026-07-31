@@ -23,6 +23,8 @@ from .checks import (
     check_coverage,
     check_definitional,
     check_metric_semantics,
+    check_route_source,
+    check_routes,
     check_schema,
 )
 from .overlap import check_unmapped_names, overlap_gate
@@ -37,7 +39,7 @@ __all__ = [
     "Finding", "run", "collect_findings",
     "check_cadence", "check_definitional", "check_schema",
     "check_conservation_tripwire", "check_coverage", "check_carrier",
-    "check_metric_semantics", "overlap_gate", "check_unmapped_names",
+    "check_metric_semantics", "check_routes", "check_route_source", "overlap_gate", "check_unmapped_names",
 ]
 
 
@@ -61,10 +63,12 @@ def collect_findings() -> list[Finding]:
     monthly = _load_layer("airport_monthly")
     quarterly = _load_layer("airport_international_quarterly")
     yearly = _load_layer("airport_yearly")
+    routes = _load_layer("domestic_route_monthly")
     layers = {
         "airport_monthly": monthly,
         "airport_international_quarterly": quarterly,
         "airport_yearly": yearly,
+        "domestic_route_monthly": routes,
     }
 
     findings: list[Finding] = []
@@ -87,6 +91,10 @@ def collect_findings() -> list[Finding]:
         findings += overlap_gate(mappings, RAW_DOMESTIC)
         findings += check_unmapped_names(mappings, RAW_DOMESTIC)
     findings += check_coverage(monthly, quarterly)
+    if routes is not None:
+        findings += check_routes(routes, monthly, mappings)
+        if RAW_DOMESTIC.exists():
+            findings += check_route_source(RAW_DOMESTIC)
     return findings
 
 
