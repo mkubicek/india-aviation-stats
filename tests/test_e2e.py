@@ -7,7 +7,7 @@ packs the three cleanup shapes the design cares about into a handful of rows:
     and airport BBB in a later era (disjoint validity windows).
   - Rename: airport CCC carries two labels over time (`OLDTOWN` -> `NEWTOWN`).
   - Distinct-overlap: two name-similar labels map to different airports (AAA vs
-    BBB) — kept apart by construction (different canonical keys).
+    BBB) - kept apart by construction (different canonical keys).
 
 It proves the chain produces a tidy, conserved domestic-monthly table and that the overlap gate
 blocks an undeclared concurrent merge.

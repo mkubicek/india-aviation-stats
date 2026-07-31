@@ -70,7 +70,7 @@ def collect_findings() -> list[Finding]:
     findings: list[Finding] = []
     if monthly is None:
         findings.append(Finding("layers.present", "fail", "BLOCKING",
-                                "airport_monthly.csv missing — run the clean stage"))
+                                "airport_monthly.csv missing - run the clean stage"))
         return findings
 
     findings += check_cadence(monthly, quarterly)

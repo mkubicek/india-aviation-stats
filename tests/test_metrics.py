@@ -129,7 +129,7 @@ def test_domestic_airport_throughput_tracks_twice_carrier_passengers():
     Every domestic journey is one carrier passenger and two airport endpoints, so
     national airport throughput should be ~2× passengers carried. The DGCA
     city-pair and carrier workbooks are compiled independently, so a few historic
-    months diverge — most visibly 2017, where the city-pair totals run ~3-5% above
+    months diverge - most visibly 2017, where the city-pair totals run ~3-5% above
     2× the carrier totals, and early 2025 (~0.6%). The relationship still holds
     within a small tolerance, which is what guards against the layer confusion this
     test exists for: reusing airport throughput as passengers carried (a ~2× error)

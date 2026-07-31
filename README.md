@@ -1,7 +1,7 @@
 # India Aviation Stats
 
 A clean, continuous, openly-licensed dataset of Indian aviation passenger
-traffic — DGCA's messy public workbooks turned into tidy CSVs you can `curl` and
+traffic - DGCA's messy public workbooks turned into tidy CSVs you can `curl` and
 trust, **with the proof that the cleaning is correct shipped alongside the data.**
 
 **Live dashboard:** <https://mkubicek.github.io/india-aviation-stats/>
@@ -12,18 +12,18 @@ trust, **with the proof that the cleaning is correct shipped alongside the data.
 
 ## The data
 
-Four single-grain tables (three source + one derived) in [`data/processed/`](data/processed/) — full schema
+Four single-grain tables (three source + one derived) in [`data/processed/`](data/processed/) - full schema
 in the **[data dictionary](docs/data-dictionary.md)**:
 
 | Table | Grain | Scope |
 |---|---|---|
-| `airport_monthly.csv` | airport × month | domestic — the canonical core |
+| `airport_monthly.csv` | airport × month | domestic - the canonical core |
 | `airport_international_quarterly.csv` | airport × quarter | international |
 | `carrier_monthly.csv` | airline × service × month | airline operating stats |
 | `airport_yearly.csv` | airport × year | **derived** from the monthly + quarterly tables |
 
 Each airport is **one entity** (`passengers == departures + arrivals`, integer),
-each file has **one time grain** — so you can `groupby` any way and never get a
+each file has **one time grain** - so you can `groupby` any way and never get a
 silently-wrong number. Stable per-file URLs to `curl` or cite:
 
 ```
@@ -37,12 +37,12 @@ keys, 2-digit years, the same airport under several spellings). Every cleanup
 decision is **checkable and re-run on every refresh**, because a naive heuristic
 would silently corrupt the data:
 
-- **Goa is two airports.** Dabolim (`GOI`) and Mopa (`GOX`, opened 2023) — and
+- **Goa is two airports.** Dabolim (`GOI`) and Mopa (`GOX`, opened 2023) - and
   DGCA files Mopa's traffic under *Dabolim's* IATA code. Merging them erases an
   airport; trusting the code mislabels one. Resolved by cited research, encoded
   with validity windows.
 - **The overlap gate** refuses to sum two concurrent source labels into one
-  airport unless a human has declared it — a new DGCA label landing on an
+  airport unless a human has declared it - a new DGCA label landing on an
   existing airport reds CI until classified, never silently merges.
 - **A falsifiable ledger.** Every non-trivial decision is a static Markdown file
   in [`assumptions/`](assumptions/) (Open Knowledge Format) with evidence,
@@ -131,4 +131,4 @@ now-wrong merge. Source changes are detected via a committed fingerprint manifes
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Data sourced from DGCA (public).
+MIT - see [LICENSE](LICENSE). Data sourced from DGCA (public).

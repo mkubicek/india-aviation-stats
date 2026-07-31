@@ -4,8 +4,8 @@
 ``source, source_type, note, etag, content_length, sha256``. It is committed and
 rewritten **only when a fingerprint actually changes**, so the git history of
 this one file is a clean log of real DGCA source changes (no monthly no-op
-churn). The ``etag`` is the file's MD5 hex — which equals an S3 single-part
-object's ETag — so a HEAD sweep can compare it against the live ETag without
+churn). The ``etag`` is the file's MD5 hex - which equals an S3 single-part
+object's ETag - so a HEAD sweep can compare it against the live ETag without
 transferring the body. The ``sha256`` over the actually-downloaded file is the
 ground-truth detector; HEAD/ETag is only the cheap pre-filter (it is incomplete
 for multipart objects and hosts without HEAD, where sha256 still catches the

@@ -1,12 +1,12 @@
 """Clean normalized DGCA aggregates into the standardized canonical tables.
 
 Resolution is 100% table-driven (``mappings.yaml`` entity tables + the flat
-``airport_aliases`` spelling map) via the validity-window resolver — there is no
+``airport_aliases`` spelling map) via the validity-window resolver - there is no
 hardcoded fallback. A label that does not resolve is foreign (international
 counterpart city) and is dropped; a *domestic* label that fails to resolve is a
 real coverage loss and is surfaced.
 
-Published tables (in ``data/processed/``) — three source tables + one derived view:
+Published tables (in ``data/processed/``) - three source tables + one derived view:
   ``airport_monthly.csv``                domestic, monthly (the canonical core)
   ``airport_international_quarterly.csv`` international, real quarter
   ``carrier_monthly.csv``                airline monthly (see clean carrier)

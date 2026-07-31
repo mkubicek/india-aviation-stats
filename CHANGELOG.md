@@ -8,7 +8,7 @@
   now uses scheduled-domestic carrier passengers carried (`carrier_monthly.csv`)
   instead of summed airport endpoint throughput, which double-counts every domestic
   journey. May 2026 latest-month domestic now reads **15.4M passengers carried**
-  (was 30.8M — exactly 2× the carrier figure); trailing-12-month reads **168.3M**.
+  (was 30.8M - exactly 2× the carrier figure); trailing-12-month reads **168.3M**.
 
 ### Changed
 
@@ -16,7 +16,7 @@
   manifest metadata, data dictionary, methodology, and README. Airport charts are
   relabelled as **airport throughput** (arrivals + departures); the international
   chart as **Indian gateway throughput**. Airport-level charts are unchanged in
-  scale — only national passenger-carried demand moved to the carrier layer.
+  scale - only national passenger-carried demand moved to the carrier layer.
 - `dashboard_summary.json` domestic keys are now metric-explicit
   (`latest_month_passengers_carried`, `trailing_12m_passengers_carried`,
   `airport_throughput_latest_month`, `passengers_metric`); the ambiguous
@@ -24,25 +24,25 @@
 
 ### Added
 
-- `scripts/metrics.py` — the single home for passenger metric semantics
+- `scripts/metrics.py` - the single home for passenger metric semantics
   (passengers carried vs airport throughput vs gateway throughput).
 - `charts/manifest.json` records `primary_source_table` and `metric_semantics`
   per chart.
 - Passenger-metric-semantics advisory validation check
   (`semantics.domestic_airport_throughput_vs_carrier`) and regression tests so
   airport endpoint throughput cannot be reused as national passengers carried.
-- `docs/external-smoke-checks.md` — independent scale checks vs published DGCA
+- `docs/external-smoke-checks.md` - independent scale checks vs published DGCA
   figures.
 
 ## 0.1.0
 
-Initial public release — a clean, canonical dataset of Indian aviation passenger
+Initial public release - a clean, canonical dataset of Indian aviation passenger
 traffic from DGCA's public workbooks.
 
 - **Four single-grain tables** in `data/processed/`: domestic monthly,
   international quarterly, derived yearly, and carrier monthly. One airport = one
   entity; integer passengers; `schema_version` per table.
-- **Table-driven entity resolution** with validity windows — resolves source
+- **Table-driven entity resolution** with validity windows - resolves source
   labels whose meaning changes over time (the `GOA` label is Dabolim through 2018,
   Mopa from 2023). All 107 previously-unmapped domestic labels mapped and audited.
 - **Traceable, falsifiable cleanup.** Every non-trivial decision is an Open

@@ -186,22 +186,22 @@
     <div class="stats-grid" aria-label="Dashboard summary">
       <div class="stat-card">
         <div class="stat-title">Domestic Passengers Carried</div>
-        <div id="domestic-month-value" class="stat-value">&mdash;</div>
+        <div id="domestic-month-value" class="stat-value">&hellip;</div>
         <div id="domestic-month-label" class="stat-label">Latest month, scheduled domestic airlines</div>
       </div>
       <div class="stat-card">
         <div class="stat-title">Domestic T12 Growth</div>
-        <div id="domestic-growth-value" class="stat-value">&mdash;</div>
+        <div id="domestic-growth-value" class="stat-value">&hellip;</div>
         <div id="domestic-growth-label" class="stat-label">Passengers carried, trailing 12 months vs previous 12 months</div>
       </div>
       <div class="stat-card">
         <div class="stat-title">International Gateway Traffic</div>
-        <div id="international-traffic-value" class="stat-value">&mdash;</div>
+        <div id="international-traffic-value" class="stat-value">&hellip;</div>
         <div id="international-traffic-label" class="stat-label">Indian international gateways, latest 4 published quarters</div>
       </div>
       <div class="stat-card">
         <div class="stat-title">International 4Q Growth</div>
-        <div id="international-growth-value" class="stat-value">&mdash;</div>
+        <div id="international-growth-value" class="stat-value">&hellip;</div>
         <div id="international-growth-label" class="stat-label">Indian gateway throughput, latest 4Q vs previous 4Q</div>
       </div>
     </div>
@@ -267,12 +267,12 @@
     }
 
     function fmtMillions(n) {
-      if (n === null || n === undefined) return '\u2014';
+      if (n === null || n === undefined) return 'n/a';
       return `${(Number(n) / 1000000).toFixed(1)}M`;
     }
 
     function fmtPct(x) {
-      if (x === null || x === undefined || Number.isNaN(Number(x))) return '\u2014';
+      if (x === null || x === undefined || Number.isNaN(Number(x))) return 'n/a';
       const n = Number(x);
       return `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`;
     }

@@ -5,7 +5,7 @@ checks to detect obvious metric or processing errors. Canonical data remains the
 DGCA source data ingested by the pipeline; press/media reports are never used as a
 data source (see [METHODOLOGY.md](../METHODOLOGY.md)).
 
-Each check states the *comparable* metric — not just a similar-looking number —
+Each check states the *comparable* metric - not just a similar-looking number  - 
 because the same word ("passengers") spans both airport throughput and passengers
 carried in this repo.
 

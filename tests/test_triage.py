@@ -1,4 +1,4 @@
-"""Tests for triage mode — the advisory research worklist.
+"""Tests for triage mode - the advisory research worklist.
 
 Triage is deterministic (no network); it only DETECTS + scaffolds. These tests
 pin that: the shipped dataset triages to nothing, an unmapped high-volume label

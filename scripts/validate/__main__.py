@@ -27,7 +27,7 @@ def main() -> int:
         run_revisions()
     if args.triage:
         from .triage import run_triage
-        run_triage()  # advisory — deliberately does not affect the exit code
+        run_triage()  # advisory - deliberately does not affect the exit code
     return code
 
 

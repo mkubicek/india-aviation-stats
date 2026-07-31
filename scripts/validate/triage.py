@@ -1,6 +1,6 @@
 """Triage mode: turn the gate's *unclassified* anomalies into a research worklist.
 
-ADVISORY and on-demand — never part of the blocking path. The mechanical gate can
+ADVISORY and on-demand - never part of the blocking path. The mechanical gate can
 **detect** an anomaly (two source labels feeding one airport in the same month; a
 high-volume label that maps to nothing) but it cannot **classify** it: deciding
 whether two labels are one physical airport or two needs world knowledge. That is
@@ -9,7 +9,7 @@ the one judgement the data alone can't make.
 So this module emits, per anomaly, a research question + a ready-to-fill OKF
 assumption skeleton, so an agent *with web search* can hunt counter-evidence and
 draft a cited ``assumptions/<id>.md`` for a **human to confirm**. It performs no
-network or LLM calls itself — it stays deterministic; the searching lives in the
+network or LLM calls itself - it stays deterministic; the searching lives in the
 ``validate-assumptions`` skill. Triage never blocks; the gate is the pass/fail.
 """
 
@@ -71,7 +71,7 @@ tags: [airport, triage-draft, NEEDS-HUMAN-REVIEW]
 
 <!-- TODO: cite 1-2 PRIMARY sources (IATA / airport authority / Wikipedia) and,
      ideally, note one search that tried to REFUTE this reading and failed. -->
-- https://en.wikipedia.org/wiki/<airport> — IATA/ICAO code + physical location
+- https://en.wikipedia.org/wiki/<airport> - IATA/ICAO code + physical location
 
 # Falsification
 
@@ -83,10 +83,10 @@ def build_worklist(mappings: dict, raw_domestic: Path) -> list[dict]:
     """Deterministic: scan raw labels, return the items that need world-knowledge.
 
     Two kinds, mirroring exactly what the gate detects but can't decide:
-      - ``undeclared_concurrent`` — >1 source label feeds one canonical in the same
+      - ``undeclared_concurrent`` - >1 source label feeds one canonical in the same
         month, not declared in ``concurrent_labels`` and not covered by an
         assumption (this reds the reverse gate).
-      - ``unmapped_high_volume`` — a label resolves to nothing above the volume
+      - ``unmapped_high_volume`` - a label resolves to nothing above the volume
         threshold (advisory in the gate; a real airport we failed to map).
     """
     if not raw_domestic.exists():
@@ -119,7 +119,7 @@ def build_worklist(mappings: dict, raw_domestic: Path) -> list[dict]:
 
     items: list[dict] = []
 
-    # Kind 1 — undeclared concurrent merges (mirrors overlap + reverse gate).
+    # Kind 1 - undeclared concurrent merges (mirrors overlap + reverse gate).
     for canon in sorted(per_month):
         labelset: set[str] = set()
         co_months: list[tuple] = []
@@ -153,7 +153,7 @@ def build_worklist(mappings: dict, raw_domestic: Path) -> list[dict]:
                 covers=[canon], labels=labels, question=q, airport=canon),
         })
 
-    # Kind 2 — high-volume unmapped labels (a real airport we failed to map).
+    # Kind 2 - high-volume unmapped labels (a real airport we failed to map).
     for label, total in unmapped_pax.items():
         per_year = total / max(1, len(unmapped_years[label]))
         if per_year < UNMAPPED_PAX_THRESHOLD:
@@ -195,7 +195,7 @@ def run_triage(write: bool = True) -> int:
             indent=2) + "\n")
 
     if not items:
-        print("  Queue empty — every concurrent merge is declared/covered and no high-volume "
+        print("  Queue empty - every concurrent merge is declared/covered and no high-volume "
               "label is unmapped. Nothing to research.", flush=True)
     else:
         print(f"  {len(items)} label(s) need classification (the gate detects, you decide):\n",
@@ -209,5 +209,5 @@ def run_triage(write: bool = True) -> int:
               flush=True)
         print("  Research each (web), draft assumptions/<id>.md, get human sign-off, then "
               "edit mappings.yaml and re-run the gate.", flush=True)
-    print("\n  (advisory — triage never blocks; the gate is the pass/fail.)", flush=True)
+    print("\n  (advisory - triage never blocks; the gate is the pass/fail.)", flush=True)
     return 0

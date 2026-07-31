@@ -92,7 +92,7 @@ jobs:
 
       # Stale-data governance: a BLOCKING gate failure (e.g. an unclassified
       # overlap from a new DGCA label, or a TRIGGERED assumption) keeps the
-      # last-good published data and opens an issue — it never silently ships a
+      # last-good published data and opens an issue - it never silently ships a
       # now-wrong merge. Clean newcomers stay advisory and still publish.
       - name: Open issue on validation failure
         if: steps.validate.outcome == 'failure'

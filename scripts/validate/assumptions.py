@@ -9,8 +9,8 @@ written back into the files, so the knowledge base stays diff-clean). Two jobs:
    ``STALE`` (recheck date passed → advisory) / ``ORPHANED`` (the quirk vanished
    → advisory).
 2. **Reverse gate (completeness by construction):** any anomaly the mechanical
-   checks surface — a concurrent same-canonical merge, a high-volume unmapped
-   name — that has *no* covering assumption file is an undocumented quirk →
+   checks surface - a concurrent same-canonical merge, a high-volume unmapped
+   name - that has *no* covering assumption file is an undocumented quirk →
    BLOCKING. Nothing weird stays silent.
 """
 
@@ -110,7 +110,7 @@ def _t_month_disjoint(params, ctx) -> tuple[str, str]:
             if shared:
                 ex = sorted(shared)[0]
                 return "TRIGGERED", (f"{present[i]} and {present[j]} co-occur in "
-                                     f"{ex[0]}-{ex[1]:02d} — not a clean disjoint rename")
+                                     f"{ex[0]}-{ex[1]:02d} - not a clean disjoint rename")
     if not present:
         return "ORPHANED", f"none of {labels} present in the data"
     return "HOLDS", f"{present} are month-disjoint"
@@ -137,7 +137,7 @@ def _t_airlines_distinct(params, ctx) -> tuple[str, str]:
     present = ctx["airlines"]
     names = [str(x) for x in params["airlines"]]
     if not present:
-        return "ORPHANED", "carrier_monthly absent — cannot check airline identity"
+        return "ORPHANED", "carrier_monthly absent - cannot check airline identity"
     missing = [a for a in names if a not in present]
     if missing:
         return "TRIGGERED", f"airline(s) collapsed/erased: {missing} absent from carrier_monthly"
@@ -222,7 +222,7 @@ def reverse_gate(assumptions: list[dict], mappings: dict) -> list[Finding]:
             if canon not in covered:
                 findings.append(_fail(f"reverse_gate.undocumented.{canon}", "BLOCKING",
                                       f"{canon} has a concurrent same-canonical merge with no "
-                                      f"covering assumptions/ file — document it or clean it"))
+                                      f"covering assumptions/ file - document it or clean it"))
     if not findings:
         findings.append(_ok("reverse_gate", "BLOCKING",
                             "every concurrent merge has a covering assumption file"))
@@ -254,7 +254,7 @@ def generate_data_quality(results: list[dict], reverse: list[Finding]) -> None:
     lines += ["", "## Reverse gate", "",
               ("🛑 " + str(len(rg_fail)) + " undocumented quirk(s): "
                + "; ".join(f.message for f in rg_fail)) if rg_fail
-              else "✅ No undocumented quirks — every anomaly has a covering assumption file."]
+              else "✅ No undocumented quirks - every anomaly has a covering assumption file."]
     DATA_QUALITY_PATH.write_text("\n".join(lines) + "\n")
 
 
