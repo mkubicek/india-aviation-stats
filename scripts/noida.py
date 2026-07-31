@@ -10,6 +10,8 @@ Run: uv run python scripts/noida.py
 
 from __future__ import annotations
 
+import json
+import math
 from datetime import date
 from pathlib import Path
 
@@ -36,12 +38,9 @@ RAMP_WINDOW = 24
 MENU_TOP_N = 15
 TRUNK_TOP_N = 50
 
-SERIES = {  # fixed entity hues from the validated categorical order
-    "DXN": "#2a78d6",
-    "GOX": "#eb6834",
-    "NMIA": "#1baf7a",
-    "HDO": "#eda100",
-}
+# Fixed entity hues come from mappings.yaml (airport_colors) so every chart
+# and page shows the same airport in the same colour.
+SERIES = {code: c.AIRPORT_COLORS[code] for code in ["DXN", "GOX", "NMIA", "HDO", "BOM"]}
 
 LINE = dict(linewidth=2.2, solid_capstyle="round", solid_joinstyle="round")
 MARK = dict(marker="o", markersize=5.5, markeredgewidth=1.2, markeredgecolor=c.BG)
@@ -80,26 +79,38 @@ def new_fig() -> tuple[plt.Figure, plt.Axes]:
 # Exhibits
 # ---------------------------------------------------------------------------
 
+def ramp_window_series(monthly: pd.DataFrame, airport: str) -> pd.Series | None:
+    """First RAMP_WINDOW calendar months, NaN where no month was published."""
+    s = month_series(monthly, airport)
+    if s.empty:
+        return None
+    first = s.index[0]
+    full = pd.period_range(first, first + RAMP_WINDOW - 1, freq="M")
+    return s.reindex(full)
+
+
 def chart_ramp_benchmark(monthly: pd.DataFrame, *, coverage: str, fingerprint: str) -> str | None:
     fig, ax = new_fig()
-    series = {}
+    series: dict[str, pd.Series] = {}
     for airport in ANALOGUES + [NEWCOMER]:
-        s = month_series(monthly, airport).head(RAMP_WINDOW)
-        if not s.empty:
+        s = ramp_window_series(monthly, airport)
+        if s is not None:
             series[airport] = s
     if not any(a in series for a in ANALOGUES):
         plt.close(fig)
         return None
 
+    x = np.arange(1, RAMP_WINDOW + 1)
     for airport in ANALOGUES:
         if airport not in series:
             continue
         s = series[airport]
-        x = range(1, len(s) + 1)
+        observed = s.dropna()
+        last_pos = int(s.index.get_loc(observed.index[-1])) + 1
         ax.plot(x, s.values, color=SERIES[airport], **LINE)
         ax.annotate(
             c.airport_label(airport),
-            (len(s), float(s.iloc[-1])),
+            (last_pos, float(observed.iloc[-1])),
             xytext=(7, 0),
             textcoords="offset points",
             fontsize=9.5,
@@ -111,8 +122,10 @@ def chart_ramp_benchmark(monthly: pd.DataFrame, *, coverage: str, fingerprint: s
     has_newcomer = NEWCOMER in series
     if has_newcomer:
         s = series[NEWCOMER]
+        observed = s.dropna()
+        last_pos = int(s.index.get_loc(observed.index[-1])) + 1
         ax.plot(
-            range(1, len(s) + 1),
+            x,
             s.values,
             linestyle="none",
             marker="o",
@@ -121,10 +134,10 @@ def chart_ramp_benchmark(monthly: pd.DataFrame, *, coverage: str, fingerprint: s
             markeredgecolor=SERIES[NEWCOMER],
             markeredgewidth=2.5,
         )
-        first = s.index[0]
+        latest = observed.index[-1]
         ax.annotate(
-            f"{c.airport_label(NEWCOMER)}: {s.iloc[-1] / 1e3:.0f}K in {first.strftime('%b %Y')}",
-            (len(s), float(s.iloc[-1])),
+            f"{c.airport_label(NEWCOMER)}: {observed.iloc[-1] / 1e3:.0f}K in {latest.strftime('%b %Y')}",
+            (last_pos, float(observed.iloc[-1])),
             xytext=(14, 30),
             textcoords="offset points",
             fontsize=9.5,
@@ -135,12 +148,12 @@ def chart_ramp_benchmark(monthly: pd.DataFrame, *, coverage: str, fingerprint: s
 
     title = "Newcomer ramp-ups at India's dual-airport systems"
     if has_newcomer:
-        title += f" — and {c.airport_label(NEWCOMER)}'s first months"
+        title += f", and {c.airport_label(NEWCOMER)}'s first months"
     labels = [c.airport_label(a) for a in ANALOGUES if a in series]
     c.style_axis(
         ax,
         title,
-        f"Monthly airport passenger movements in the first {RAMP_WINDOW} observed months: "
+        f"Monthly airport passenger movements in each airport's first {RAMP_WINDOW} calendar months: "
         + ", ".join(labels),
         "Airport passenger movements",
     )
@@ -166,7 +179,7 @@ def chart_ramp_benchmark(monthly: pd.DataFrame, *, coverage: str, fingerprint: s
         fig,
         coverage=coverage,
         fingerprint=fingerprint,
-        caveat="A first observed month may be partial (mid-month opening). Analogues differ in catchment, era, and operating model — they bound plausibility, they do not predict.",
+        caveat="A first observed month may be partial (mid-month opening); months with no published DGCA row appear as line gaps. Analogues differ in catchment, era, and operating model; they bound plausibility, they do not predict.",
     )
     fig.subplots_adjust(left=0.08, right=0.95, top=0.84, bottom=0.15)
     save(fig, "noida_ramp_benchmark")
@@ -178,18 +191,21 @@ def chart_nmia_tracker(monthly: pd.DataFrame, *, coverage: str, fingerprint: str
     bom = month_series(monthly, "BOM")
     if nmia.empty:
         return None
-    share = (nmia / (nmia + bom.reindex(nmia.index))) * 100
-    share = share.dropna()
-    if share.empty:
+    # Calendar reindex: a missing month breaks the line and never produces a
+    # cross-gap "step"; the month count is calendar months since opening.
+    full_range = pd.period_range(nmia.index.min(), nmia.index.max(), freq="M")
+    share = (nmia / (nmia + bom)).reindex(full_range) * 100
+    observed = share.dropna()
+    if observed.empty:
         return None
 
     fig, ax = new_fig()
     x = np.arange(len(share))
     ax.plot(x, share.values, color=c.PRIMARY, **LINE, **MARK)
-    for i in (0, len(share) - 1):
+    for period in (observed.index[0], observed.index[-1]):
         ax.annotate(
-            f"{share.iloc[i]:.1f}%",
-            (i, share.iloc[i]),
+            f"{share.loc[period]:.1f}%",
+            (int(share.index.get_loc(period)), share.loc[period]),
             xytext=(0, 11),
             textcoords="offset points",
             fontsize=9.5,
@@ -197,8 +213,8 @@ def chart_nmia_tracker(monthly: pd.DataFrame, *, coverage: str, fingerprint: str
             color=c.TEXT,
             ha="center",
         )
-    if len(share) >= 2:
-        steps = share.diff().dropna()
+    steps = share.diff().dropna()
+    if not steps.empty:
         jump_period = steps.idxmax()
         jump_idx = int(share.index.get_loc(jump_period))
         ax.annotate(
@@ -215,7 +231,7 @@ def chart_nmia_tracker(monthly: pd.DataFrame, *, coverage: str, fingerprint: str
 
     c.style_axis(
         ax,
-        f"Navi Mumbai holds {share.iloc[-1]:.1f}% of Mumbai's two-airport traffic "
+        f"Navi Mumbai holds {observed.iloc[-1]:.1f}% of Mumbai's two-airport traffic "
         f"after {len(share)} months",
         "NMIA share of combined NMIA + BOM airport passenger movements, by month since opening",
         "Share of Mumbai-system throughput",
@@ -230,7 +246,7 @@ def chart_nmia_tracker(monthly: pd.DataFrame, *, coverage: str, fingerprint: str
         fig,
         coverage=coverage,
         fingerprint=fingerprint,
-        caveat="Share steps reflect airlines moving capacity in blocks. Observational — not a Noida forecast.",
+        caveat="Share steps reflect airlines moving capacity in blocks. Observational, not a Noida forecast.",
     )
     fig.subplots_adjust(left=0.08, right=0.95, top=0.84, bottom=0.13)
     save(fig, "noida_nmia_tracker")
@@ -243,20 +259,24 @@ def chart_indigo_share(carrier: pd.DataFrame, *, coverage: str, fingerprint: str
     complete = [y for y in years if sd[sd["year"] == y]["month"].nunique() == 12]
     if len(complete) < 2:
         return None
-    shares = []
+    span = list(range(complete[0], complete[-1] + 1))
+    excluded = [y for y in span if y not in complete]
+    shares_by_year = {}
     for y in complete:
         a = sd[sd["year"] == y]
         total = a["passengers"].sum()
         indigo = a[a["airline"].str.contains("IndiGo", case=False, na=False)]["passengers"].sum()
-        shares.append(indigo / total * 100 if total else np.nan)
+        shares_by_year[y] = indigo / total * 100 if total else np.nan
+    plot_y = [shares_by_year.get(y, np.nan) for y in span]  # gaps break the line
+    first_share, last_share = shares_by_year[complete[0]], shares_by_year[complete[-1]]
 
     fig, ax = new_fig()
-    ax.plot(complete, shares, color=c.PRIMARY, **LINE, **MARK)
-    ax.fill_between(complete, shares, color=c.PRIMARY, alpha=0.10, linewidth=0)
-    for i in (0, len(complete) - 1):
+    ax.plot(span, plot_y, color=c.PRIMARY, **LINE, **MARK)
+    ax.fill_between(span, plot_y, color=c.PRIMARY, alpha=0.10, linewidth=0)
+    for year, share in ((complete[0], first_share), (complete[-1], last_share)):
         ax.annotate(
-            f"{shares[i]:.0f}%",
-            (complete[i], shares[i]),
+            f"{share:.0f}%",
+            (year, share),
             xytext=(0, 12),
             textcoords="offset points",
             fontsize=9.5,
@@ -264,21 +284,26 @@ def chart_indigo_share(carrier: pd.DataFrame, *, coverage: str, fingerprint: str
             color=c.TEXT,
             ha="center",
         )
+    subtitle = "IndiGo share of scheduled domestic passengers carried, complete calendar years"
+    if excluded:
+        subtitle += (
+            " · omitted as incomplete: " + ", ".join(str(y) for y in excluded)
+        )
     c.style_axis(
         ax,
-        f"IndiGo carries {shares[-1]:.0f}% of India's domestic passengers "
-        f"(was {shares[0]:.0f}% in {complete[0]})",
-        "IndiGo share of scheduled domestic passengers carried, complete calendar years",
+        f"IndiGo carries {last_share:.0f}% of India's domestic passengers "
+        f"(was {first_share:.0f}% in {complete[0]})",
+        subtitle,
         "Share of passengers carried",
     )
-    ax.set_xticks(complete)
+    ax.set_xticks(span)
     ax.set_ylim(0, 80)
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(c.fmt_percent))
     c.add_footer(
         fig,
         coverage=coverage,
         fingerprint=fingerprint,
-        caveat="National share — DGCA does not publish airline traffic per airport.",
+        caveat="National share; DGCA does not publish airline traffic per airport.",
     )
     fig.subplots_adjust(left=0.08, right=0.95, top=0.84, bottom=0.13)
     save(fig, "noida_indigo_share")
@@ -310,20 +335,11 @@ def chart_growth_pause(carrier: pd.DataFrame, *, coverage: str, fingerprint: str
         color=c.TEXT,
         va="top",
     )
-    trough = t12_clean.loc["2020":"2022"]
-    if not trough.empty:
-        tp = trough.idxmin()
-        ax.annotate(
-            "COVID-19",
-            (mdates.date2num(tp.to_timestamp()) + 200, float(trough.min()) * 0.88),
-            fontsize=9,
-            color=c.MUTED,
-        )
     c.style_axis(
         ax,
         f"India's domestic market grew {latest_yoy:+.1f}% in the latest 12 months, "
         f"against a {trend * 100:.0f}%-a-year {span_years}-year trend",
-        "Scheduled domestic passengers carried, trailing 12-month total — counted once per journey",
+        "Scheduled domestic passengers carried, trailing 12-month total, counted once per journey",
         "Trailing 12-month passengers carried",
     )
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(c.fmt_millions))
@@ -404,6 +420,10 @@ def chart_delhi_menu(routes: pd.DataFrame, *, coverage: str, fingerprint: str) -
     periods = sorted(routes["period"].unique())
     if len(periods) < 24:
         return None
+    expected = list(pd.period_range(periods[-24], periods[-1], freq="M"))
+    if periods[-24:] != expected:
+        print("  Skipped noida_delhi_menu: route months are not contiguous", flush=True)
+        return None
     latest = periods[-12:]
     prior = periods[-24:-12]
 
@@ -423,10 +443,14 @@ def chart_delhi_menu(routes: pd.DataFrame, *, coverage: str, fingerprint: str) -
     ax = fig.add_axes((0.17, 0.13, 0.74, 0.66))
     ax.set_facecolor(c.BG)
     ypos = np.arange(len(top))[::-1]
-    colors = [
-        c.POSITIVE if yoy.get(m, 0) >= 1 else c.NEGATIVE if yoy.get(m, 0) <= -1 else c.DEEMPH
-        for m in top.index
-    ]
+
+    def market_class(m: str) -> str:
+        g = yoy.get(m)
+        if g is None:
+            return c.DEEMPH  # no prior-year base: growth undefined, not "flat"
+        return c.POSITIVE if g >= 1 else c.NEGATIVE if g <= -1 else c.DEEMPH
+
+    colors = [market_class(m) for m in top.index]
     ax.barh(ypos, top.values, height=0.62, color=colors)
     for yp, market, value in zip(ypos, top.index, top.values):
         growth = yoy.get(market)
@@ -473,7 +497,7 @@ def chart_delhi_menu(routes: pd.DataFrame, *, coverage: str, fingerprint: str) -
         plt.Line2D([], [], marker="s", linestyle="none", markersize=9, color=col, label=lab)
         for col, lab in (
             (c.POSITIVE, "Growing (≥ +1%)"),
-            (c.DEEMPH, "Flat"),
+            (c.DEEMPH, "Flat or no prior-year base"),
             (c.NEGATIVE, "Declining (≤ −1%)"),
         )
     ]
@@ -482,7 +506,7 @@ def chart_delhi_menu(routes: pd.DataFrame, *, coverage: str, fingerprint: str) -
         fig,
         coverage=coverage,
         fingerprint=fingerprint,
-        caveat="Delhi (DEL) is an observable NCR proxy — a research queue, not a Noida forecast or route recommendation.",
+        caveat="Delhi (DEL) is an observable NCR proxy: a research queue, not a Noida forecast or route recommendation.",
     )
     save(fig, "noida_delhi_menu")
     return "noida_delhi_menu"
@@ -566,7 +590,10 @@ def chart_relief_valve(monthly: pd.DataFrame, *, coverage: str, fingerprint: str
 
     fig, ax = new_fig()
     x = periods.to_timestamp()
-    ax.stackplot(x, bom_w.values, nmia_w.values, colors=[c.PRIMARY, "#eb6834"], alpha=0.85, linewidth=0)
+    ax.stackplot(
+        x, bom_w.values, nmia_w.values,
+        colors=[SERIES["BOM"], SERIES["NMIA"]], alpha=0.85, linewidth=0,
+    )
     ax.plot(x, bom_w.values, color=c.BG, linewidth=1.5)
     entry = nmia.index[0].to_timestamp()
     ax.annotate(
@@ -592,8 +619,8 @@ def chart_relief_valve(monthly: pd.DataFrame, *, coverage: str, fingerprint: str
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
     ax.legend(
         handles=[
-            plt.Line2D([], [], marker="s", linestyle="none", markersize=9, color=c.PRIMARY, label=c.airport_label("BOM")),
-            plt.Line2D([], [], marker="s", linestyle="none", markersize=9, color="#eb6834", label=c.airport_label("NMIA")),
+            plt.Line2D([], [], marker="s", linestyle="none", markersize=9, color=SERIES["BOM"], label=c.airport_label("BOM")),
+            plt.Line2D([], [], marker="s", linestyle="none", markersize=9, color=SERIES["NMIA"], label=c.airport_label("NMIA")),
         ],
         loc="upper left",
         frameon=False,
@@ -604,7 +631,7 @@ def chart_relief_valve(monthly: pd.DataFrame, *, coverage: str, fingerprint: str
         fig,
         coverage=coverage,
         fingerprint=fingerprint,
-        caveat="Observational — system growth cannot be attributed causally to the new airport's entry.",
+        caveat="Observational; system growth cannot be attributed causally to the new airport's entry.",
     )
     fig.subplots_adjust(left=0.08, right=0.95, top=0.84, bottom=0.13)
     save(fig, "noida_relief_valve")
@@ -615,24 +642,28 @@ def chart_hindon_lesson(monthly: pd.DataFrame, *, coverage: str, fingerprint: st
     hdo = month_series(monthly, "HDO")
     if len(hdo) < 12:
         return None
-    steps = hdo.diff().dropna()
+    # Reindex to the full calendar range: unpublished months become NaN, so
+    # diffs never span a gap and the plotted line breaks where data is missing.
+    full_range = pd.period_range(hdo.index.min(), hdo.index.max(), freq="M")
+    hdo_full = hdo.reindex(full_range)
+    steps = hdo_full.diff().dropna()
     jump = steps.idxmax()
     peak = float(hdo.max())
     peak_period = hdo.idxmax()
-    # Quiet window in calendar months (the series may have gaps), capped well
-    # before the largest step so the ramp itself never defines the ceiling.
+    # Quiet window: whole years only, capped a year before the largest step so
+    # the ramp itself never defines the ceiling; ceiling is rounded UP so the
+    # "stayed under" claim is strictly true.
     first = hdo.index[0]
-    quiet_span = min(60, max(12, (jump - first).n - 12))
-    quiet = hdo[hdo.index < first + quiet_span]
-    quiet_ceiling = float(quiet.max())
-    quiet_years = quiet_span // 12
+    quiet_years = min(5, max(1, ((jump - first).n - 12) // 12))
+    quiet = hdo[hdo.index < first + quiet_years * 12]
+    quiet_ceiling_k = math.ceil(float(quiet.max()) / 1000)
 
     fig, ax = new_fig()
-    x = hdo.index.to_timestamp()
-    ax.plot(x, hdo.values, color=c.PRIMARY, **LINE)
+    x = hdo_full.index.to_timestamp()
+    ax.plot(x, hdo_full.values, color=c.PRIMARY, **LINE)
     ax.annotate(
         f"Largest step: {steps.max() / 1e3:+.0f}K in {jump.strftime('%b %Y')}",
-        (mdates.date2num(jump.to_timestamp()), float(hdo.loc[jump])),
+        (mdates.date2num(jump.to_timestamp()), float(hdo_full.loc[jump])),
         xytext=(-110, 30),
         textcoords="offset points",
         fontsize=9.5,
@@ -652,7 +683,7 @@ def chart_hindon_lesson(monthly: pd.DataFrame, *, coverage: str, fingerprint: st
     )
     c.style_axis(
         ax,
-        f"Hindon stayed under {quiet_ceiling / 1e3:.0f}K a month in its first "
+        f"Hindon stayed under {quiet_ceiling_k}K a month in its first "
         f"{quiet_years} years, then reached {peak / 1e3:.0f}K in {peak_period.strftime('%b %Y')}",
         "Monthly airport passenger movements at Hindon (HDO), Delhi's second airport, since first DGCA observation",
         "Monthly airport passenger movements",
@@ -665,7 +696,7 @@ def chart_hindon_lesson(monthly: pd.DataFrame, *, coverage: str, fingerprint: st
         fig,
         coverage=coverage,
         fingerprint=fingerprint,
-        caveat="DGCA data shows the step, not its cause; capacity commitments can also recede.",
+        caveat="DGCA data shows the step, not its cause; capacity commitments can also recede. Months with no published row appear as line gaps.",
     )
     fig.subplots_adjust(left=0.08, right=0.95, top=0.84, bottom=0.13)
     save(fig, "noida_hindon_lesson")
@@ -726,7 +757,7 @@ def chart_small_city_share(monthly: pd.DataFrame, *, coverage: str, fingerprint:
 EXHIBIT_COPY = {
     "noida_growth_pause": (
         "The market Noida enters",
-        "Every early Noida number reads against the national baseline — state it before someone else does.",
+        "Every early Noida number reads against the national baseline. State it before someone else does.",
     ),
     "noida_beyond_trunk": (
         "The market Noida enters",
@@ -750,7 +781,7 @@ EXHIBIT_COPY = {
     ),
     "noida_ramp_benchmark": (
         "The playbook",
-        "The bounding curves — scale-up, replication, and flatline — frame first-24-month expectations.",
+        "The bounding curves (scale-up, replication, flatline) frame first-24-month expectations.",
     ),
     "noida_nmia_tracker": (
         "The playbook",
@@ -803,10 +834,10 @@ def write_page(generated: list[str], data_date: str | None) -> Path:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Noida International Airport — india-aviation-stats</title>
+  <title>Noida International Airport | india-aviation-stats</title>
   <meta name="description" content="What published DGCA data says about the market Noida International Airport (DXN) enters.">
-  <meta property="og:title" content="Noida International Airport — DGCA data in charts">
-  <meta property="og:image" content="charts/noida/noida_ramp_benchmark.png">
+  <meta property="og:title" content="Noida International Airport: DGCA data in charts">
+  <meta property="og:image" content="https://mkubicek.github.io/india-aviation-stats/charts/noida/noida_ramp_benchmark.png">
   <style>
     * {{ margin: 0; padding: 0; box-sizing: border-box; }}
     body {{
@@ -837,9 +868,9 @@ def write_page(generated: list[str], data_date: str | None) -> Path:
       <p class="kicker">Noida International Airport (DXN) · DGCA data</p>
       <h1>The market Noida enters, in charts</h1>
       <p class="lede">The national market a new Delhi-region airport joins, the region it serves, and the
-      ramp-up playbook written by India's other dual-airport systems — every number computed from
+      ramp-up playbook written by India's other dual-airport systems. Every number is computed from
       published DGCA tables, every chart carrying its own caveat.</p>
-      <p class="meta">Delhi (DEL) data is used throughout as an observable NCR proxy — nothing here is a
+      <p class="meta">Delhi (DEL) data is used throughout as an observable NCR proxy; nothing here is a
       Noida forecast. <a href="index.html">&larr; Main dashboard</a></p>
     </header>
 {chr(10).join(sections)}
@@ -856,6 +887,25 @@ def write_page(generated: list[str], data_date: str | None) -> Path:
     return PAGE_PATH
 
 
+def write_manifest(records: list[dict]) -> Path:
+    manifest = {
+        "generated": str(date.today()),
+        "charts": {
+            r["id"]: {
+                "file": f"charts/noida/{r['id']}.png",
+                "sha256": c.sha256_file(OUT_DIR / f"{r['id']}.png"),
+                "inputs": r["inputs"],
+                "input_fingerprint": r["fingerprint"],
+                "coverage": r["coverage"],
+            }
+            for r in records
+        },
+    }
+    path = OUT_DIR / "manifest.json"
+    path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
 def main() -> None:
     print("=== Generating Noida charts ===\n", flush=True)
     monthly = c.load_domestic_monthly()
@@ -866,35 +916,40 @@ def main() -> None:
     carrier_cov = c.carrier_domestic_coverage(carrier)
     monthly_fp = c.input_fingerprint([c.DOMESTIC_MONTHLY_PATH])
     carrier_fp = c.input_fingerprint([c.CARRIER_MONTHLY_PATH])
+    carrier_inputs = [str(c.CARRIER_MONTHLY_PATH.relative_to(ROOT))]
+    monthly_inputs = [str(c.DOMESTIC_MONTHLY_PATH.relative_to(ROOT))]
 
-    generated: list[str] = []
-    for result in (
-        chart_growth_pause(carrier, coverage=carrier_cov, fingerprint=carrier_fp),
-        chart_indigo_share(carrier, coverage=carrier_cov, fingerprint=carrier_fp),
-        chart_small_city_share(monthly, coverage=monthly_cov, fingerprint=monthly_fp),
-        chart_ncr_vs_mmr(monthly, coverage=monthly_cov, fingerprint=monthly_fp),
-        chart_ramp_benchmark(monthly, coverage=monthly_cov, fingerprint=monthly_fp),
-        chart_nmia_tracker(monthly, coverage=monthly_cov, fingerprint=monthly_fp),
-        chart_relief_valve(monthly, coverage=monthly_cov, fingerprint=monthly_fp),
-        chart_hindon_lesson(monthly, coverage=monthly_cov, fingerprint=monthly_fp),
-    ):
+    records: list[dict] = []
+
+    def run(fn, data, coverage, fingerprint, inputs):
+        result = fn(data, coverage=coverage, fingerprint=fingerprint)
         if result:
-            generated.append(result)
+            records.append(
+                dict(id=result, coverage=coverage, fingerprint=fingerprint, inputs=inputs)
+            )
             print(f"  Saved: charts/noida/{result}.png", flush=True)
+
+    run(chart_growth_pause, carrier, carrier_cov, carrier_fp, carrier_inputs)
+    run(chart_indigo_share, carrier, carrier_cov, carrier_fp, carrier_inputs)
+    run(chart_small_city_share, monthly, monthly_cov, monthly_fp, monthly_inputs)
+    run(chart_ncr_vs_mmr, monthly, monthly_cov, monthly_fp, monthly_inputs)
+    run(chart_ramp_benchmark, monthly, monthly_cov, monthly_fp, monthly_inputs)
+    run(chart_nmia_tracker, monthly, monthly_cov, monthly_fp, monthly_inputs)
+    run(chart_relief_valve, monthly, monthly_cov, monthly_fp, monthly_inputs)
+    run(chart_hindon_lesson, monthly, monthly_cov, monthly_fp, monthly_inputs)
 
     if routes is not None:
         route_cov = f"{routes['period'].min()}..{routes['period'].max()}"
         route_fp = c.input_fingerprint([ROUTE_MONTHLY_PATH])
-        for result in (
-            chart_beyond_trunk(routes, coverage=route_cov, fingerprint=route_fp),
-            chart_delhi_menu(routes, coverage=route_cov, fingerprint=route_fp),
-        ):
-            if result:
-                generated.append(result)
-                print(f"  Saved: charts/noida/{result}.png", flush=True)
+        route_inputs = [str(ROUTE_MONTHLY_PATH.relative_to(ROOT))]
+        run(chart_beyond_trunk, routes, route_cov, route_fp, route_inputs)
+        run(chart_delhi_menu, routes, route_cov, route_fp, route_inputs)
     else:
         print("  Skipped route-level exhibits (data/processed/domestic_route_monthly.csv not published)", flush=True)
 
+    generated = [r["id"] for r in records]
+    manifest_path = write_manifest(records)
+    print(f"  Saved: {manifest_path.relative_to(ROOT)}", flush=True)
     meta = c.load_metadata()
     page = write_page(generated, meta.get("data_date"))
     print(f"  Saved: {page.relative_to(ROOT)} ({len(generated)} exhibits)", flush=True)

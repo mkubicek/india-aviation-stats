@@ -1175,6 +1175,15 @@ airport_colors:
   HYD: "#4a3aa7"
   MAA: "#eda100"
   CCU: "#e87ba4"
+  # Recurring newcomers keep one hue across every chart and page. Pairings
+  # were validated for CVD in their co-occurring sets (relief valve: BOM+NMIA
+  # 29.5 dE; ramp benchmark all-pairs worst 13.0 dE). NMIA shares violet with
+  # HYD, HDO shares yellow with MAA, DXN shares blue with DEL: pairs that are
+  # years from co-occurring on one chart (revisit if they approach the top-12).
+  GOX: "#e34948"
+  NMIA: "#4a3aa7"
+  HDO: "#eda100"
+  DXN: "#2a78d6"
 
 airline_colors:
   IndiGo: "#2a78d6"

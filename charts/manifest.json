@@ -42,7 +42,7 @@
         "moving_average_months": 12
       },
       "primary_source_table": "carrier_monthly",
-      "sha256": "fa94c30ec632db31766434c0d7650992e8dab29889646b4e8a01cfb86984530c"
+      "sha256": "b867dca009169681ce2fad7bc7a28b7cc28b647919dbfcfec6220e66518bec7e"
     },
     "international_gateway_share_gainers": {
       "file": "charts/international_gateway_share_gainers.png",
@@ -73,7 +73,7 @@
         "ramp_months": 24
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "ef03168edb3a8c86b1dfd5ea78bc0e941c65263ae59d18b2be8e9bf4856a2736"
+      "sha256": "62748279a1e7343516218cdc8c2aa03fc11bcac16e718c480c0cb3b32e12f9e6"
     },
     "top_airport_traffic_trends": {
       "file": "charts/top_airport_traffic_trends.png",
@@ -88,7 +88,7 @@
         "trailing_window_months": 12
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "ea1b7a857cf2e3199569a41417d32d79a1f7878c5c746367aef5ac0d5ce4940a"
+      "sha256": "adef5f8dedffd5e1875011308521b0c8f45cfbaeed5a19463dbc562ac974acbc"
     }
   },
   "datasets": {

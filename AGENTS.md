@@ -1,4 +1,4 @@
-# Agents — Conventions & Chart Styleguide
+# Agents: Conventions & Chart Styleguide
 
 Pipeline behaviour, data classification, and chart generation follow the rules
 here. For data definitions see [METHODOLOGY.md](METHODOLOGY.md).
@@ -9,19 +9,19 @@ here. For data definitions see [METHODOLOGY.md](METHODOLOGY.md).
 fetch.py → normalize.py → clean.py → validate/ → chart.py
 ```
 
-1. **fetch.py** — Download DGCA workbooks + refresh `sources_manifest.csv`
-2. **normalize.py** — Parse Excel → aggregated CSVs (PASSENEGER fix, month/airline map)
-3. **clean.py** — Entity dedup + cadence split → published tables in `data/processed/`
-4. **validate/** — `python -m validate [--assumptions --revisions]`: blocking gate
+1. **fetch.py**: Download DGCA workbooks + refresh `sources_manifest.csv`
+2. **normalize.py**: Parse Excel → aggregated CSVs (PASSENEGER fix, month/airline map)
+3. **clean.py**: Entity dedup + cadence split → published tables in `data/processed/`
+4. **validate/**: `python -m validate [--assumptions --revisions]`: blocking gate
    (overlap, cadence, schema, definitional) + assumptions ledger + reverse gate +
    revision log → `validation_report.json`, `DATA_QUALITY.md`, `REVISIONS.md`
-5. **chart.py** — Static dashboard charts + summary/manifest JSON → `charts/`
+5. **chart.py**: Static dashboard charts + summary/manifest JSON → `charts/`
 
 Each step is idempotent and re-runnable. Run validate with `PYTHONPATH=scripts`.
 
 ## Conventions
 
-- `mappings.yaml` drives all classification — edit mappings, not code
+- `mappings.yaml` drives all classification; edit mappings, not code
 - Resolution is 100% table-driven (entity tables + validity windows +
   `airport_aliases`); a high-volume unmapped domestic label is surfaced as an
   advisory, never silently kept as a raw code
@@ -32,19 +32,19 @@ Each step is idempotent and re-runnable. Run validate with `PYTHONPATH=scripts`.
 
 ## Charts
 
-Charts serve the data — keep them purist:
+Charts serve the data. Keep them purist:
 
 - **No editorial overlays.** A chart shows only what is in the published tables;
   every mark/label must be verifiable against the dataset. Do **not** caption or
   annotate data that isn't there yet (e.g. an "airport X awaited" note for an
   airport with zero rows). Newcomers surface through data-derived eligibility in
   `newcomer_airport_ramps()` once they have qualifying rows. **No airport is
-  special-cased or gilded** (not even a future flagship) — every line uses the
+  special-cased or gilded** (not even a future flagship); every line uses the
   shared palette.
 - **No employer/legal disclaimer on charts.** It lives in the **README only**.
-  Chart surfaces stay clean: title, axes, legend, and the attribution line —
+  Chart surfaces stay clean: title, axes, legend, and the attribution line,
   nothing else.
-- **Disclose selection and windows — no false completeness.** A chart that shows
+- **Disclose selection and windows; no false completeness.** A chart that shows
   a top-N subset (e.g. the share movers) must state on the chart how many
   entities of the total are shown and name the explicit comparison windows
   (period start–end), so a ~20-bar chart is never read as the full field of 100+
@@ -64,7 +64,7 @@ Default chart generation creates the six static dashboard charts:
 `scripts/noida.py` additionally generates the Noida focus set into
 `charts/noida/` and writes `noida.html` (run with `PYTHONPATH=scripts`).
 Exhibits whose inputs are not yet published (the route layer, DXN airport rows)
-are skipped and appear automatically once the data lands — never annotate a
+are skipped and appear automatically once the data lands. Never annotate a
 chart with data that isn't there.
 
 The optional `airport_passenger_race.gif` is generated only with
@@ -88,11 +88,11 @@ Titles never editorialise beyond what the plotted table shows.
 **Colour rules:** the categorical palette is the CVD-validated ordered set
 blue `#2a78d6` · orange `#eb6834` · aqua `#1baf7a` · yellow `#eda100` ·
 magenta `#e87ba4` · green `#008300` · violet `#4a3aa7` · red `#e34948`
-(`FALLBACK_COLORS`). Assign hues in fixed order or by fixed entity mapping —
+(`FALLBACK_COLORS`). Assign hues in fixed order or by fixed entity mapping,
 never cycle past the set; fold the tail into de-emphasis gray `#a9a7a0` with
 ink labels. Gain/decline is always the diverging pair blue `#2a78d6` / red
 `#e34948` (never green/red); sequential/diverging heatmaps put a neutral
-`#f0efec` at the midpoint. One y-axis per chart — never a dual-axis plot.
+`#f0efec` at the midpoint. One y-axis per chart, never a dual-axis plot.
 Direct labels are ink (`#0b0b0b`), not the series colour.
 
 **Attribution line** (bottom-right on the figure):

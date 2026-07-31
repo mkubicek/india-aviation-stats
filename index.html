@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#f9f9f7">
   <meta property="og:title" content="India Aviation Stats Dashboard">
   <meta property="og:description" content="Clean DGCA passenger-traffic data visualized as market pulse, airport momentum, gateway share, and seasonality charts.">
-  <meta property="og:image" content="charts/india_domestic_demand_pulse.png">
+  <meta property="og:image" content="https://mkubicek.github.io/india-aviation-stats/charts/india_domestic_demand_pulse.png">
   <meta property="og:type" content="website">
   <link rel="icon" href="data:,">
   <style>
@@ -297,7 +297,7 @@
 
     function pctColor(x) {
       if (x === null || x === undefined || Number.isNaN(Number(x))) return '#2a78d6';
-      return Number(x) >= 0 ? '#4ade80' : '#f87171';
+      return Number(x) >= 0 ? '#2a78d6' : '#e34948';
     }
 
     function renderSummary(summary) {

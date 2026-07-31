@@ -53,7 +53,7 @@ FIGSIZE_TALL = (14, 10)
 FIGSIZE_HEATMAP = (14, 12)
 
 # Light "manager" theme. Categorical slots are CVD-validated as an ordered
-# set (adjacent-pair ΔE gates) — assign in order, never cycle past the list.
+# set (adjacent-pair ΔE gates); assign in order, never cycle past the list.
 BG = "#fcfcfb"
 PANEL_BG = "#fcfcfb"
 TEXT = "#0b0b0b"
@@ -679,7 +679,7 @@ def chart_india_domestic_demand_pulse(
     fingerprint: str,
 ) -> Path:
     # National domestic demand is passengers carried (counted once per journey),
-    # sourced from the carrier table — NOT a national sum of airport endpoint
+    # sourced from the carrier table, NOT a national sum of airport endpoint
     # throughput, which double-counts every domestic journey. See metrics.py.
     national, t12, monthly_yoy, t12_yoy = domestic_demand_series(carrier)
 
@@ -721,13 +721,13 @@ def chart_india_domestic_demand_pulse(
         f"{fmt_optional_millions(latest_t12)} passengers carried in 12 months "
         f"({fmt_optional_pct(latest_t12_yoy)} year-on-year)",
         "Scheduled domestic passengers carried, trailing 12-month total"
-        " — counted once per journey, not airport throughput",
+        ", counted once per journey, not airport throughput",
         "Trailing 12-month passengers carried",
     )
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(fmt_millions))
     ax.xaxis.set_major_locator(mdates.YearLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-    ax.set_xlim(x.min(), x.max() + pd.DateOffset(months=2))
+    ax.set_xlim(tx.min(), x.max() + pd.DateOffset(months=2))
     ax.set_ylim(0, clean_upper_bound(float(t12_clean.max()) * 1.08))
 
     kpi = (
@@ -813,7 +813,7 @@ def chart_top_airport_traffic_trends(
         f"{airport_label(leader[0])} leads India's airports at "
         f"{fmt_context_millions(leader[1])} passengers a year",
         "Trailing 12-month domestic airport passenger movements (arrivals + departures)"
-        f" · top {len(selected)} of {active} active airports shown",
+        f" · current & year-ago top-10 ({len(selected)} lines) of {active} active airports",
         "Domestic airport passenger movements",
     )
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(fmt_millions))
@@ -889,12 +889,21 @@ def chart_newcomer_airport_rampup(
         )
         label_airports = set(airport_order.head(RAMP_MAX_LABELS)["airport"])
         max_value = float(ramps["passengers"].max())
-        # Fixed-order hue assignment by cumulative rank — the validated slots are
-        # never cycled; airports past the palette fold to de-emphasis gray.
+        # Fixed entity hues first (mappings.yaml), then unused validated slots
+        # by cumulative rank; the slots are never cycled and airports past the
+        # palette fold to de-emphasis gray.
+        explicit = {
+            a: AIRPORT_COLORS[a]
+            for a in airport_order["airport"]
+            if a in label_airports and a in AIRPORT_COLORS
+        }
+        pool = [s for s in FALLBACK_COLORS if s not in set(explicit.values())]
         ramp_colors: dict[str, str] = {}
-        for rank, airport in enumerate(airport_order["airport"]):
-            if airport in label_airports and rank < len(FALLBACK_COLORS):
-                ramp_colors[airport] = FALLBACK_COLORS[rank]
+        for airport in airport_order["airport"]:
+            if airport in explicit:
+                ramp_colors[airport] = explicit[airport]
+            elif airport in label_airports and pool:
+                ramp_colors[airport] = pool.pop(0)
             else:
                 ramp_colors[airport] = DEEMPH
         endpoints: list[tuple[str, float]] = []
@@ -903,9 +912,15 @@ def chart_newcomer_airport_rampup(
             series = ramps[ramps["airport"] == airport].sort_values("month_index")
             color = ramp_colors[airport]
             should_label = airport in label_airports
+            # Reindex to the full month range so unpublished months break the
+            # line instead of being silently interpolated across.
+            gapped = (
+                series.set_index("month_index")["passengers"]
+                .reindex(range(int(series["month_index"].max()) + 1))
+            )
             ax.plot(
-                series["month_index"],
-                series["passengers"],
+                gapped.index,
+                gapped.values,
                 color=color,
                 linewidth=2.2 if should_label else 1.3,
                 alpha=0.9 if should_label else 0.35,
@@ -1274,7 +1289,7 @@ def generate_dashboard_summary(
 ) -> dict:
     # Domestic headline = passengers carried (carrier table, counted once per
     # journey). Airport endpoint throughput is also reported, under an explicit
-    # key, for airport-level context — it is ~2× passengers carried nationally.
+    # key, for airport-level context; it is ~2× passengers carried nationally.
     national, t12, monthly_yoy, t12_yoy = domestic_demand_series(carrier)
     latest_month = national.index.max()
 
@@ -1302,7 +1317,7 @@ def generate_dashboard_summary(
 
     def nullable_pct(value: float) -> float | None:
         # Non-finite (e.g. YoY against a zero base) serializes as a non-standard
-        # `Infinity` JSON token that browsers reject — emit null instead.
+        # `Infinity` JSON token that browsers reject; emit null instead.
         if pd.isna(value) or not np.isfinite(value):
             return None
         return round(float(value) * 100, 1)

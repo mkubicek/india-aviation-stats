@@ -1,0 +1,77 @@
+{
+  "generated": "2026-07-31",
+  "charts": {
+    "noida_growth_pause": {
+      "file": "charts/noida/noida_growth_pause.png",
+      "sha256": "b47cd441d7824b0254f7ba0efe3162e99d04c5a05ed32957fbe7c163e5c72fb2",
+      "inputs": [
+        "data/processed/carrier_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:a7d1b266874030fc137beb3472aec737a534803f292dd78a92ec5d133c4f01de",
+      "coverage": "2015-01..2026-05"
+    },
+    "noida_indigo_share": {
+      "file": "charts/noida/noida_indigo_share.png",
+      "sha256": "7d9cea433d772c03302ae7a9c80064ff9393773ddf800e1506138ff5b0134743",
+      "inputs": [
+        "data/processed/carrier_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:a7d1b266874030fc137beb3472aec737a534803f292dd78a92ec5d133c4f01de",
+      "coverage": "2015-01..2026-05"
+    },
+    "noida_small_city_share": {
+      "file": "charts/noida/noida_small_city_share.png",
+      "sha256": "a413106415216548ad357090f7f427445d344e7dc2dbc9ac0c6e0e134baf8c4a",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05"
+    },
+    "noida_ncr_vs_mmr": {
+      "file": "charts/noida/noida_ncr_vs_mmr.png",
+      "sha256": "7afeab66c6b19bbdfb12abfad74b4d05c8bb3633e1f14596f4683d91ea11f214",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05"
+    },
+    "noida_ramp_benchmark": {
+      "file": "charts/noida/noida_ramp_benchmark.png",
+      "sha256": "36975b1703d8c0ac20251e78cf4422f599bd5e71a6060d9ec5e340f6da8a45f6",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05"
+    },
+    "noida_nmia_tracker": {
+      "file": "charts/noida/noida_nmia_tracker.png",
+      "sha256": "2d17aadc7eedef978a16f015424cdcd1ac92f3de50b6614696f3cfc1337802d1",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05"
+    },
+    "noida_relief_valve": {
+      "file": "charts/noida/noida_relief_valve.png",
+      "sha256": "ade9f16dfa17b4f5ec882ef33f31f0ea905924e2ed7435551dd09845370c3ac2",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05"
+    },
+    "noida_hindon_lesson": {
+      "file": "charts/noida/noida_hindon_lesson.png",
+      "sha256": "14d2b98d60845d781d7530014aab8dcffe57d1a7aa4d035fb229713b209c208b",
+      "inputs": [
+        "data/processed/airport_monthly.csv"
+      ],
+      "input_fingerprint": "sha256:5792ca2ae3ad7b09a634d371df6d08b460f9d6532e41b5e9a988977677563d4d",
+      "coverage": "2015-04..2026-05"
+    }
+  }
+}
