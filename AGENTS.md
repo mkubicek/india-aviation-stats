@@ -151,8 +151,11 @@ labels never clipped.
 
 ## CI / GitHub Actions
 
-- **Schedule:** monthly (5th, 08:00 UTC); GIFs only on manual dispatch when requested
-- **Cache:** raw data as `data/raw.tar.zst`, refreshed by `cache-keepalive.yml`
+- **Schedule:** weekly (Mondays, 08:00 UTC); GIFs only on manual dispatch when
+  requested. DGCA publishes a month in the last week of the following month and
+  restates older months off-cycle, so weekly catches both within 7 days
+- **Cache:** raw data as `data/raw.tar.zst`, restored and re-saved by the weekly
+  `update.yml` run itself. A miss only costs download time, not correctness
 - **Soft timeout:** `DOWNLOAD_TIMEOUT=600` stops new downloads before job timeout
 - **Stale-data governance:** a blocking validation failure keeps the last-good
   published data and opens a `data-quality` issue rather than shipping a bad merge

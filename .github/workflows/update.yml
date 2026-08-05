@@ -2,8 +2,12 @@ name: Update Data & Charts
 
 on:
   schedule:
-    # 5th of each month at 08:00 UTC
-    - cron: "0 8 5 * *"
+    # Mondays at 08:00 UTC. DGCA publishes a month's workbooks in the last week
+    # of the following month (May 2026 data on 25 Jun, June 2026 data on 29 Jul)
+    # and restates older months off-cycle, so a fixed monthly run either misses
+    # the window or trails it by weeks. Weekly catches both within 7 days; runs
+    # that find nothing new commit nothing.
+    - cron: "0 8 * * 1"
   workflow_dispatch:
     inputs:
       generate_gifs:
