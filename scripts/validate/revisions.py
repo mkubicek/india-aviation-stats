@@ -24,8 +24,11 @@ REVISIONS_PATH = PROCESSED_DIR / "REVISIONS.md"
 LAYERS = {
     "airport_monthly": ["year", "month", "airport"],
     "airport_international_quarterly": ["year", "quarter", "airport"],
+    "carrier_monthly": ["year", "month", "airline", "service_type"],
+    "domestic_route_monthly": ["year", "month", "origin", "destination"],
 }
 MATERIAL_PCT = 1.0  # surface deltas above this percent prominently
+PERIOD_COLS = ("year", "month", "quarter")  # key columns that locate a row in time
 
 
 def _committed_version(rel_path: str) -> pd.DataFrame | None:
@@ -42,20 +45,28 @@ def _committed_version(rel_path: str) -> pd.DataFrame | None:
 
 
 def compute_changes(old: pd.DataFrame, new: pd.DataFrame, key: list[str]) -> list[tuple]:
-    """Pure diff of passenger values keyed on ``key``: (period, airport, old, new, kind)."""
+    """Pure diff of passenger values keyed on ``key``: (period, entity, old, new, kind).
+
+    ``period`` is the time part of the key (year/month/quarter); ``entity`` is
+    whatever else identifies the row - an airport, or an airline plus service
+    type, or a route's origin and destination.
+    """
+    period_cols = [k for k in key if k in PERIOD_COLS]
+    entity_cols = [k for k in key if k not in PERIOD_COLS]
     merged = old.merge(new, on=key, how="outer", suffixes=("_old", "_new"), indicator=True)
     merged = merged.rename(columns={"_merge": "merge_ind"})
     changes = []
     for row in merged.itertuples(index=False):
         d = row._asdict()
         old_p, new_p, ind = d.get("passengers_old"), d.get("passengers_new"), d["merge_ind"]
-        period = "-".join(str(d[k]) for k in key)
+        period = "-".join(str(d[k]) for k in period_cols)
+        entity = " ".join(str(d[k]) for k in entity_cols)
         if ind == "left_only":
-            changes.append((period, d["airport"], int(old_p), None, "removed"))
+            changes.append((period, entity, int(old_p), None, "removed"))
         elif ind == "right_only":
-            changes.append((period, d["airport"], None, int(new_p), "added"))
+            changes.append((period, entity, None, int(new_p), "added"))
         elif old_p != new_p:
-            changes.append((period, d["airport"], int(old_p), int(new_p), "restated"))
+            changes.append((period, entity, int(old_p), int(new_p), "restated"))
     return changes
 
 
@@ -82,7 +93,7 @@ def run_revisions(write: bool = True) -> dict:
 
     lines = ["# Revisions", "",
              "Published values that moved since the previous data commit "
-             "(diff of the regenerated CSVs against `git HEAD`). Period · airport · "
+             "(diff of the regenerated CSVs against `git HEAD`). Period · entity · "
              "old → new. Empty between refreshes that change nothing.", ""]
     total_changes = 0
     for r in results:
@@ -98,13 +109,13 @@ def run_revisions(write: bool = True) -> dict:
         if not changes:
             lines.append("\nNo changes.\n")
             continue
-        lines += ["", "| period | airport | old | new | Δ | kind |",
+        lines += ["", "| period | entity | old | new | Δ | kind |",
                   "| --- | --- | --- | --- | --- | --- |"]
-        for period, airport, old_p, new_p, kind in changes[:200]:
+        for period, entity, old_p, new_p, kind in changes[:200]:
             op = "" if old_p is None else f"{old_p:,}"
             np_ = "" if new_p is None else f"{new_p:,}"
             pct = _fmt_pct(old_p, new_p) if (old_p and new_p) else " - "
-            lines.append(f"| {period} | {airport} | {op} | {np_} | {pct} | {kind} |")
+            lines.append(f"| {period} | {entity} | {op} | {np_} | {pct} | {kind} |")
         if len(changes) > 200:
             lines.append(f"\n…and {len(changes) - 200} more.")
         lines.append("")

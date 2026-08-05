@@ -25,9 +25,26 @@ normalization, entity resolution, and validation.
   quarterly city-pair, country, carrier, and carrier-month tables
 - **Current local coverage:** 2015 through latest available DGCA workbook
 - **Access:** Public HTTP GET, no authentication
+- **Publication lag:** DGCA publishes a month's workbooks in the last week of the
+  following month. May 2026 data appeared on 25 Jun 2026, June 2026 data on
+  29 Jul 2026. Early in a calendar month the newest available month is therefore
+  two months back, which is the normal state and not a stalled refresh. Workbooks
+  are also restated outside that window: the January to March 2026 city-pair
+  files were all re-uploaded on 1-2 Jun 2026.
 - **Known quirk:** DGCA portal links are sometimes not the exact S3 object key.
   The downloader retries common filename variants such as uppercase month names
   and an extra space after commas.
+- **Known quirk:** The portal pre-lists all twelve months of the current year, so
+  a live link is not evidence of published data. On 5 Aug 2026 the December 2026
+  city-pair link was already listed while the July 2026 object returned 403.
+  Availability has to be tested against the S3 object rather than the listing.
+  The bucket denies `ListBucket`, so a 403 means "absent or under a name we did
+  not try", which is why `_dgca_source_url_variants` exhausts the known filename
+  variants before a month is treated as unpublished.
+- **Portal structure:** Year sections carry no stable content ID. The 2026
+  sections are 9644 (operators) and 9645 (city-pair) while earlier years sit in
+  the 951x range. `discover_domestic_urls` recurses from parent content ID 4184
+  instead of hardcoding sections, which is what absorbed that move.
 - **Temporary source workaround:** If a DGCA international Table 4 Excel file is
   listed by the portal but not publicly retrievable, the matching public PDF is
   ingested for that quarter. Such rows are marked as `source_type=pdf` with a
@@ -255,3 +272,4 @@ Methodology changes should preserve review integrity: evaluate a chart or projec
 | 2026-06 | 0.1.0 | Canonical multi-table dataset: cadence split, table-driven entity resolution with validity windows, falsifiable assumptions ledger + overlap gate, carrier link-not-collapse, tiers moved to presentation-only, six-chart dashboard surface |
 | 2026-06 | 0.1.0 | Review correction (release QC): Share Movers charts now disclose their top-N-of-total selection and name the explicit comparison windows on the chart. Evidence - a reviewer read the ~20-bar chart as the full airport field and could only infer the comparison period (latest published quarter ≠ current quarter) from the footer. |
 | 2026-06 | 0.1.x | Corrected domestic national dashboard metric. The prior dashboard summed domestic airport endpoint throughput, producing May 2026 = 30,779,402, exactly 2× the scheduled-domestic carrier passenger count of 15,389,701. National domestic demand now uses `carrier_monthly.csv` (`service_type == scheduled_domestic`) passengers carried; airport-level charts remain on endpoint throughput and were relabelled accordingly. Added the passenger-metric-semantics advisory check, manifest `metric_semantics`/`primary_source_table`, and regression tests. |
+| 2026-08 | 0.1.x | Widened the revision log to every published table. It previously covered only `airport_monthly` and `airport_international_quarterly`, leaving `carrier_monthly` untracked even though it is the source of the headline national domestic demand series, so a DGCA restatement of that series would have shipped undisclosed. Evidence - the 2026-08-05 refresh rewrote 330 lines of `carrier_monthly.csv` while `REVISIONS.md` reported no changes. `REVISIONS.md` now keys on period plus entity, where entity is the non-time part of each table's key. Also documented the DGCA publication lag and the pre-listed month links that make an unpublished month look available. |
