@@ -16,7 +16,7 @@
         "vmin": 60
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "d10bb8c36210e100b9a26e6c0f95cbe1fe69b826cdd5d08f40039a878b648d11"
+      "sha256": "340ba482d13302284629606919feb4461353798b6c2d54ec1aa413ebdb2f0d99"
     },
     "domestic_market_share_gainers": {
       "file": "charts/domestic_market_share_gainers.png",
@@ -30,7 +30,7 @@
         "window_months": 12
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "d823d6f866112e3d246e1984049cd199f4cc0be5ccf79b194da83deabe3f3997"
+      "sha256": "c1cf33c273d6fd364e437d3ed3e050e30f61fa4f748838b2b02497f39961bb8d"
     },
     "india_domestic_demand_pulse": {
       "file": "charts/india_domestic_demand_pulse.png",
@@ -42,7 +42,7 @@
         "moving_average_months": 12
       },
       "primary_source_table": "carrier_monthly",
-      "sha256": "d1bfb5860caae215a2b0d704eb72625e186fd7ffa111f1b009814a2cc206e9d1"
+      "sha256": "316474c22677eab5c6fb3ec309fe2da5e16944a6097ae6ade77fe8b3b1527cd5"
     },
     "international_gateway_share_gainers": {
       "file": "charts/international_gateway_share_gainers.png",
@@ -56,7 +56,7 @@
         "window_quarters": 4
       },
       "primary_source_table": "airport_international_quarterly",
-      "sha256": "a0fff0af2498c112fde55d697538fb38f5682315a294d21c8adc6d83f57c53ad"
+      "sha256": "c2c557efba31ae6a9ee852976d3002108b9bc7049fe0a5bbbd5d5481ecdeec17"
     },
     "newcomer_airport_rampup_24m": {
       "file": "charts/newcomer_airport_rampup_24m.png",
@@ -73,7 +73,7 @@
         "ramp_months": 24
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "ddeb571c5e99c32955098483cea4817b5b63c91cdf82c9f00fbadcba23efdf0c"
+      "sha256": "0d29c16ea395dfb889f30a8908ee2da9f074260a5a83e0029f61f4fd127877c3"
     },
     "top_airport_traffic_trends": {
       "file": "charts/top_airport_traffic_trends.png",
@@ -88,7 +88,7 @@
         "trailing_window_months": 12
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "87b33bcbe7a3c924b6f2da4b49cc2c8ba42f61688f5965abc4dead6b92879243"
+      "sha256": "be54668760347ba94caf45834df6cfc3abbbadadc5b9bc62f9895ea7fed1ddc2"
     }
   },
   "datasets": {
@@ -108,9 +108,9 @@
       "coverage": "2015-01..2026-06",
       "path": "data/processed/carrier_monthly.csv",
       "rows": 3422,
-      "sha256": "168445a7dd6184e06602be1af958b9a5d45fcc32407be980f5507391b840dd2c"
+      "sha256": "3489222bd4256c08407ab95cffaec4762c51fc5d762de72d4f54b7e532a1e8ee"
     }
   },
-  "input_fingerprint": "sha256:0fa4044a5cf990c3daadb7fb6b96d26455677c7840ff612bc6840559b30ac017",
+  "input_fingerprint": "sha256:9affaa854b8729c692b18f9d6f817cb9a014802ad039173367249f62441db42a",
   "manifest_version": 1
 }
