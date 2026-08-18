@@ -229,3 +229,34 @@ def test_published_layers_conform_to_schema():
     }
     meta = json.loads((proc / "metadata.json").read_text())
     assert not _failed(check_schema(layers, meta))
+
+
+def test_conservation_tripwire_fires_on_an_unmapped_endpoint_and_names_the_month():
+    """An unmapped city label attributes one end of its pairs and drops the other."""
+    m = pd.DataFrame(
+        [
+            {"year": 2026, "month": 7, "airport": "DEL", "passengers": 166,
+             "departures": 80, "arrivals": 86},
+        ]
+    )
+    failures = _failed(check_conservation_tripwire(m))
+    assert failures
+    assert "2026-07" in failures[0].message
+    assert "unmapped" in failures[0].message
+
+
+def test_carrier_blocks_any_float_beyond_the_published_precision():
+    """The whole-table restatement this guards against must red the refresh."""
+    base = {"airline": "IndiGo", "service_type": "scheduled_domestic",
+            "year": 2026, "month": 7, "passengers": 100, "weight_load_factor": 80.0}
+    ok = pd.DataFrame([{**base, "passenger_load_factor": 86.66, "freight_tonnes": 115.676}])
+    loose = pd.DataFrame([{**base, "passenger_load_factor": 86.66023056391617,
+                           "freight_tonnes": 115.676}])
+    # A summing artefact in any other float column is the same defect.
+    artefact = pd.DataFrame([{**base, "passenger_load_factor": 86.66,
+                              "freight_tonnes": 846.2399999999999}])
+
+    assert not [f for f in check_carrier(ok) if "precision" in f.check and f.status == "fail"]
+    for frame, column in ((loose, "passenger_load_factor"), (artefact, "freight_tonnes")):
+        bad = [f for f in check_carrier(frame) if f.check == f"carrier.precision.{column}"]
+        assert bad and bad[0].status == "fail" and bad[0].severity == "BLOCKING"

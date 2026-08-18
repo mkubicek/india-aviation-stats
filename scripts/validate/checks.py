@@ -17,7 +17,7 @@ from dataclasses import dataclass, asdict
 
 import pandas as pd
 
-from metrics import CONSERVATION_RATIO_BAND, SCHEDULED_DOMESTIC
+from metrics import CARRIER_DECIMALS, CONSERVATION_RATIO_BAND, SCHEDULED_DOMESTIC
 
 # Documented per-table schemas (column -> dtype kind). Backs the data dictionary.
 EXPECTED_SCHEMAS = {
@@ -168,17 +168,29 @@ def check_schema(layers: dict[str, pd.DataFrame], metadata: dict) -> list[Findin
 
 
 def check_conservation_tripwire(monthly: pd.DataFrame) -> list[Finding]:
+    """Symmetry holds only when BOTH endpoints of every source pair resolve.
+
+    Named a tripwire because the endpoint split is symmetric by construction,
+    but it has a second, likelier cause: an unmapped city label attributes one
+    end of its pairs and drops the other, so the month goes asymmetric by the
+    pair's directional imbalance. That is how DAMAN (166 pax, 6 imbalance)
+    surfaced in July 2026. Check the unmapped-label advisory and clean.py's
+    unmapped warning before suspecting a refactor. Note the converse: an
+    unmapped label whose directions happen to balance leaves this check green.
+    """
     per = monthly.groupby(["year", "month"]).agg(
         dep=("departures", "sum"), arr=("arrivals", "sum")
     )
     broken = per[per["dep"] != per["arr"]]
     if len(broken):
+        months = ", ".join(f"{int(y)}-{int(m):02d}" for y, m in broken.index[:3])
         return [_fail("conservation.tripwire", "TRIPWIRE",
                       f"{len(broken)} month(s) where sum(departures) != sum(arrivals) "
-                      " -  a refactor broke the symmetric endpoint split")]
+                      f"({months}) -  an unmapped city label dropping one endpoint, "
+                      "or a refactor that broke the symmetric endpoint split")]
     return [_ok("conservation.tripwire", "TRIPWIRE",
                "per month sum(departures) == sum(arrivals) "
-               "(true by construction; tripwire only)")]
+               "(symmetric by construction once every label resolves)")]
 
 
 # ── carrier monthly: own contract ────────────────────────────
@@ -205,13 +217,28 @@ def check_carrier(carrier: pd.DataFrame) -> list[Finding]:
             if len(bad):
                 out.append(_warn(f"carrier.load_factor.{lf}",
                                  f"{len(bad)} row(s) with {lf} outside 0-100"))
+
+    # Published precision is a contract (metrics.CARRIER_DECIMALS). One workbook
+    # leaving a column blank flips the upstream aggregate to object dtype, which
+    # disables its float formatting and silently restates published values. The
+    # unit test reads the committed file, which in CI is last month's; this runs
+    # on the table about to be committed.
+    for column in carrier.select_dtypes("float").columns:
+        values = carrier[column].dropna()
+        loose = values[values.round(CARRIER_DECIMALS) != values]
+        if len(loose):
+            out.append(_fail(f"carrier.precision.{column}", "BLOCKING",
+                             f"{len(loose)} row(s) with {column} beyond "
+                             f"{CARRIER_DECIMALS} decimals (e.g. {loose.iloc[0]!r}); "
+                             "an upstream dtype change is restating published values"))
     neg_cols = [c for c in CARRIER_METRICS if c in carrier.columns and (carrier[c] < 0).any()]
     if neg_cols:
         out.append(_warn("carrier.negative_metrics",
                          f"negative values in carrier metrics: {neg_cols}"))
     if len([f for f in out if f.status != "pass"]) == 0:
         out.append(_ok("carrier.value_domain", "ADVISORY",
-                       "load factors in 0-100, metrics non-negative"))
+                       f"load factors in 0-100, metrics non-negative, floats at "
+                       f"{CARRIER_DECIMALS} decimals"))
     return out
 
 

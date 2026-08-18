@@ -28,6 +28,17 @@ from typing import NamedTuple
 
 import pandas as pd
 
+# Published precision contract for every float column of ``carrier_monthly``
+# (the only published table that is not whole integers). Without one, the written
+# form of a value depends on how a source workbook happened to store the cell:
+# one all-cargo workbook with a blank load-factor column makes the upstream
+# aggregate column object dtype, which disables its float formatting and restates
+# every airline's published value. Three decimals is what the aggregate already
+# intended (``float_format="%.3f"``), it is a kilogram on a tonnes column, and it
+# absorbs the binary-float artefacts that summing produces (846.2399999999999).
+# clean.py rounds to this; validate blocks a refresh that does not.
+CARRIER_DECIMALS = 3
+
 SCHEDULED_DOMESTIC = "scheduled_domestic"
 
 # Months with no published carrier rows that are documented REAL zeros, not

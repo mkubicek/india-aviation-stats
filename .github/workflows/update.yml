@@ -58,11 +58,6 @@ jobs:
           find data/raw -type f | wc -l
           du -sh data/raw || true
 
-      # Tests run after raw is restored so raw-dependent integration tests
-      # execute on warm-cache runs; they skip cleanly when raw is absent.
-      - name: Run tests
-        run: uv run pytest -q
-
       - name: Fetch data
         id: download
         run: uv run python scripts/fetch.py
@@ -87,6 +82,13 @@ jobs:
       - name: Clean data into canonical CSV datasets
         if: steps.download.outputs.timed_out != 'true'
         run: uv run python scripts/clean.py
+
+      # After clean, so the tests that read data/processed/ assert against the
+      # tables this run is about to publish rather than last month's committed
+      # ones. Raw is present either way, so the raw-dependent integration tests
+      # still execute on warm-cache runs and skip cleanly when raw is absent.
+      - name: Run tests
+        run: uv run pytest -q
 
       - name: Validate (BLOCKING gate + assumptions ledger + revision log)
         id: validate

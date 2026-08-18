@@ -13,4 +13,5 @@ they are not written back into these files.
 | IXD-001 | Allahabad and Prayagraj are one airport (IXD) - a clean disjoint rename | rename | [IXD-001.md](IXD-001.md) |
 | KLH-001 | Kalaburagi is GBI, not KLH - KLH is Kolhapur (the source/table mixed the IATA codes) | deduplication | [KLH-001.md](KLH-001.md) |
 | LUH-001 | The "LUDHIANA" label is two airports - Sahnewal (LUH) through 2025, Halwara (HWR) from 2026 | deduplication | [LUH-001.md](LUH-001.md) |
+| NMB-001 | DAMAN is Daman Airport (NMB), newly scheduled civil traffic, not a Diu relabel | new-airport | [NMB-001.md](NMB-001.md) |
 | PXN-001 | PURNEA and PURNIA AIRPORT are one airport (PXN) - a disjoint spelling change | rename | [PXN-001.md](PXN-001.md) |

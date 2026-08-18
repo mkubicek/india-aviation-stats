@@ -225,8 +225,9 @@ emits `validation_report.json` (machine) and `warnings.log` (human).
 | Cadence integrity | BLOCKING | one row per key; the quarterly table's `quarter ∈ 1..4`; no cross-table cadence mixing |
 | Definitional | BLOCKING | `passengers == departures + arrivals`; non-negative integers |
 | Schema conformance | BLOCKING | columns/dtypes match the data dictionary; `schema_version` present |
-| Conservation | TRIPWIRE | per month `sum(departures) == sum(arrivals)` - true by construction; catches a future refactor only |
+| Conservation | TRIPWIRE | per month `sum(departures) == sum(arrivals)` - symmetric once every label resolves, so a failure means an unmapped city label dropped one endpoint, or a refactor broke the split |
 | Carrier value-domain | BLOCKING / ADVISORY | one row per key; load factors 0–100 and metrics ≥ 0 |
+| Load-factor precision | BLOCKING | load factors published at 3 decimals; guards against an upstream dtype change restating every airline's value |
 | Assumptions ledger | BLOCKING | re-test each `assumptions/<id>.md` falsification → HOLDS/TRIGGERED/STALE/ORPHANED |
 | Reverse gate | BLOCKING | any anomaly with no covering assumption file is an undocumented quirk |
 | High-volume unmapped name | ADVISORY | a real airport we failed to map is silent loss |
@@ -236,6 +237,9 @@ emits `validation_report.json` (machine) and `warnings.log` (human).
 The cleanup knowledge base lives in `assumptions/` (Open Knowledge Format) and is
 re-tested by the `validate-assumptions` skill. Restated published values are
 disclosed in `data/processed/REVISIONS.md` (diffed against the last data commit).
+All five published tables are covered: passenger movements are itemised per row,
+and rows whose other columns moved (load factors, tonne-kilometres) are counted,
+so a table cannot be rewritten in a non-passenger column without the log saying so.
 
 The ledger's tests are **internal** - the data re-checked against itself - so the
 gate stays deterministic. Classifying a *new* label (is it a new airport, a

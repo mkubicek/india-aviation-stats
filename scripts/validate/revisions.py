@@ -26,6 +26,9 @@ LAYERS = {
     "airport_international_quarterly": ["year", "quarter", "airport"],
     "carrier_monthly": ["year", "month", "airline", "service_type"],
     "domestic_route_monthly": ["year", "month", "origin", "destination"],
+    # Derived, so a movement here with no movement above is a derivation bug.
+    # Keyed with `category`: (year, airport) alone is NOT unique here.
+    "airport_yearly": ["year", "airport", "category"],
 }
 MATERIAL_PCT = 1.0  # surface deltas above this percent prominently
 PERIOD_COLS = ("year", "month", "quarter")  # key columns that locate a row in time
@@ -70,15 +73,51 @@ def compute_changes(old: pd.DataFrame, new: pd.DataFrame, key: list[str]) -> lis
     return changes
 
 
+def count_other_column_changes(old: pd.DataFrame, new: pd.DataFrame, key: list[str]) -> int:
+    """Rows present in both versions whose non-key, non-passenger values moved.
+
+    ``compute_changes`` itemises passengers only, so a table can be rewritten
+    wholesale in another column and still show as "no changes": an upstream
+    dtype accident once restated every published load factor from 86.66 to
+    86.66023056391617 without touching a passenger count. This counts those
+    rows so the log states they exist.
+    """
+    shared = [
+        c for c in old.columns
+        if c in new.columns and c not in key and c != "passengers"
+    ]
+    if not shared:
+        return 0
+    merged = old.merge(new, on=key, how="inner", suffixes=("_old", "_new"))
+    if merged.empty:
+        return 0
+    moved = pd.Series(False, index=merged.index)
+    for column in shared:
+        a, b = merged[f"{column}_old"], merged[f"{column}_new"]
+        moved |= ~((a == b) | (a.isna() & b.isna()))
+    return int(moved.sum())
+
+
 def diff_layer(name: str, key: list[str]) -> dict:
     path = PROCESSED_DIR / f"{name}.csv"
     if not path.exists():
         return {"layer": name, "status": "absent"}
     new = pd.read_csv(path)
+    # A key that is not unique turns the outer merge into a cartesian product and
+    # invents changes in an unchanged file, so refuse rather than report fiction.
+    dup = int(new.duplicated(key).sum())
+    if dup:
+        raise ValueError(f"{name}: {dup} row(s) share the diff key {key}; "
+                         "the layer's key in LAYERS is wrong")
     old = _committed_version(f"data/processed/{name}.csv")
     if old is None:
         return {"layer": name, "status": "baseline", "rows": len(new)}
-    return {"layer": name, "status": "diffed", "changes": compute_changes(old, new, key)}
+    return {
+        "layer": name,
+        "status": "diffed",
+        "changes": compute_changes(old, new, key),
+        "other_column_changes": count_other_column_changes(old, new, key),
+    }
 
 
 def _fmt_pct(old, new) -> str:
@@ -94,7 +133,9 @@ def run_revisions(write: bool = True) -> dict:
     lines = ["# Revisions", "",
              "Published values that moved since the previous data commit "
              "(diff of the regenerated CSVs against `git HEAD`). Period · entity · "
-             "old → new. Empty between refreshes that change nothing.", ""]
+             "old → new. Every published table is covered; passenger changes are "
+             "itemised and movements in other columns are counted. Empty between "
+             "refreshes that change nothing.", ""]
     total_changes = 0
     for r in results:
         lines.append(f"## {r['layer']}")
@@ -105,9 +146,13 @@ def run_revisions(write: bool = True) -> dict:
             lines.append("\n(not generated)\n")
             continue
         changes = r["changes"]
+        other = r.get("other_column_changes", 0)
         total_changes += len(changes)
         if not changes:
-            lines.append("\nNo changes.\n")
+            lines.append("\nNo passenger changes.\n" if other else "\nNo changes.\n")
+            if other:
+                lines += [f"{other:,} row(s) present in both versions changed in a "
+                          "column other than passengers.", ""]
             continue
         lines += ["", "| period | entity | old | new | Δ | kind |",
                   "| --- | --- | --- | --- | --- | --- |"]
@@ -117,8 +162,11 @@ def run_revisions(write: bool = True) -> dict:
             pct = _fmt_pct(old_p, new_p) if (old_p and new_p) else " - "
             lines.append(f"| {period} | {entity} | {op} | {np_} | {pct} | {kind} |")
         if len(changes) > 200:
-            lines.append(f"\n…and {len(changes) - 200} more.")
+            lines.append(f"\n…and {len(changes) - 200:,} more.")
         lines.append("")
+        if other:
+            lines += [f"{other:,} row(s) present in both versions changed in a column "
+                      "other than passengers.", ""]
 
     if write:
         REVISIONS_PATH.write_text("\n".join(lines) + "\n")

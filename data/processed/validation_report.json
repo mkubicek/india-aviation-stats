@@ -86,7 +86,7 @@
       "check": "conservation.tripwire",
       "status": "pass",
       "severity": "TRIPWIRE",
-      "message": "per month sum(departures) == sum(arrivals) (true by construction; tripwire only)"
+      "message": "per month sum(departures) == sum(arrivals) (symmetric by construction once every label resolves)"
     },
     {
       "check": "carrier.unique",
@@ -104,7 +104,7 @@
       "check": "semantics.domestic_airport_throughput_vs_carrier",
       "status": "pass",
       "severity": "ADVISORY",
-      "message": "domestic airport throughput == ~2x scheduled-domestic passengers carried for all 134 overlapping month(s) (max deviation 0.092); endpoint throughput is not national passengers carried"
+      "message": "domestic airport throughput == ~2x scheduled-domestic passengers carried for all 135 overlapping month(s) (max deviation 0.092); endpoint throughput is not national passengers carried"
     },
     {
       "check": "overlap.concurrent.COK",
@@ -122,7 +122,7 @@
       "check": "routes.key_unique",
       "status": "pass",
       "severity": "TRIPWIRE",
-      "message": "133,694 rows with a unique route-month key"
+      "message": "134,958 rows with a unique route-month key"
     },
     {
       "check": "routes.distinct_endpoints",
@@ -134,7 +134,7 @@
       "check": "routes.canonical_endpoints",
       "status": "pass",
       "severity": "TRIPWIRE",
-      "message": "143 endpoints all canonical mappings.yaml airports"
+      "message": "144 endpoints all canonical mappings.yaml airports"
     },
     {
       "check": "routes.nonneg_int",
@@ -146,7 +146,7 @@
       "check": "routes.endpoint_containment",
       "status": "pass",
       "severity": "BLOCKING",
-      "message": "route endpoints within airport endpoints across 13,350 airport-months (4 pax attributed to airports but not routable)"
+      "message": "route endpoints within airport endpoints across 13,474 airport-months (4 pax attributed to airports but not routable)"
     },
     {
       "check": "routes.history_disappearance",
@@ -199,7 +199,7 @@
       "category": "deduplication",
       "test": "size-ordering-holds",
       "verdict": "HOLDS",
-      "detail": "GOI (69,527,664) >= GOX (15,396,278)",
+      "detail": "GOI (69,928,667) >= GOX (15,660,723)",
       "covers": [
         "GOI",
         "GOX"
@@ -238,6 +238,17 @@
       "covers": [
         "LUH",
         "HWR"
+      ]
+    },
+    {
+      "id": "NMB-001",
+      "title": "DAMAN is Daman Airport (NMB), newly scheduled civil traffic, not a Diu relabel",
+      "category": "new-airport",
+      "test": "distinct-airports-not-merged",
+      "verdict": "HOLDS",
+      "detail": "['NMB', 'DIU', 'DEL'] all present and distinct",
+      "covers": [
+        "NMB"
       ]
     },
     {

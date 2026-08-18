@@ -54,3 +54,34 @@ def test_multi_column_entity_for_carrier_rows():
     assert compute_changes(old, new, key) == [
         ("2026-6", "IndiGo scheduled_domestic", 100, 110, "restated")
     ]
+
+
+def test_counts_changes_outside_the_passenger_column():
+    """A wholesale rewrite of a non-passenger column must not read as 'no changes'."""
+    from validate.revisions import count_other_column_changes
+
+    old = pd.DataFrame([
+        {"airline": "IndiGo", "service_type": "scheduled_domestic", "year": 2026,
+         "month": 7, "passengers": 100, "passenger_load_factor": 86.66},
+        {"airline": "Akasa Air", "service_type": "scheduled_domestic", "year": 2026,
+         "month": 7, "passengers": 50, "passenger_load_factor": 91.93},
+    ])
+    new = old.copy()
+    new.loc[0, "passenger_load_factor"] = 86.66023056391617
+
+    key = ["year", "month", "airline", "service_type"]
+    assert compute_changes(old, new, key) == []
+    assert count_other_column_changes(old, new, key) == 1
+    assert count_other_column_changes(old, old.copy(), key) == 0
+
+
+def test_diff_layer_refuses_a_non_unique_key():
+    """(year, airport) is not unique in airport_yearly; a bad key would fabricate
+    a cartesian product of changes in an unchanged file."""
+    import pytest
+
+    from validate.revisions import LAYERS, diff_layer
+
+    assert LAYERS["airport_yearly"] == ["year", "airport", "category"]
+    with pytest.raises(ValueError, match="share the diff key"):
+        diff_layer("airport_yearly", ["year", "airport"])
