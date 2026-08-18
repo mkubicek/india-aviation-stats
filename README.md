@@ -121,8 +121,13 @@ uv run pytest
 Monthly GitHub Actions refreshes the data behind the validation gate: a blocking
 failure keeps the last-good data and opens an issue instead of shipping a
 now-wrong merge. Source changes are detected via a committed fingerprint manifest
-(`data/sources_manifest.csv`); restated values are disclosed in
-[`REVISIONS.md`](data/processed/REVISIONS.md).
+(`data/sources_manifest.csv`); restated passenger values in all four published
+tables are disclosed in [`REVISIONS.md`](data/processed/REVISIONS.md).
+
+DGCA publishes a month's workbooks in the last week of the following month, so
+early in a calendar month the newest month here is two months back. That is the
+source cadence, not a stale refresh. See
+[METHODOLOGY.md](METHODOLOGY.md#dgca-monthly-and-quarterly-statistics).
 
 ## How to cite
 

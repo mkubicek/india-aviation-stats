@@ -28,6 +28,34 @@ def test_identical_frames_have_no_changes():
     assert compute_changes(df, df.copy(), KEY) == []
 
 
+def test_period_is_time_only_and_entity_is_the_rest():
+    changes = compute_changes(
+        pd.DataFrame([_row("DEL", 100, month=6)]),
+        pd.DataFrame([_row("DEL", 120, month=6)]),
+        KEY,
+    )
+    assert changes == [("2026-6", "DEL", 100, 120, "restated")]
+
+
+def test_multi_column_entity_for_carrier_rows():
+    """carrier_monthly is keyed on airline + service_type, not a single label."""
+    key = ["year", "month", "airline", "service_type"]
+
+    def carrier(airline, service, pax):
+        return {"year": 2026, "month": 6, "airline": airline,
+                "service_type": service, "passengers": pax}
+
+    old = pd.DataFrame([carrier("IndiGo", "scheduled_domestic", 100),
+                        carrier("IndiGo", "scheduled_international", 40)])
+    new = pd.DataFrame([carrier("IndiGo", "scheduled_domestic", 110),
+                        carrier("IndiGo", "scheduled_international", 40)])
+
+    # Only the domestic row moved; the two IndiGo rows must not collapse together.
+    assert compute_changes(old, new, key) == [
+        ("2026-6", "IndiGo scheduled_domestic", 100, 110, "restated")
+    ]
+
+
 def test_counts_changes_outside_the_passenger_column():
     """A wholesale rewrite of a non-passenger column must not read as 'no changes'."""
     from validate.revisions import count_other_column_changes
@@ -41,23 +69,10 @@ def test_counts_changes_outside_the_passenger_column():
     new = old.copy()
     new.loc[0, "passenger_load_factor"] = 86.66023056391617
 
-    key = ["airline", "service_type", "year", "month"]
-    assert compute_changes(old, new, key, ["airline", "service_type"]) == []
+    key = ["year", "month", "airline", "service_type"]
+    assert compute_changes(old, new, key) == []
     assert count_other_column_changes(old, new, key) == 1
     assert count_other_column_changes(old, old.copy(), key) == 0
-
-
-def test_entity_label_defaults_to_airport_and_joins_multi_column_entities():
-    old = pd.DataFrame([{"year": 2026, "month": 7, "origin": "DXN",
-                         "destination": "BOM", "passengers": 100}])
-    new = pd.DataFrame([{"year": 2026, "month": 7, "origin": "DXN",
-                         "destination": "BOM", "passengers": 120}])
-
-    key = ["year", "month", "origin", "destination"]
-    (period, label, old_p, new_p, kind), = compute_changes(old, new, key, ["origin", "destination"])
-    assert label == "DXN · BOM"
-    assert period == "2026-7-DXN-BOM"
-    assert (old_p, new_p, kind) == (100, 120, "restated")
 
 
 def test_diff_layer_refuses_a_non_unique_key():
@@ -67,6 +82,6 @@ def test_diff_layer_refuses_a_non_unique_key():
 
     from validate.revisions import LAYERS, diff_layer
 
-    assert LAYERS["airport_yearly"]["key"] == ["year", "airport", "category"]
+    assert LAYERS["airport_yearly"] == ["year", "airport", "category"]
     with pytest.raises(ValueError, match="share the diff key"):
-        diff_layer("airport_yearly", {"key": ["year", "airport"], "entity": ["airport"]})
+        diff_layer("airport_yearly", ["year", "airport"])

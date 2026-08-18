@@ -1,75 +1,75 @@
 {
-  "generated": "2026-08-18",
+  "generated": "2026-08-10",
   "charts": {
     "noida_growth_pause": {
       "file": "charts/noida/noida_growth_pause.png",
-      "sha256": "9936d0d410a9b2bc5453a6b6b6d9233e24984c8fe1e3295d5b67f903f193a7ee",
+      "sha256": "823b790e2a77c98490a86163eb069cb4f00f7831eecbfe850af8fdee9a157b5a",
       "inputs": [
         "data/processed/carrier_monthly.csv"
       ],
-      "input_fingerprint": "sha256:2f704ea41e407a83cae8bf8fec1c6df0b8a6421ded34856e9379ef6a95344c94",
-      "coverage": "2015-01..2026-07",
+      "input_fingerprint": "sha256:392cfb67fc7544b56c527e97ae466a4b39be2697d7bcf2626b4390b5bd309e74",
+      "coverage": "2015-01..2026-06",
       "primary_source_table": "carrier_monthly",
       "metric_semantics": "scheduled_domestic_passengers_carried"
     },
     "noida_supply_demand": {
       "file": "charts/noida/noida_supply_demand.png",
-      "sha256": "da0923e8a193a18ed062fc839edf8b138b103b4a4465b3093b0f1c26cd3263db",
+      "sha256": "0ac413d66ad394f6936ebe5c9a8b7ed13461096182d5fa1bb295da6e11430cfa",
       "inputs": [
         "data/processed/carrier_monthly.csv"
       ],
-      "input_fingerprint": "sha256:2f704ea41e407a83cae8bf8fec1c6df0b8a6421ded34856e9379ef6a95344c94",
-      "coverage": "2015-01..2026-07",
+      "input_fingerprint": "sha256:392cfb67fc7544b56c527e97ae466a4b39be2697d7bcf2626b4390b5bd309e74",
+      "coverage": "2015-01..2026-06",
       "primary_source_table": "carrier_monthly",
       "metric_semantics": "scheduled_domestic_seat_km_vs_passenger_km"
     },
     "noida_airline_groups": {
       "file": "charts/noida/noida_airline_groups.png",
-      "sha256": "bd6a20b8c0e9ae070a0d3bc35cb5788e5e2d7595f941437279257999a21c8cf0",
+      "sha256": "051722c9464c1bff15c369c4b24425e7ad1658b609b73be055a10b70a24073c6",
       "inputs": [
         "data/processed/carrier_monthly.csv"
       ],
-      "input_fingerprint": "sha256:2f704ea41e407a83cae8bf8fec1c6df0b8a6421ded34856e9379ef6a95344c94",
-      "coverage": "2015-01..2026-07",
+      "input_fingerprint": "sha256:392cfb67fc7544b56c527e97ae466a4b39be2697d7bcf2626b4390b5bd309e74",
+      "coverage": "2015-01..2026-06",
       "primary_source_table": "carrier_monthly",
       "metric_semantics": "scheduled_domestic_passengers_carried_share"
     },
     "noida_small_city_share": {
       "file": "charts/noida/noida_small_city_share.png",
-      "sha256": "e735a1546db97cbd2707ce8ae602b75d8e2ac672f79657ca27aa43a053191153",
+      "sha256": "aa5fd510e19f44486a589234424661df159e8e65dbd208c2e84b02313d977678",
       "inputs": [
         "data/processed/airport_monthly.csv"
       ],
-      "input_fingerprint": "sha256:5bb226750dc21cddeeb4e13e45c4a271f4ff1e017319d8b8e10b351bd9a6b702",
-      "coverage": "2015-04..2026-07",
+      "input_fingerprint": "sha256:e034c582ed275106b970a531dd166e59d2c6f95f4b01e440e7aa086cce60d766",
+      "coverage": "2015-04..2026-06",
       "primary_source_table": "airport_monthly",
       "metric_semantics": "domestic_airport_throughput_share"
     },
     "noida_ncr_vs_mmr": {
       "file": "charts/noida/noida_ncr_vs_mmr.png",
-      "sha256": "5f465359bca1bb8eb7b6337f720715403af9393867be5033f71ff27f969d4e2d",
+      "sha256": "16c0cb0266fb83dd35dddba1608c1355bb108ceb763fc16018a97cf61a3052d1",
       "inputs": [
         "data/processed/airport_monthly.csv"
       ],
-      "input_fingerprint": "sha256:5bb226750dc21cddeeb4e13e45c4a271f4ff1e017319d8b8e10b351bd9a6b702",
-      "coverage": "2015-04..2026-07",
+      "input_fingerprint": "sha256:e034c582ed275106b970a531dd166e59d2c6f95f4b01e440e7aa086cce60d766",
+      "coverage": "2015-04..2026-06",
       "primary_source_table": "airport_monthly",
       "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures"
     },
     "noida_del_vs_rest": {
       "file": "charts/noida/noida_del_vs_rest.png",
-      "sha256": "ba37a330b962d7e37a187bebaad39912191e236af511c972bc96c165bf579945",
+      "sha256": "b521022b1c6a7db39a3ec1f9d64756c5c9b0346cfc335b514c170076f6b8ce1c",
       "inputs": [
         "data/processed/airport_monthly.csv"
       ],
-      "input_fingerprint": "sha256:5bb226750dc21cddeeb4e13e45c4a271f4ff1e017319d8b8e10b351bd9a6b702",
-      "coverage": "2015-04..2026-07",
+      "input_fingerprint": "sha256:e034c582ed275106b970a531dd166e59d2c6f95f4b01e440e7aa086cce60d766",
+      "coverage": "2015-04..2026-06",
       "primary_source_table": "airport_monthly",
       "metric_semantics": "domestic_airport_throughput_index"
     },
     "noida_del_international": {
       "file": "charts/noida/noida_del_international.png",
-      "sha256": "c49360aeb00001b50f5b9fc99336dce66d29b68579d7551abeba86510c360f6f",
+      "sha256": "f0bcf9b2d4424eb72cd5f113f636970139196821c4cb05cdb2fe3ce6a4d35922",
       "inputs": [
         "data/processed/airport_international_quarterly.csv"
       ],
@@ -80,89 +80,89 @@
     },
     "noida_del_seasonality": {
       "file": "charts/noida/noida_del_seasonality.png",
-      "sha256": "4936b6b097fece08272a42d69c554d0569b56d74c22875bedfd5ceb73be091f1",
+      "sha256": "64b2af845198c69cb11960ac9dd08264af09487ec7430d9453ca58011cf914b4",
       "inputs": [
         "data/processed/airport_monthly.csv"
       ],
-      "input_fingerprint": "sha256:5bb226750dc21cddeeb4e13e45c4a271f4ff1e017319d8b8e10b351bd9a6b702",
-      "coverage": "2015-04..2026-07",
+      "input_fingerprint": "sha256:e034c582ed275106b970a531dd166e59d2c6f95f4b01e440e7aa086cce60d766",
+      "coverage": "2015-04..2026-06",
       "primary_source_table": "airport_monthly",
       "metric_semantics": "domestic_airport_throughput_index"
     },
     "noida_up_catchment": {
       "file": "charts/noida/noida_up_catchment.png",
-      "sha256": "57acf7c6454485c469c290eb3d31c6962bab0eddd6af988200513fde9be58c24",
+      "sha256": "a80dd8c4521966ec3df1350880798a5b73dcda480369b027f9ee83955c8e924e",
       "inputs": [
         "data/processed/airport_monthly.csv"
       ],
-      "input_fingerprint": "sha256:5bb226750dc21cddeeb4e13e45c4a271f4ff1e017319d8b8e10b351bd9a6b702",
-      "coverage": "2015-04..2026-07",
+      "input_fingerprint": "sha256:e034c582ed275106b970a531dd166e59d2c6f95f4b01e440e7aa086cce60d766",
+      "coverage": "2015-04..2026-06",
       "primary_source_table": "airport_monthly",
       "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures"
     },
     "noida_ramp_benchmark": {
       "file": "charts/noida/noida_ramp_benchmark.png",
-      "sha256": "d61e68651c71f17a764f6f505b88436ee0b399d2fcb9b41b42d47db21ec1834e",
+      "sha256": "1d7dc69b71ddf65a30a51e8714fe70bfadbbfa46ec8cd8b83f4502dea3d339d4",
       "inputs": [
         "data/processed/airport_monthly.csv"
       ],
-      "input_fingerprint": "sha256:5bb226750dc21cddeeb4e13e45c4a271f4ff1e017319d8b8e10b351bd9a6b702",
-      "coverage": "2015-04..2026-07",
+      "input_fingerprint": "sha256:e034c582ed275106b970a531dd166e59d2c6f95f4b01e440e7aa086cce60d766",
+      "coverage": "2015-04..2026-06",
       "primary_source_table": "airport_monthly",
       "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures"
     },
     "noida_nmia_tracker": {
       "file": "charts/noida/noida_nmia_tracker.png",
-      "sha256": "7b410e8d3b796612cb61efc37abb9e103cb0ed5e2c23511fe7df7010711de3e3",
+      "sha256": "9172097f5b44c849b56221cbb4e503d90f6da6f33ddec49b215fadf33839bd60",
       "inputs": [
         "data/processed/airport_monthly.csv"
       ],
-      "input_fingerprint": "sha256:5bb226750dc21cddeeb4e13e45c4a271f4ff1e017319d8b8e10b351bd9a6b702",
-      "coverage": "2015-04..2026-07",
+      "input_fingerprint": "sha256:e034c582ed275106b970a531dd166e59d2c6f95f4b01e440e7aa086cce60d766",
+      "coverage": "2015-04..2026-06",
       "primary_source_table": "airport_monthly",
       "metric_semantics": "domestic_airport_throughput_share"
     },
     "noida_relief_valve": {
       "file": "charts/noida/noida_relief_valve.png",
-      "sha256": "1544c7ed3b1a694d683357863f5d5c2095a3f5faa822d8de5e2c5accadfc93ee",
+      "sha256": "567e0baf06336ba657bd37cbd7a0c85926920f1dd062ba4f4e5d82692937bec4",
       "inputs": [
         "data/processed/airport_monthly.csv"
       ],
-      "input_fingerprint": "sha256:5bb226750dc21cddeeb4e13e45c4a271f4ff1e017319d8b8e10b351bd9a6b702",
-      "coverage": "2015-04..2026-07",
+      "input_fingerprint": "sha256:e034c582ed275106b970a531dd166e59d2c6f95f4b01e440e7aa086cce60d766",
+      "coverage": "2015-04..2026-06",
       "primary_source_table": "airport_monthly",
       "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures"
     },
     "noida_hindon_lesson": {
       "file": "charts/noida/noida_hindon_lesson.png",
-      "sha256": "427f1b4c4acf0940ebc73817794ff5c60bdc137d1bfe1568a121d134f58a3e1c",
+      "sha256": "e1209e3759bd1b8aa3a3f9eabf5d94ffc5ce9bc49001f18010041fe96d558731",
       "inputs": [
         "data/processed/airport_monthly.csv"
       ],
-      "input_fingerprint": "sha256:5bb226750dc21cddeeb4e13e45c4a271f4ff1e017319d8b8e10b351bd9a6b702",
-      "coverage": "2015-04..2026-07",
+      "input_fingerprint": "sha256:e034c582ed275106b970a531dd166e59d2c6f95f4b01e440e7aa086cce60d766",
+      "coverage": "2015-04..2026-06",
       "primary_source_table": "airport_monthly",
       "metric_semantics": "domestic_airport_throughput_arrivals_plus_departures"
     },
     "noida_beyond_trunk": {
       "file": "charts/noida/noida_beyond_trunk.png",
-      "sha256": "23964028f23b0536de1110a0e333cae545cec8da5d24f1d38f4b02bec82e35a6",
+      "sha256": "556ef2d569df19142ac811358979d6816a90c84b1e9f513c1e141dd15d5cc395",
       "inputs": [
         "data/processed/domestic_route_monthly.csv"
       ],
-      "input_fingerprint": "sha256:90db2ce662029e413ed0a63307b01fa46da6a50d6535c147dd9d8d47568b9beb",
-      "coverage": "2015-04..2026-07",
+      "input_fingerprint": "sha256:b110a209d10541ce6baf035d193aadcd525c1b3d76326f185c681ab6ec79914f",
+      "coverage": "2015-04..2026-06",
       "primary_source_table": "domestic_route_monthly",
       "metric_semantics": "domestic_route_segment_passengers"
     },
     "noida_delhi_menu": {
       "file": "charts/noida/noida_delhi_menu.png",
-      "sha256": "671672cda330717750016782e8fbe4678c867d1ddf8ea8a880ca07f039ce7b36",
+      "sha256": "4ede2a4939f27677f26bd37eed9f396db638dabf1d7d7b779dbda6fd2d5d61a7",
       "inputs": [
         "data/processed/domestic_route_monthly.csv"
       ],
-      "input_fingerprint": "sha256:90db2ce662029e413ed0a63307b01fa46da6a50d6535c147dd9d8d47568b9beb",
-      "coverage": "2015-04..2026-07",
+      "input_fingerprint": "sha256:b110a209d10541ce6baf035d193aadcd525c1b3d76326f185c681ab6ec79914f",
+      "coverage": "2015-04..2026-06",
       "primary_source_table": "domestic_route_monthly",
       "metric_semantics": "domestic_route_segment_passengers"
     }
