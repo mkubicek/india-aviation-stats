@@ -168,7 +168,10 @@ def chart_ramp_benchmark(monthly: pd.DataFrame, *, coverage: str, fingerprint: s
     latest_period = c.add_month_period(monthly)["period"].max()
     x = np.arange(1, RAMP_WINDOW + 1)
     clauses: list[tuple[float, str]] = []
-    for airport in ANALOGUES:
+    # The newcomer is drawn by the same loop, with the same line style, label and
+    # computed clause as its analogues: AGENTS.md forbids gilding any airport,
+    # and a focus page's subject is not an exception.
+    for airport in ANALOGUES + [NEWCOMER]:
         if airport not in series:
             continue
         s = series[airport]
@@ -198,40 +201,6 @@ def chart_ramp_benchmark(monthly: pd.DataFrame, *, coverage: str, fingerprint: s
                  f"{airport} at {label_scale(float(observed.iloc[-1]))} by month {last_pos}")
             )
 
-    has_newcomer = NEWCOMER in series
-    if has_newcomer:
-        s = series[NEWCOMER]
-        observed = s.dropna()
-        last_pos = int(s.index.get_loc(observed.index[-1])) + 1
-        ax.plot(
-            x,
-            s.values,
-            linestyle="none",
-            marker="o",
-            markersize=8,
-            markerfacecolor=c.BG,
-            markeredgecolor=SERIES[NEWCOMER],
-            markeredgewidth=2.5,
-        )
-        latest = observed.index[-1]
-        ax.annotate(
-            f"{c.airport_label(NEWCOMER)}: {observed.iloc[-1] / 1e3:.0f}K in {latest.strftime('%b %Y')}",
-            (last_pos, float(observed.iloc[-1])),
-            xytext=(14, 30),
-            textcoords="offset points",
-            fontsize=9.5,
-            fontweight="bold",
-            color=c.TEXT,
-            arrowprops={"arrowstyle": "-", "color": c.MUTED, "lw": 0.8},
-        )
-
-    if has_newcomer:
-        dxn_observed = series[NEWCOMER].dropna()
-        dxn_pos = int(series[NEWCOMER].index.get_loc(dxn_observed.index[-1])) + 1
-        clauses.append(
-            (float(dxn_observed.iloc[-1]),
-             f"{NEWCOMER} {label_scale(float(dxn_observed.iloc[-1]))} in month {dxn_pos}")
-        )
     title = "Newcomer ramp-ups: " + "; ".join(
         text for _, text in sorted(clauses, key=lambda item: -item[0])
     )
@@ -253,17 +222,9 @@ def chart_ramp_benchmark(monthly: pd.DataFrame, *, coverage: str, fingerprint: s
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(c.fmt_thousands))
     handles = [
         plt.Line2D([], [], color=SERIES[a], lw=2.2, label=c.airport_label(a))
-        for a in ANALOGUES
+        for a in ANALOGUES + [NEWCOMER]
         if a in series
     ]
-    if has_newcomer:
-        handles.append(
-            plt.Line2D(
-                [], [], linestyle="none", marker="o", markersize=7,
-                markerfacecolor=c.BG, markeredgecolor=SERIES[NEWCOMER],
-                markeredgewidth=2, label=f"{c.airport_label(NEWCOMER)} (opening months)",
-            )
-        )
     ax.legend(handles=handles, loc="upper right", frameon=False, fontsize=9, labelcolor=c.SUBTLE)
     c.add_footer(
         fig,

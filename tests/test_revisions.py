@@ -26,3 +26,47 @@ def test_detects_restated_added_removed():
 def test_identical_frames_have_no_changes():
     df = pd.DataFrame([_row("DEL", 100), _row("BOM", 200)])
     assert compute_changes(df, df.copy(), KEY) == []
+
+
+def test_counts_changes_outside_the_passenger_column():
+    """A wholesale rewrite of a non-passenger column must not read as 'no changes'."""
+    from validate.revisions import count_other_column_changes
+
+    old = pd.DataFrame([
+        {"airline": "IndiGo", "service_type": "scheduled_domestic", "year": 2026,
+         "month": 7, "passengers": 100, "passenger_load_factor": 86.66},
+        {"airline": "Akasa Air", "service_type": "scheduled_domestic", "year": 2026,
+         "month": 7, "passengers": 50, "passenger_load_factor": 91.93},
+    ])
+    new = old.copy()
+    new.loc[0, "passenger_load_factor"] = 86.66023056391617
+
+    key = ["airline", "service_type", "year", "month"]
+    assert compute_changes(old, new, key, ["airline", "service_type"]) == []
+    assert count_other_column_changes(old, new, key) == 1
+    assert count_other_column_changes(old, old.copy(), key) == 0
+
+
+def test_entity_label_defaults_to_airport_and_joins_multi_column_entities():
+    old = pd.DataFrame([{"year": 2026, "month": 7, "origin": "DXN",
+                         "destination": "BOM", "passengers": 100}])
+    new = pd.DataFrame([{"year": 2026, "month": 7, "origin": "DXN",
+                         "destination": "BOM", "passengers": 120}])
+
+    key = ["year", "month", "origin", "destination"]
+    (period, label, old_p, new_p, kind), = compute_changes(old, new, key, ["origin", "destination"])
+    assert label == "DXN · BOM"
+    assert period == "2026-7-DXN-BOM"
+    assert (old_p, new_p, kind) == (100, 120, "restated")
+
+
+def test_diff_layer_refuses_a_non_unique_key():
+    """(year, airport) is not unique in airport_yearly; a bad key would fabricate
+    a cartesian product of changes in an unchanged file."""
+    import pytest
+
+    from validate.revisions import LAYERS, diff_layer
+
+    assert LAYERS["airport_yearly"]["key"] == ["year", "airport", "category"]
+    with pytest.raises(ValueError, match="share the diff key"):
+        diff_layer("airport_yearly", {"key": ["year", "airport"], "entity": ["airport"]})

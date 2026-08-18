@@ -121,7 +121,9 @@ keeps its own series (`succeeded_by` in `mappings.yaml`). **v1.0.**
 | `weight_load_factor` | float | percent (0–100) | | DGCA source has rare >100 outliers; surfaced as advisory |
 
 Key: one row per `(airline, service_type, year, month)`. Aggregate "Total" rows
-dropped. Source: DGCA domestic carrier workbooks.
+dropped. Source: DGCA domestic carrier workbooks. Every float column is published
+rounded to **3 decimals** (`metrics.CARRIER_DECIMALS`), so a value never depends on
+how a source workbook stored the cell; `passengers` is a whole number.
 
 `passengers` means **passengers carried** by the airline in that month and service
 type - each journey counted once. For national scheduled domestic passenger

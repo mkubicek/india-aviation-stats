@@ -32,6 +32,7 @@ import pandas as pd
 import yaml
 
 from entities import build_airport_resolver, build_airline_resolver
+from metrics import CARRIER_DECIMALS
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
@@ -475,6 +476,11 @@ def process_carrier_data() -> pd.DataFrame | None:
         .sort_values(["year", "month", "service_type", "airline"])
         .reset_index(drop=True)
     )
+    # Every float column is published at one fixed precision (CARRIER_DECIMALS),
+    # so a published value never depends on an unrelated workbook's dtype and
+    # summing artefacts do not leak into the file. Passengers stay integer.
+    for column in tidy.select_dtypes("float").columns:
+        tidy[column] = tidy[column].round(CARRIER_DECIMALS)
 
     out = PROCESSED_DIR / "carrier_monthly.csv"
     tidy.to_csv(out, index=False)

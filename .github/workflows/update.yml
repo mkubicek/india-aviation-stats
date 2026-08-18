@@ -2,7 +2,11 @@ name: Update Data & Charts
 
 on:
   schedule:
-    # 5th of each month at 08:00 UTC
+    # DGCA lands a month's workbooks between roughly the 14th and the 29th of
+    # the following month (Apr data 29 May, May 25 Jun, Jun 29 Jul, Jul 14 Aug
+    # 2026), so one run on the 5th always trails a publication by weeks. Two
+    # runs bracket that window; both are no-ops when nothing changed upstream.
+    - cron: "0 8 18 * *"
     - cron: "0 8 5 * *"
   workflow_dispatch:
     inputs:
@@ -54,11 +58,6 @@ jobs:
           find data/raw -type f | wc -l
           du -sh data/raw || true
 
-      # Tests run after raw is restored so raw-dependent integration tests
-      # execute on warm-cache runs; they skip cleanly when raw is absent.
-      - name: Run tests
-        run: uv run pytest -q
-
       - name: Fetch data
         id: download
         run: uv run python scripts/fetch.py
@@ -83,6 +82,13 @@ jobs:
       - name: Clean data into canonical CSV datasets
         if: steps.download.outputs.timed_out != 'true'
         run: uv run python scripts/clean.py
+
+      # After clean, so the tests that read data/processed/ assert against the
+      # tables this run is about to publish rather than last month's committed
+      # ones. Raw is present either way, so the raw-dependent integration tests
+      # still execute on warm-cache runs and skip cleanly when raw is absent.
+      - name: Run tests
+        run: uv run pytest -q
 
       - name: Validate (BLOCKING gate + assumptions ledger + revision log)
         id: validate

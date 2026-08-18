@@ -192,3 +192,18 @@ def test_empty_source_frame_does_not_crash():
     resolved = resolve_pair_endpoints(empty)
     assert build_domestic_routes(resolved).empty
     assert monthly_from_pairs(resolved).empty
+
+
+def test_published_carrier_floats_have_fixed_precision():
+    """Every float column of carrier_monthly is a fixed-precision contract.
+
+    One workbook leaving a column blank makes the aggregate column object dtype
+    upstream, which flips every airline's value from 86.66 to 86.66023056391617 -
+    a whole-file diff carrying no new information.
+    """
+    from metrics import CARRIER_DECIMALS
+
+    carrier = pd.read_csv(ROOT / "data" / "processed" / "carrier_monthly.csv")
+    for column in carrier.select_dtypes("float").columns:
+        values = carrier[column].dropna()
+        assert (values.round(CARRIER_DECIMALS) == values).all(), column

@@ -612,8 +612,12 @@ airports:
     lat: 28.1646
     lon: 77.5801
     tier: greenfield
+    # `opening_date` is the month scheduled commercial service began (15 June
+    # 2026), the same meaning as every other entry. The aerodrome licence came
+    # 6 March 2026 and Phase 1 was inaugurated 28 March 2026; neither carried
+    # passengers, and the first DGCA row is June. See assumptions/DXN-001.md.
     opened_year: 2026
-    opening_date: "2026-04"
+    opening_date: "2026-06"
     # NOTE: declaring `variants` REPLACES the implicit city/name labels, so the
     # city and airport name are listed explicitly here to keep resolving if
     # DGCA switches to either of them.
@@ -1128,8 +1132,19 @@ airports:
   DIU:
     name: Diu Airport
     city: Diu
-    state: Daman and Diu
+    state: Dadra and Nagar Haveli and Daman and Diu
     opened_year: 1985
+  NMB:
+    # The 1950s Coast Guard airstrip at Nani Daman (ICAO VADN, "Daman Coast
+    # Guard Air Station" in the AAI eAIP) gained a civil terminal, branded NAMO
+    # Airport, inaugurated 5 June 2026. Scheduled service began 16 July 2026
+    # (Alliance Air to Delhi), which is the first DGCA domestic row.
+    # See assumptions/NMB-001.md.
+    name: Daman Airport
+    city: Daman
+    state: Dadra and Nagar Haveli and Daman and Diu
+    opened_year: 2026
+    opening_date: "2026-07"
 airline_groups:
   IndiGo:
     - IndiGo

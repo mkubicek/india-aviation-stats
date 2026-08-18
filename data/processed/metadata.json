@@ -1,10 +1,10 @@
 {
-  "data_date": "2026-07-31",
-  "processed_date": "2026-07-31",
+  "data_date": "2026-08-18",
+  "processed_date": "2026-08-18",
   "tables": {
     "domestic_route_monthly": {
       "schema_version": "1.0",
-      "rows": 133694,
+      "rows": 134958,
       "columns": [
         "year",
         "month",
@@ -15,7 +15,7 @@
     },
     "airport_monthly": {
       "schema_version": "2.0",
-      "rows": 13350,
+      "rows": 13474,
       "columns": [
         "year",
         "month",
@@ -49,7 +49,7 @@
     },
     "carrier_monthly": {
       "schema_version": "1.0",
-      "rows": 3422,
+      "rows": 3482,
       "columns": [
         "airline",
         "service_type",

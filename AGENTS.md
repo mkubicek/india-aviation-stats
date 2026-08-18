@@ -71,7 +71,9 @@ Default chart generation creates the six static dashboard charts:
 - `airport_seasonality_fingerprint.png`
 
 `scripts/noida.py` additionally generates the Noida focus set into
-`charts/noida/` and writes `noida.html` (run with `PYTHONPATH=scripts`).
+`charts/noida/` and writes `noida.html` (run with `PYTHONPATH=scripts`). A focus
+page has a subject, but the subject is not an exception to the no-gilding rule:
+DXN is drawn with the same mark, label, and legend treatment as its analogues.
 Exhibits whose inputs are not yet published (the route layer, DXN airport rows)
 are skipped and appear automatically once the data lands. Never annotate a
 chart with data that isn't there.
