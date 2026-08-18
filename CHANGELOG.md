@@ -27,9 +27,7 @@
   explicitly that a focus page's subject is not an exception.
 - CI runs the test suite after `clean.py` rather than before `fetch.py`, so the
   tests that read `data/processed/` assert against the tables the run is about
-  to publish. The monthly schedule gained an 18th-of-month run: DGCA lands a
-  month's workbooks between roughly the 14th and the 29th of the following
-  month, so a lone run on the 5th always trailed publication by weeks.
+  to publish.
 - `DXN.opening_date` corrected to `2026-06`, the month scheduled commercial
   service began, matching how the field is used elsewhere. The aerodrome licence
   (6 March 2026) and the Phase 1 inauguration (28 March 2026) carried no
@@ -60,11 +58,12 @@
   tripwire, because only the Delhi end of the one route was attributed.
 - Carrier float precision is now a BLOCKING validation check, so a restatement
   reds the refresh that would publish it rather than the one after.
-- `REVISIONS.md` covers all five published tables, not just the two airport
-  layers, and counts rows whose non-passenger columns moved. The load-factor
-  rewrite would have restated 2,721 published rows with the log reporting
-  "no changes". `diff_layer` now refuses a non-unique key rather than emitting a
-  cartesian product of invented changes.
+- `REVISIONS.md` gains `airport_yearly` as its fifth layer and counts rows whose
+  non-passenger columns moved. Tracking carrier and route rows caught passenger
+  restatements, but a rewrite confined to another column, which is exactly what
+  the load-factor defect was, still read as "no changes". `diff_layer` now
+  refuses a non-unique key rather than emitting a cartesian product of invented
+  changes.
 - `scripts/metrics.py` - the single home for passenger metric semantics
   (passengers carried vs airport throughput vs gateway throughput).
 - `charts/manifest.json` records `primary_source_table` and `metric_semantics`
