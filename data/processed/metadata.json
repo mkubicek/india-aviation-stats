@@ -1,6 +1,6 @@
 {
-  "data_date": "2026-08-18",
-  "processed_date": "2026-08-18",
+  "data_date": "2026-08-24",
+  "processed_date": "2026-08-24",
   "tables": {
     "domestic_route_monthly": {
       "schema_version": "1.0",
@@ -27,7 +27,7 @@
     },
     "airport_international_quarterly": {
       "schema_version": "1.0",
-      "rows": 1218,
+      "rows": 1248,
       "columns": [
         "year",
         "quarter",
