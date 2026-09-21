@@ -1,17 +1,17 @@
 {
-  "data_date": "2026-09-14",
+  "data_date": "2026-09-21",
   "domestic": {
-    "airport_throughput_latest_month": 23998822,
-    "airports_latest_month": 124,
-    "latest_month": "2026-07",
-    "latest_month_passengers_carried": 11999411,
-    "latest_month_yoy_pct": -4.8,
+    "airport_throughput_latest_month": 24252956,
+    "airports_latest_month": 125,
+    "latest_month": "2026-08",
+    "latest_month_passengers_carried": 12126478,
+    "latest_month_yoy_pct": -6.3,
     "passengers_metric": "scheduled_domestic_passengers_carried",
-    "trailing_12m_passengers_carried": 167508022,
-    "trailing_12m_yoy_pct": 0.3
+    "trailing_12m_passengers_carried": 166685863,
+    "trailing_12m_yoy_pct": -0.0
   },
-  "fingerprint": "sha256:9e7ee97f0b78b957b73b75c95299de1b709c7abe1c7eddc222ca37d7a7062081",
-  "generated_date": "2026-09-14",
+  "fingerprint": "sha256:5ab06dfdeeabf312130652b1b48a1110751ab5d66353148a0fcc02b05e6ff22e",
+  "generated_date": "2026-09-21",
   "international": {
     "gateways_latest_quarter": 30,
     "latest_4q_passengers": 76027579,

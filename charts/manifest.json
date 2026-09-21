@@ -16,7 +16,7 @@
         "vmin": 60
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "b7f509e68f71319b0201927a5a092159a66292e44ba5a30da0c84dc7b19cd34c"
+      "sha256": "25dcdecf6561f37864db81bf3982986fbe42810147b0bf88df157c9fd1fb4a43"
     },
     "domestic_market_share_gainers": {
       "file": "charts/domestic_market_share_gainers.png",
@@ -30,7 +30,7 @@
         "window_months": 12
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "bba7fa4676d8b51d129ec3dc18cc6fc46d11f5cd5b544cfa215bf87bb70ab423"
+      "sha256": "30966fb6661c784463734e3013c12a1c84eff0ae19ccf0a778e30b6367057048"
     },
     "india_domestic_demand_pulse": {
       "file": "charts/india_domestic_demand_pulse.png",
@@ -42,7 +42,7 @@
         "moving_average_months": 12
       },
       "primary_source_table": "carrier_monthly",
-      "sha256": "d9d7ee1f384ab525d2ad75c0b7c03cd65ab8b7a2b700058e66b91b0280198ca1"
+      "sha256": "36b263866b765e672d9a8b9cf2bc2af0c24ad820006e876a76edb7372509d587"
     },
     "international_gateway_share_gainers": {
       "file": "charts/international_gateway_share_gainers.png",
@@ -56,7 +56,7 @@
         "window_quarters": 4
       },
       "primary_source_table": "airport_international_quarterly",
-      "sha256": "510b536346f5ff237bfdfa02d46320729dafbc5cfa82d205d60a07eba80b3ab4"
+      "sha256": "f54d5fe54d6bdf42f546afe7a83de912ae7cb64f5c827dd1d052e6d9f9921cb2"
     },
     "newcomer_airport_rampup_24m": {
       "file": "charts/newcomer_airport_rampup_24m.png",
@@ -73,7 +73,7 @@
         "ramp_months": 24
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "790e566135fed2e4d5cd48a1c79b346976ed784f39ef5d9528b04338fa7bf474"
+      "sha256": "6d83cf9d08eb4593145c7b480746113923a752bbf33126452d814ad9e5239d40"
     },
     "top_airport_traffic_trends": {
       "file": "charts/top_airport_traffic_trends.png",
@@ -88,7 +88,7 @@
         "trailing_window_months": 12
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "df988fbeeb41cba5076969e854f47c0205cd80338a8d58c3e8e3d6220a08bc05"
+      "sha256": "02717f3ebe22d0f57187b3459a5c1517858907cc94b452a589dfe501b75d120a"
     }
   },
   "datasets": {
@@ -99,18 +99,18 @@
       "sha256": "8f27dca8d4ead4e2aa52a5d6103a02d80d57b72a615327a324008f025794fae7"
     },
     "airport_monthly": {
-      "coverage": "2015-04..2026-07",
+      "coverage": "2015-04..2026-08",
       "path": "data/processed/airport_monthly.csv",
-      "rows": 13474,
-      "sha256": "e58d8a6cd6ab00471f42861d9365830b5f1c6b819b26240e1bc27c0a509260dc"
+      "rows": 13599,
+      "sha256": "ecc5a9862ced44d3d9acf224559e135cfabc3ce2910c6a132e76b63e37bb1122"
     },
     "carrier_monthly": {
-      "coverage": "2015-01..2026-07",
+      "coverage": "2015-01..2026-08",
       "path": "data/processed/carrier_monthly.csv",
-      "rows": 3482,
-      "sha256": "30412b650b47b9d8ba50917365b29f120f2da458403533829d65fd11b64c09be"
+      "rows": 3464,
+      "sha256": "329bf30c8bd461bc4536529e1262c2bd1b6795d6225a091bb05e0e226428491b"
     }
   },
-  "input_fingerprint": "sha256:9e7ee97f0b78b957b73b75c95299de1b709c7abe1c7eddc222ca37d7a7062081",
+  "input_fingerprint": "sha256:5ab06dfdeeabf312130652b1b48a1110751ab5d66353148a0fcc02b05e6ff22e",
   "manifest_version": 1
 }
