@@ -16,7 +16,7 @@
         "vmin": 60
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "25dcdecf6561f37864db81bf3982986fbe42810147b0bf88df157c9fd1fb4a43"
+      "sha256": "46e2d55c644b14ec35927c094d1566d0335ed97bf6a2b63a2e738864dc5b52f7"
     },
     "domestic_market_share_gainers": {
       "file": "charts/domestic_market_share_gainers.png",
@@ -30,7 +30,7 @@
         "window_months": 12
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "30966fb6661c784463734e3013c12a1c84eff0ae19ccf0a778e30b6367057048"
+      "sha256": "5ffc000374cf2b463b57112fefbbc182927e76b4f1fa6b4bf5fa03722dc898d4"
     },
     "india_domestic_demand_pulse": {
       "file": "charts/india_domestic_demand_pulse.png",
@@ -42,7 +42,7 @@
         "moving_average_months": 12
       },
       "primary_source_table": "carrier_monthly",
-      "sha256": "36b263866b765e672d9a8b9cf2bc2af0c24ad820006e876a76edb7372509d587"
+      "sha256": "ced0b6ad59669b72c081d7066f94539e3e10b65286f704f31a47b2451fc1bf14"
     },
     "international_gateway_share_gainers": {
       "file": "charts/international_gateway_share_gainers.png",
@@ -56,7 +56,7 @@
         "window_quarters": 4
       },
       "primary_source_table": "airport_international_quarterly",
-      "sha256": "f54d5fe54d6bdf42f546afe7a83de912ae7cb64f5c827dd1d052e6d9f9921cb2"
+      "sha256": "176d00398cb5bf80ba5bdf6ec144461badd8a4648c3234c442b43652635f95bc"
     },
     "newcomer_airport_rampup_24m": {
       "file": "charts/newcomer_airport_rampup_24m.png",
@@ -73,7 +73,7 @@
         "ramp_months": 24
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "6d83cf9d08eb4593145c7b480746113923a752bbf33126452d814ad9e5239d40"
+      "sha256": "245496d3ba4fa1ec494ff15ebc244da8a27711a214d678851efcbd7039723686"
     },
     "top_airport_traffic_trends": {
       "file": "charts/top_airport_traffic_trends.png",
@@ -88,7 +88,7 @@
         "trailing_window_months": 12
       },
       "primary_source_table": "airport_monthly",
-      "sha256": "02717f3ebe22d0f57187b3459a5c1517858907cc94b452a589dfe501b75d120a"
+      "sha256": "2936ab9e95995008aed745d435f6fca598db73edc7d121cd86d21fab51b608f8"
     }
   },
   "datasets": {
